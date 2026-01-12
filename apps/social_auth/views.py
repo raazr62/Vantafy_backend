@@ -5,8 +5,12 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from apps.user.models import User, UserProfile
-from apps.utils.helpers import success,error
+from apps.utils.helpers import error
 from uuid import uuid4
+import secrets
+
+from apps.user.serializers import CustomRefreshToken
+from apps.user.utils import get_user_agent_hash, create_hybrid_auth_response
 
 class GoogleAuthView(APIView):
     permission_classes = [AllowAny]  
@@ -39,9 +43,11 @@ class GoogleAuthView(APIView):
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
+            # Generate secure random password for social auth users
+            random_password = secrets.token_urlsafe(32)
             user = User.objects.create_user(
                 email=email,
-                password="passworasldfjadslfh@#@32"
+                password=random_password
             )
             if picture:
                 image_response = requests.get(picture)
@@ -50,40 +56,38 @@ class GoogleAuthView(APIView):
                     if hasattr(user, 'avatar'):
                         user.avatar.save(file_name, ContentFile(image_response.content))
 
-
             UserProfile.objects.create(
                 user=user,
                 first_name=given_name,
                 last_name=family_name
             )
-           
-        from apps.user.serializers import CustomRefreshToken
-        from apps.user.utils import get_client_ip
-        ip_address = get_client_ip(request)
         
-        refresh = CustomRefreshToken.for_user(user, ip_address=ip_address)
+        # Get user agent hash for token binding (security feature)
+        user_agent_hash = get_user_agent_hash(request)
         
-        response = success({
-            'user': {
-                'id': user.id,
-                'email': user.email,
-                'role': user.role,
-                 # Add other user fields as needed
-            }
-        }, message="Google login successful.")
+        # Generate tokens with user agent binding
+        refresh = CustomRefreshToken.for_user(user, user_agent_hash=user_agent_hash)
         
-        response.set_cookie(
-            key='refresh_token', 
-            value=str(refresh), 
-            httponly=True, 
-            secure=False, 
-            samesite='Lax'
+        # Prepare tokens
+        tokens = {
+            'access': str(refresh.access_token),
+            'refresh': str(refresh)
+        }
+        
+        # User data to return
+        user_data = {
+            'id': user.id,
+            'email': user.email,
+            'role': user.role,
+        }
+        
+        # Create hybrid response (supports both web and mobile)
+        response = create_hybrid_auth_response(
+            data=user_data,
+            tokens=tokens,
+            request=request,
+            message="Google login successful.",
+            status_code=status.HTTP_200_OK
         )
-        response.set_cookie(
-            key='access_token', 
-            value=str(refresh.access_token), 
-            httponly=True, 
-            secure=False, 
-            samesite='Lax'
-        )
+        
         return response

@@ -42,8 +42,10 @@ if DEBUG:
         'https://127.0.0.1',
         'http://127.0.0.1:5500',
         'http://localhost:5173',
-        'https://dcd41866b78b.ngrok-free.app',
-        "https://vantafy.vercel.app/"
+        'https://*.ngrok-free.app',
+        "https://vantafy.vercel.app",
+        "http://172.16.200.94:8000",
+        "https://328654cec5tf.ngrok-free.app/apl/google-auth/",
     ]
 
 else:
