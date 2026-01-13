@@ -166,26 +166,6 @@ class ResetPasswordView(APIView):
         return error(message="Password reset failed.", status_code=status.HTTP_400_BAD_REQUEST, errors=errors)
 
 
-
-class UpdataProfileAvatarView(APIView):
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [CookieJWTAuthentication]
-
-    def post(self, request):
-        user = request.user
-        
-        serializer = UpdataProfileAvatarSerializer(user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return success(data=serializer.data, message="Profile avatar update successfully.", status_code=status.HTTP_200_OK)
-        return error(message="Profile avatar update failed.", status_code=status.HTTP_400_BAD_REQUEST, errors=serializer.errors)
-
-
-
-
-
-
-
 class CookieTokenRefreshView(TokenRefreshView):
     """
     Hybrid Token Refresh View
@@ -255,3 +235,42 @@ class CookieTokenVerifyView(TokenVerifyView):
 
 
 
+
+
+class UpdataProfileAvatarView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+
+    def post(self, request):
+        user = request.user
+        
+        serializer = UpdataProfileAvatarSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return success(data=serializer.data, message="Profile avatar update successfully.", status_code=status.HTTP_200_OK)
+        return error(message="Profile avatar update failed.", status_code=status.HTTP_400_BAD_REQUEST, errors=serializer.errors)
+
+
+
+
+class AddCustomerNichesAndStageNamesView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+
+    def post(self, request):
+        user = request.user
+        
+        niches = request.data.get('niches', [])
+        stage_names = request.data.get('stage_names', [])
+        
+        from .models import CustomerNiche, CustomerStageName
+        
+        # Add niches
+        for niche in niches:
+            CustomerNiche.objects.get_or_create(customer=user, name=niche)
+        
+        # Add stage names
+        for stage_name in stage_names:
+            CustomerStageName.objects.get_or_create(customer=user, name=stage_name)
+        
+        return success(data=[], message="Customer niches and stage names added successfully.", status_code=status.HTTP_200_OK)

@@ -16,12 +16,18 @@ from .views import (
     VerifyOTPView,
     ResetPasswordView,
     UpdataProfileAvatarView,
+    AddCustomerNichesAndStageNamesView,
 )
 
 urlpatterns = [
+    
+    # auth
+    
     path("signup/", SignUpView.as_view(), name="signup"),
     path("signin/", SignInView.as_view(), name="signin"),
     path("signout/", SignOutView.as_view(), name="signout"),
+    path("token/refresh/", CookieTokenRefreshView.as_view(), name="token_refresh"),
+    path("token/verify/", CookieTokenVerifyView.as_view(), name="token_verify"),
 
     # password
     path('change-password/', ChangePasswordView.as_view(), name='change-password'),
@@ -32,8 +38,7 @@ urlpatterns = [
 
     # profile
     path('avatar-update/', UpdataProfileAvatarView.as_view(), name='avatar-update'),
-
-
-    path("token/refresh/", CookieTokenRefreshView.as_view(), name="token_refresh"),
-    path("token/verify/", CookieTokenVerifyView.as_view(), name="token_verify"),
+    
+    # niches and stage names
+    path('add-customer-niches-and-stage-names/', AddCustomerNichesAndStageNamesView.as_view(), name='add-customer-niches-and-stage-names'),
 ]
