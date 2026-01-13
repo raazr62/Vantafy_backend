@@ -1,6 +1,6 @@
 
 from apps.system_setting.models import AboutSystem
-from .models import User, UserProfile, OTP
+from .models import User, OTP
 from rest_framework import  serializers
 from django.core.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
@@ -17,8 +17,7 @@ from .utils import get_user_agent_hash
 
 
 class SignUpSerializer(serializers.ModelSerializer):
-    first_name = serializers.CharField(required=False, allow_blank=True)
-    last_name = serializers.CharField(required=False, allow_blank=True)
+    full_name = serializers.CharField(required=False, allow_blank=True)
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
     purpose = serializers.CharField(write_only=True)
@@ -31,22 +30,17 @@ class SignUpSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['email', 'password', 'first_name', 'last_name', 'purpose']
+        fields = ['email', 'password', 'full_name', 'purpose']
 
     def create(self, validated_data):
-        first_name = validated_data.pop('first_name', '')
-        last_name = validated_data.pop('last_name', '')
+        full_name = validated_data.pop('full_name', '')
         email = validated_data.pop('email')
         password = validated_data.pop('password')
         purpose = validated_data.pop('purpose')
         
         user = User.objects.create_user(email=email, password=password, **validated_data)
 
-        UserProfile.objects.create(
-            user=user,
-            first_name=first_name,
-            last_name=last_name,
-        )
+       
 
 
         otp_code = generate_otp()
@@ -74,8 +68,7 @@ class SignUpSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         return {
             'id': instance.id,
-            'first_name': instance.user_profile.first_name,
-            'last_name': instance.user_profile.last_name,
+            'full_name': instance.full_name,
             'email': instance.email,
         }
 
@@ -396,26 +389,10 @@ class UserSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "email",
+            "full_name",
             "is_staff",
             "is_active",
             "date_joined",
-            "profile",
         ]
 
-
-# UserProfile
-class UserProfileSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = UserProfile
-        fields = [
-            "user",
-            "first_name",
-            "last_name",
-            "phone",
-            "accepted_terms",
-            "dob",
-            "created_at",
-            "updated_at",
-        ]
 

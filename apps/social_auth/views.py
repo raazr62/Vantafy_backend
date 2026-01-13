@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
-from apps.user.models import User, UserProfile
+from apps.user.models import User
 from apps.utils.helpers import error
 from uuid import uuid4
 import secrets
@@ -34,6 +34,7 @@ class GoogleAuthView(APIView):
         name = user_info.get('name')
         given_name = user_info.get('given_name')  
         family_name = user_info.get('family_name')  
+        full_name = name if name else f"{given_name} {family_name}".strip()
         picture = user_info.get('picture') 
 
         if not email:
@@ -47,6 +48,7 @@ class GoogleAuthView(APIView):
             random_password = secrets.token_urlsafe(32)
             user = User.objects.create_user(
                 email=email,
+                full_name=full_name,
                 password=random_password
             )
             if picture:
@@ -56,11 +58,7 @@ class GoogleAuthView(APIView):
                     if hasattr(user, 'avatar'):
                         user.avatar.save(file_name, ContentFile(image_response.content))
 
-            UserProfile.objects.create(
-                user=user,
-                first_name=given_name,
-                last_name=family_name
-            )
+           
         
         # Get user agent hash for token binding (security feature)
         user_agent_hash = get_user_agent_hash(request)
@@ -78,6 +76,7 @@ class GoogleAuthView(APIView):
         user_data = {
             'id': user.id,
             'email': user.email,
+            'full_name': user.full_name,
             'role': user.role,
         }
         

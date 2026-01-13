@@ -16,8 +16,6 @@ from .views import (
     VerifyOTPView,
     ResetPasswordView,
     UpdataProfileAvatarView,
-    UpdateProfileView,
-    ProfileGet,
 )
 
 urlpatterns = [
@@ -34,8 +32,7 @@ urlpatterns = [
 
     # profile
     path('avatar-update/', UpdataProfileAvatarView.as_view(), name='avatar-update'),
-    path('profile-update/', UpdateProfileView.as_view(), name='profile-update'),
-    path('profile-get/', ProfileGet.as_view(), name='profile-get'),
+
 
     path("token/refresh/", CookieTokenRefreshView.as_view(), name="token_refresh"),
     path("token/verify/", CookieTokenVerifyView.as_view(), name="token_verify"),

@@ -11,12 +11,13 @@ from django.contrib.auth.hashers import check_password
 
 class User(AbstractBaseUser, PermissionsMixin):
     class Roles(models.TextChoices):
-        ADMIN = 'admin', _('Admin')
-        USER = 'user', _('User')
+        CUSTOMER = 'customer', _('Customer')
+        AGENCY = 'agency', _('Agency')
 
     email = models.EmailField(_("email address"), unique=True)
+    full_name = models.CharField(max_length=255, blank=True, null=True)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
-    role = models.CharField(max_length=20, choices=Roles.choices, default=Roles.USER)
+    role = models.CharField(max_length=20, choices=Roles.choices, default=Roles.CUSTOMER)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_superuser = models.BooleanField(default=False)
@@ -32,19 +33,19 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
-class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='user_profile')
-    first_name = models.CharField(max_length=30, blank=True)
-    last_name = models.CharField(max_length=30, blank=True)
-    phone = models.CharField(max_length=20, blank=True, null=True)
-    accepted_terms = models.BooleanField(default=False)
-    dob = models.DateField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+class CustomerNiche(models.Model):
+    customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='niches')
+    name = models.CharField(max_length=255)
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name}" if self.first_name or self.last_name else self.user.email
+        return self.name
+    
+class CustomerStageName(models.Model):
+    customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='stage_names')
+    name = models.CharField(max_length=255)
 
+    def __str__(self):
+        return self.name
 
 PURPOSE = (
     ('password_reset', 'Password Reset'),

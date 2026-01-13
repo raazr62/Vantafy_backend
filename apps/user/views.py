@@ -1,4 +1,3 @@
-from .models import UserProfile
 from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 from rest_framework import status
@@ -23,7 +22,6 @@ from .serializers import (
     VerifyOTPSerializer,
     ResetPasswordSerializer,
     UpdataProfileAvatarSerializer,
-    UserProfileSerializer,
 )
 
 from apps.utils.helpers import success, error
@@ -183,49 +181,9 @@ class UpdataProfileAvatarView(APIView):
         return error(message="Profile avatar update failed.", status_code=status.HTTP_400_BAD_REQUEST, errors=serializer.errors)
 
 
-class UpdateProfileView(APIView):
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [CookieJWTAuthentication]
-
-    def put(self, request):
-        user = request.user
-
-        try:
-            userProfile = UserProfile.objects.select_related('user').get(user=user)
-        except UserProfile.DoesNotExist:
-            return error(message="User not found.", status_code=status.HTTP_400_BAD_REQUEST, errors=[])
-
-        serializer = UserProfileSerializer(userProfile, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return success(data=serializer.data, message="Profile update successfully.", status_code=status.HTTP_200_OK)
-        return error(message="Profile update failed.", status_code=status.HTTP_400_BAD_REQUEST, errors=serializer.errors)
 
 
-class ProfileGet(APIView):
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [CookieJWTAuthentication]
 
-    def get(self, request):
-        user = request.user
-
-        try:
-            profile = UserProfile.objects.select_related('user').get(user=user)
-        except UserProfile.DoesNotExist:
-            return success(data=[], message="Profile not found.", status_code=status.HTTP_200_OK)
-
-        data = {
-            'id': profile.id,
-            'email': profile.user.email,
-            'first_name': profile.first_name,
-            'last_name': profile.last_name,
-            'avater': profile.user.avatar.url if profile.user.avatar else None,
-            'phone': profile.phone,
-            'accepted_terms': profile.accepted_terms,
-            'created_at': profile.created_at,
-            'updated_at': profile.updated_at,
-        }
-        return success(data=data, message="Profile get successfully.", status_code=status.HTTP_200_OK)
 
 
 class CookieTokenRefreshView(TokenRefreshView):
