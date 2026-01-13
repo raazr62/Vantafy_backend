@@ -69,7 +69,7 @@ class HeroSection(models.Model):
     
 class RepresentPlatform(models.Model):
     name = models.CharField(max_length=255)
-    icon = models.CharField(max_length=255)
+    icon = models.ImageField(upload_to='platforms/')
     status = models.BooleanField(default=True)
 
     def __str__(self):
@@ -77,7 +77,7 @@ class RepresentPlatform(models.Model):
     
 class AmongOurCustomer(models.Model):
     name = models.CharField(max_length=255)
-    profile_pic = models.CharField(max_length=255)
+    profile_pic = models.ImageField(upload_to='customers/')
     followers_count = models.IntegerField()
     status = models.BooleanField(default=True)
 

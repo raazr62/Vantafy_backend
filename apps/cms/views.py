@@ -35,7 +35,6 @@ class LandingPageAllSectionOneByOneView(APIView):
     def get(self, request):
         # Retrieve all active sections
         hero_section = HeroSection.objects.filter(status=True).first()
-        cms_sections = CMS.objects.filter(status='active')
         faqs = FAQ.objects.filter(status=True)
         platforms = RepresentPlatform.objects.filter(status=True)
         customers = AmongOurCustomer.objects.filter(status=True)
@@ -47,8 +46,7 @@ class LandingPageAllSectionOneByOneView(APIView):
         
         # Serialize data
         data = {
-            'hero_section': HeroSectionSerializer(hero_section).data if hero_section else None,
-            'cms_sections': CMSSerializer(cms_sections, many=True).data,
+            'hero_section': HeroSectionSerializer(hero_section).data,
             'faqs': FAQSerializer(faqs, many=True).data,
             'platforms': RepresentPlatformSerializer(platforms, many=True).data,
             'customers': AmongOurCustomerSerializer(customers, many=True).data,
