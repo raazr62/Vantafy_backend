@@ -5,21 +5,14 @@ from django.utils.html import format_html
 
 @admin.register(User)
 class CustomAdminClass(ModelAdmin):
-    list_display = ('id', 'email', 'full_name', 'preview_user_image', 'check_is_superuser')
-    list_display_links = ('id', 'email', 'full_name', 'preview_user_image', 'check_is_superuser')
-    search_fields = ('email', 'full_name')
+    list_display = ('id', 'email', 'preview_user_image', 'check_is_superuser')
+    list_display_links = ('id', 'email', 'preview_user_image', 'check_is_superuser')
+    search_fields = ('email',)
 
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return qs.exclude(id=1)
-
-
-    def first_name(self, obj):
-        return ''
-
-    def last_name(self, obj):
-        return ''
 
     def preview_user_image(self, obj):
         if obj.avatar:

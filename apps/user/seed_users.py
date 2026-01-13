@@ -73,7 +73,6 @@ def seed_users():
             is_superuser=user["is_superuser"],
         )
 
-       
-
 
     print("✅ User data seeded successfully.")
+

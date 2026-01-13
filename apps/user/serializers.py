@@ -33,7 +33,6 @@ class SignUpSerializer(serializers.ModelSerializer):
         fields = ['email', 'password', 'full_name', 'purpose']
 
     def create(self, validated_data):
-        full_name = validated_data.pop('full_name', '')
         email = validated_data.pop('email')
         password = validated_data.pop('password')
         purpose = validated_data.pop('purpose')
