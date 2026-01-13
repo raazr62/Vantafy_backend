@@ -112,14 +112,45 @@ def get_unfold_settings():
                     ],
                 },
                 {
-                    "title": _("CMS Management"),
+                    "title": _("Landing Page Management"),
                     "separator": True,
                     "collapsible": True,
                     "items": [
+
                         {
-                            "title": _("CMS"),
-                            "icon": "auto_stories",
-                            "link": reverse_lazy("admin:cms_cms_changelist"),
+                            "title": _("Hero Section"),
+                            "icon": "home",
+                            "link": reverse_lazy("admin:cms_herosection_changelist"),
+                        },
+                        {
+                            "title": _("Represent Platforms"),
+                            "icon": "apps",
+                            "link": reverse_lazy("admin:cms_representplatform_changelist"),
+                        },
+                        {
+                            "title": _("Our Customers"),
+                            "icon": "group",
+                            "link": reverse_lazy("admin:cms_amongourcustomer_changelist"),
+                        },
+                        {
+                            "title": _("Testimonials"),
+                            "icon": "star",
+                            "link": reverse_lazy("admin:cms_testimonial_changelist"),
+                        },
+                        {
+                            "title": _("How It Works"),
+                            "icon": "lightbulb",
+                            "link": reverse_lazy("admin:cms_howitworks_changelist"),
+                        },
+                        {
+                            "title": _("Identity Tracking"),
+                            "icon": "fingerprint",
+                            "link": reverse_lazy("admin:cms_identitytracking_changelist"),
+                        },
+                        {
+                            "title": _("Devices Compatibility"),
+                            "icon": "devices",
+                            "link": reverse_lazy("admin:cms_devicescompatibility_changelist"),
                         },
                     ],
                 },
@@ -133,6 +164,7 @@ def get_unfold_settings():
                             "icon": "help",
                             "link": reverse_lazy("admin:cms_faq_changelist"),
                         },
+                       
                     ],
                 }
             ],

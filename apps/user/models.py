@@ -46,6 +46,12 @@ class CustomerStageName(models.Model):
 
     def __str__(self):
         return self.name
+    
+    
+class ConnectedSocialAccount(models.Model):
+    customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='social_accounts')
+    platform = models.CharField(max_length=100)
+    username = models.CharField(max_length=255)
 
 PURPOSE = (
     ('password_reset', 'Password Reset'),

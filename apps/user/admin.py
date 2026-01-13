@@ -1,6 +1,6 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
-from .models import User
+from .models import ConnectedSocialAccount, User
 from django.utils.html import format_html
 
 @admin.register(User)
@@ -21,4 +21,3 @@ class CustomAdminClass(ModelAdmin):
     
     def check_is_superuser(self, obj):
         return 'YES' if obj.is_superuser else 'NO'
-    
