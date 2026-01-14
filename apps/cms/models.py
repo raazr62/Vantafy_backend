@@ -67,6 +67,12 @@ class HeroSection(models.Model):
     def __str__(self):
         return self.title
     
+class HeroRadarIcon(models.Model):
+    icon = models.ImageField(upload_to='hero_radar_icons/')
+    
+    def __str__(self):
+        return f"HeroRadarIcon {self.id}"
+    
 class RepresentPlatform(models.Model):
     name = models.CharField(max_length=255)
     icon = models.ImageField(upload_to='platforms/')
@@ -112,11 +118,3 @@ class IdentityTracking(models.Model):
     def __str__(self):
         return self.title
     
-
-class DevicesCompatibility(models.Model):
-    title = models.CharField(max_length=255)
-    description = models.TextField()
-    image = models.ImageField(upload_to='devices_compatibility/')
-    
-    def __str__(self):
-        return self.title

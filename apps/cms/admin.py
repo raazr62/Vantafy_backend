@@ -1,7 +1,8 @@
 from django.contrib import admin
 from apps.cms.models import (
     CMS, 
-    FAQ, 
+    FAQ,
+    HeroRadarIcon, 
     Page,
     HeroSection,
     RepresentPlatform,
@@ -9,7 +10,7 @@ from apps.cms.models import (
     Testimonial,
     HowItWorks,
     IdentityTracking,
-    DevicesCompatibility
+    
 )
 from unfold.admin import ModelAdmin
 
@@ -50,6 +51,12 @@ class HeroSectionAdmin(ModelAdmin):
     list_display_links = ('id', 'title')
     list_filter = ('status',)
     search_fields = ('title', 'subtitle')
+    
+@admin.register(HeroRadarIcon)
+class HeroRadarIconAdmin(ModelAdmin):
+    list_display = ('id', 'icon')
+    list_display_links = ('id', 'icon')
+
 
 @admin.register(RepresentPlatform)
 class RepresentPlatformAdmin(ModelAdmin):
@@ -84,8 +91,3 @@ class IdentityTrackingAdmin(ModelAdmin):
     list_display_links = ('id', 'title')
     search_fields = ('title', 'short_description')
 
-@admin.register(DevicesCompatibility)
-class DevicesCompatibilityAdmin(ModelAdmin):
-    list_display = ('id', 'title')
-    list_display_links = ('id', 'title')
-    search_fields = ('title', 'description')

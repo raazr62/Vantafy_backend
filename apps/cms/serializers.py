@@ -9,7 +9,7 @@ from .models import (
     Testimonial,
     HowItWorks,
     IdentityTracking,
-    DevicesCompatibility
+    
 )
 
 class PageSerializer(serializers.ModelSerializer):
@@ -57,7 +57,3 @@ class IdentityTrackingSerializer(serializers.ModelSerializer):
         model = IdentityTracking
         fields = '__all__'
 
-class DevicesCompatibilitySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DevicesCompatibility
-        fields = '__all__'

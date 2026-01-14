@@ -123,6 +123,11 @@ def get_unfold_settings():
                             "link": reverse_lazy("admin:cms_herosection_changelist"),
                         },
                         {
+                            "title": _("Hero Radar"),
+                            "icon": "radar",
+                            "link": reverse_lazy("admin:cms_heroradaricon_changelist"),
+                        },
+                        {
                             "title": _("Represent Platforms"),
                             "icon": "apps",
                             "link": reverse_lazy("admin:cms_representplatform_changelist"),
@@ -147,11 +152,7 @@ def get_unfold_settings():
                             "icon": "fingerprint",
                             "link": reverse_lazy("admin:cms_identitytracking_changelist"),
                         },
-                        {
-                            "title": _("Devices Compatibility"),
-                            "icon": "devices",
-                            "link": reverse_lazy("admin:cms_devicescompatibility_changelist"),
-                        },
+                      
                     ],
                 },
                 {
