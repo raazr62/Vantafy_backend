@@ -84,6 +84,7 @@ class RepresentPlatform(models.Model):
 class AmongOurCustomer(models.Model):
     name = models.CharField(max_length=255)
     profile_pic = models.ImageField(upload_to='customers/')
+    social_media_icon = models.ImageField(upload_to='customers/social_media_icons/')
     followers_count = models.IntegerField()
     status = models.BooleanField(default=True)
 
@@ -93,7 +94,7 @@ class AmongOurCustomer(models.Model):
 class Testimonial(models.Model):
     name = models.CharField(max_length=255)
     profession = models.CharField(max_length=255)
-    profic_pic = models.ImageField(upload_to='testimonials/')  
+    profile_pic = models.ImageField(upload_to='testimonials/')  
     rating = models.IntegerField()
     platform = models.ImageField(upload_to='testimonials/platforms/')
     review_title = models.CharField(max_length=255)

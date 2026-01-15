@@ -1,4 +1,4 @@
-from apps.cms.models import FAQ, Page
+from apps.cms.models import FAQ, AmongOurCustomer, HeroRadarIcon, HeroSection, HowItWorks, IdentityTracking, Page, Testimonial
 
 def seed_page():
     pages = [
@@ -69,3 +69,281 @@ def seed_faq():
         FAQ.objects.create(**faq)
 
     print("✅ FAQs seeded successfully.")
+
+
+def seed_hero_section():
+    hero_sections = [
+        {
+            "title": "Protect your images & videos automatically.",
+            "subtitle": "An AI platform that detects and removes unauthorized media online, protecting your creative work around the clock with smart automation."
+        }
+    ]
+
+    for hero_section in hero_sections:
+        HeroSection.objects.create(**hero_section)
+
+    print("✅ Hero sections seeded successfully.")
+    
+def seed_hero_radar_icon():
+    hero_radar_icons = [
+       {
+           'icon': 'cms/Radar/1.png',
+       },
+       {
+           'icon': 'cms/Radar/2.png',
+       },
+       {
+           'icon': 'cms/Radar/3.png',
+       },
+       {
+              'icon': 'cms/Radar/4.png',
+       },
+        {
+                'icon': 'cms/Radar/5.png',
+        },
+        {
+                'icon': 'cms/Radar/6.png',
+        },
+        {
+                'icon': 'cms/Radar/7.png',
+        },
+        {
+                'icon': 'cms/Radar/8.png',
+        },
+         
+        {
+                'icon': 'cms/Radar/9.png',
+        },
+        {
+                'icon': 'cms/Radar/10.png',
+        },
+        {
+                'icon': 'cms/Radar/11.png',
+        },
+          
+    ]
+
+    for hero_radar_icon in hero_radar_icons:
+        HeroRadarIcon.objects.create(**hero_radar_icon)
+
+    print("✅ Hero radar icons seeded successfully.")
+    
+    
+def seed_represent_platform():
+    from apps.cms.models import RepresentPlatform
+
+    platforms = [
+        {
+            "name": "Chaturtle",
+            "icon": "cms/platform/1.png",
+            "status": True
+        },
+        {
+            "name": "Fancy",
+            "icon": "cms/platform/2.svg",
+            "status": True
+        },
+        {
+            "name": "Fanvue",
+            "icon": "cms/platform/3.png",
+            "status": True
+        },
+        {
+            "name": "Manivids",
+            "icon": "cms/platform/4.png",
+            "status": True
+        },
+        {
+            "name": "OnlyFans",
+            "icon": "cms/platform/5.svg",
+            "status": True
+        }
+    ]
+
+    for platform in platforms:
+        RepresentPlatform.objects.create(**platform)
+
+    print("✅ Represent platforms seeded successfully.")
+
+
+def seed_among_our_customers():
+
+    customers = [
+        {
+            "name": "Sarah Johnson",
+            "profile_pic": "cms/customers/1.jpg",
+            "social_media_icon": "cms/customers/bchaturbate.png",
+            "followers_count": 12.5,
+            "status": True
+        },
+        {
+            "name": "Mike Thompson",
+            "profile_pic": "cms/customers/2.jpg",
+            "social_media_icon": "cms/customers/Facebook.png",
+            "followers_count": 89.0,
+            "status": True
+        },
+        {
+            "name": "Emily Chen",
+            "profile_pic": "cms/customers/3.jpg",
+            "social_media_icon": "cms/customers/hamster.png",
+            "followers_count": 15,
+            "status": True
+        },
+        {
+            "name": "Alex Martinez",
+            "profile_pic": "cms/customers/4.jpg",
+            "social_media_icon": "cms/customers/facebook.png",
+            "followers_count": 2.5,
+            "status": True
+        },
+        {
+            "name": "Jessica Williams",
+            "profile_pic": "cms/customers/5.jpg",
+            "social_media_icon": "cms/customers/instagram.png",
+            "followers_count": 45.3,
+            "status": True
+        },
+        {
+            "name": "David Brown",
+            "profile_pic": "cms/customers/6.jpg",
+            "social_media_icon": "cms/customers/por.png",
+            "followers_count": 8.7,
+            "status": True
+        }
+    ]
+
+    for customer in customers:
+        AmongOurCustomer.objects.create(**customer)
+
+    print("✅ Among our customers seeded successfully.")
+    
+    
+def seed_testimonials():
+    
+    testimonials = [
+        {
+            "name": "Laura Smith",
+            "profession": "Content Creator",
+            "profile_pic": "cms/testimonials/1.jpg",
+            "rating": 5,
+            "platform": "cms/testimonials/chaturbate.png",
+            "review_title": "Excellent Service!",
+            "review": "This platform has transformed the way I protect my content. The AI detection is incredibly accurate and efficient.",
+        },
+        {
+            "name": "James Wilson",
+            "profession": "Photographer",
+            "profile_pic": "cms/testimonials/2.jpg",
+            "rating": 4,
+            "platform": "cms/testimonials/fanvue.png",
+            "review_title": "Very Reliable",
+            "review": "I feel much more secure knowing that my images are being monitored and protected around the clock.",
+        },
+        {
+            "name": "Megan Lee",
+            "profession": "Videographer",
+            "profile_pic": "cms/testimonials/3.jpg",
+            "rating": 5,
+            "platform": "cms/testimonials/ManyVids.png",
+            "review_title": "Highly Recommend!",
+            "review": "The automation features save me so much time. I can focus on creating while the platform handles the rest.",
+        },
+        {
+            "name": "David Kim",
+            "profession": "Blogger",
+            "profile_pic": "cms/testimonials/4.jpg",
+            "rating": 4,
+            "platform": "cms/testimonials/Onlyfans.svg",
+            "review_title": "Great Support",
+            "review": "The customer support team is responsive and helpful. They assisted me with setting up my account quickly.",
+        },
+        {
+            "name": "Sophia Garcia",
+            "profession": "Artist",
+            "profile_pic": "cms/testimonials/5.jpg",
+            "rating": 5,
+            "platform": "cms/testimonials/fanvue.png",
+            "review_title": "Fantastic Experience",
+            "review": "Using this platform has been a game-changer for my online presence. I feel confident sharing my work now.",
+        },
+        {
+            "name": "Michael Johnson",
+            "profession": "Musician",
+            "profile_pic": "cms/testimonials/6.jpg",
+            "rating": 5,
+            "platform": "cms/testimonials/ManyVids.png",
+            "review_title": "Top Notch Protection",
+            "review": "The AI technology is impressive. It quickly identifies unauthorized use of my music and takes action.",
+        },
+        {
+            "name": "Olivia Brown",
+            "profession": "Influencer",
+            "profile_pic": "cms/testimonials/7.jpg",
+            "rating": 4,
+            "platform": "cms/testimonials/fanvue.png",
+            "review_title": "Very Effective",
+            "review": "I've seen a significant decrease in content theft since using this service. It's definitely worth it.",
+        },
+        {
+            "name": "Daniel Davis",
+            "profession": "Writer",
+            "profile_pic": "cms/testimonials/8.jpg",
+            "rating": 5,
+            "platform": "cms/testimonials/ManyVids.png",
+            "review_title": "Impressive Results",
+            "review": "The platform's ability to detect and remove unauthorized content is outstanding. Highly effective!",
+        }
+    ]
+
+    for testimonial in testimonials:
+        Testimonial.objects.create(**testimonial)
+
+    print("✅ Testimonials seeded successfully.")
+
+
+def seed_how_it_works():
+    how_it_works = [
+        {
+            "question": "Create & Optimize a free account",
+            "answer": "Sign up for a free DIY account. You can specify your niches and all of your usernames to make sure the free scan finds as many leaks as possible.",
+            "status": True
+        },
+        {
+            "question": "Explore where your leaks appear",
+            "answer": "Our platform helps you quickly identify where your content or data is leaking online. With detailed scanning tools, you can pinpoint the exact sources of leaks, making it easy to take action before they spread further.",
+            "status": True
+        },
+        {
+            "question": "Remove leaks by yourself or automatically",
+            "answer": "You have full control over leak removal. Choose to handle it manually with our step-by-step tools, or let our system automatically remove unauthorized content for you, saving time and ensuring faster protection.",
+            "status": True
+        },
+        {
+            "question": "Track progress & automatic scans",
+            "answer": "Stay updated on your leak protection efforts with real-time tracking. Our automatic scans continuously monitor the web for new leaks, and you can track removal success, statistics, and overall progress from your dashboard.",
+            "status": True
+        },
+      
+    ]
+
+    for how_it_work in how_it_works:
+        HowItWorks.objects.create(**how_it_work)
+
+    print("✅ How it works seeded successfully.")
+
+
+def seed_identity_tracking():
+    identity_tracking = [
+        {
+            "title": "Searching through all of your stage names is how I found you.",
+            "short_description": "To ensure full coverage, our AI searches for unauthorized content using all of your stage names.",
+            "image": "cms/identity_tracking/1.jpg",
+        },
+       
+    ]
+
+    for identity_tracking in identity_tracking:
+        IdentityTracking.objects.create(**identity_tracking)
+
+    print("✅ Identity tracking seeded successfully.")
