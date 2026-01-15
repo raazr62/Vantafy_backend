@@ -15,18 +15,23 @@ from django.template.loader import render_to_string
 from .utils import get_user_agent_hash
 
 
+
 class CustomRefreshToken(RefreshToken):
+
     @classmethod
-    def for_user(cls, user, user_agent_hash=None):
+    def for_user(cls, user, remember_me=False, user_agent_hash=None):
         token = super().for_user(user)
-        # Add custom claims
-        token['id'] = user.id
-        token['role'] = user.role 
-        token['email'] = user.email
-        if user_agent_hash:
-            token['user_agent'] = user_agent_hash
+
+        token["user_id"] = user.id
+        token["role"] = user.role
+        token["uah"] = user_agent_hash
+
+        if remember_me:
+            token.set_exp(lifetime=settings.SIMPLE_JWT["REMEMBER_ME_REFRESH_LIFETIME"])
+        else:
+            token.set_exp(lifetime=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"])
+
         return token
-    
     
 
 class SignUpSerializer(serializers.ModelSerializer):
@@ -77,16 +82,12 @@ class SignUpSerializer(serializers.ModelSerializer):
             from_email=settings.EMAIL_HOST_USER,
             html_body=html_content
             )
-       
-
-
-
+    
         return user
     
     def to_representation(self, instance):
         request = self.context.get('request')
         user_agent_hash = get_user_agent_hash(request) if request else None
-        print("User Agent Hash:", user_agent_hash)
 
         refresh = CustomRefreshToken.for_user(instance, user_agent_hash=user_agent_hash)
         
@@ -110,6 +111,7 @@ class SignInSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
     refresh_token = serializers.CharField(read_only=True)
     access_token = serializers.CharField(read_only=True)
+    remember_me = serializers.BooleanField(required=False, default=False)
 
     def validate(self, attrs):
         password = attrs.get('password')
@@ -123,14 +125,18 @@ class SignInSerializer(serializers.Serializer):
     
 
     def to_representation(self, instance):
-
         user = self.user
-        
         request = self.context.get('request')
+
+        remember_me = self.validated_data.get("remember_me", False)
         user_agent_hash = get_user_agent_hash(request) if request else None
 
+        refresh = CustomRefreshToken.for_user(
+            user,
+            remember_me=remember_me,
+            user_agent_hash=user_agent_hash
+        )
 
-        refresh = CustomRefreshToken.for_user(user, user_agent_hash=user_agent_hash) 
         return {
             'user': {
                 'id': user.id,
@@ -138,7 +144,8 @@ class SignInSerializer(serializers.Serializer):
                 'role': user.role,
             },
             'refresh': str(refresh),
-            'access': str(refresh.access_token)
+            'access': str(refresh.access_token),
+            'remember_me': remember_me
         }
     
         

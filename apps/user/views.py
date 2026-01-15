@@ -61,7 +61,6 @@ class SignInView(APIView):
     permission_classes = []
 
     def post(self, request):
-        print("REQUEST DATA:", request.data)
         
         serializer = SignInSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():

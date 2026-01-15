@@ -229,6 +229,7 @@ SIMPLE_JWT = {
     # Token Lifetimes
     "ACCESS_TOKEN_LIFETIME": datetime.timedelta(minutes=60),  # 1 hour
     "REFRESH_TOKEN_LIFETIME": datetime.timedelta(days=7),  # 7 days
+    "REMEMBER_ME_REFRESH_LIFETIME": datetime.timedelta(days=30),  # 30 days for "Remember Me"
     
     # Token Rotation & Security
     "ROTATE_REFRESH_TOKENS": True,  # Generate new refresh token on refresh
