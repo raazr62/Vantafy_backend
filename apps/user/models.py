@@ -34,14 +34,14 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
-class CustomerNiche(models.Model):
+class Niche(models.Model):
     customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='niches')
     name = models.CharField(max_length=255)
 
     def __str__(self):
         return self.name
     
-class CustomerStageName(models.Model):
+class StageName(models.Model):
     customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='stage_names')
     name = models.CharField(max_length=255)
 

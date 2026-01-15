@@ -151,7 +151,7 @@ def create_hybrid_refresh_response(tokens, request, message="Token refreshed suc
             value=tokens['access'],
             httponly=True,
             secure=secure,
-            samesite='Lax',
+            samesite='None', # production should be 'Strict' if possible
             max_age=getattr(settings, 'ACCESS_TOKEN_COOKIE_MAX_AGE', 3600)
         )
         
@@ -162,7 +162,7 @@ def create_hybrid_refresh_response(tokens, request, message="Token refreshed suc
                 value=tokens['refresh'],
                 httponly=True,
                 secure=secure,
-                samesite='Lax',
+                samesite='None', # production should be 'Strict' if possible
                 max_age=getattr(settings, 'REFRESH_TOKEN_COOKIE_MAX_AGE', 86400 * 7)
             )
     

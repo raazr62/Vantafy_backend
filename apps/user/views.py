@@ -5,7 +5,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+
+from apps.user.models import Niche
 from .authentication import CookieJWTAuthentication
+from .models import Niche, StageName
+from .models import ConnectedSocialAccount
+
 
 
 
@@ -14,6 +19,7 @@ from .authentication import CookieJWTAuthentication
 from .utils import create_hybrid_auth_response
 
 from .serializers import (
+    ConnectedSocialAccountSerializer,
     SignUpSerializer,
     SignInSerializer,
     SignOutSerializer,
@@ -274,7 +280,7 @@ class UpdataProfileAvatarView(APIView):
 
 
 
-class AddCustomerNichesAndStageNamesView(APIView):
+class AddNichesAndStageNamesView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]
 
@@ -284,14 +290,28 @@ class AddCustomerNichesAndStageNamesView(APIView):
         niches = request.data.get('niches', [])
         stage_names = request.data.get('stage_names', [])
         
-        from .models import CustomerNiche, CustomerStageName
         
         # Add niches
         for niche in niches:
-            CustomerNiche.objects.get_or_create(customer=user, name=niche)
+            Niche.objects.get_or_create(customer=user, name=niche)
         
         # Add stage names
         for stage_name in stage_names:
-            CustomerStageName.objects.get_or_create(customer=user, name=stage_name)
+            StageName.objects.get_or_create(customer=user, name=stage_name)
         
         return success(data=[], message="Customer niches and stage names added successfully.", status_code=status.HTTP_200_OK)
+    
+class AddSocialAccountsView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+
+    def post(self, request):
+        user = request.user
+        
+        platforms = request.data.get('platforms', [])
+        usernames = request.data.get('usernames', [])
+        
+        seriliazer = ConnectedSocialAccountSerializer(data=request.data, many=True)
+        if seriliazer.is_valid():
+            seriliazer.save(customer=user)
+            return success(data=[], message="Customer social accounts added successfully.", status_code=status.HTTP_200_OK)
