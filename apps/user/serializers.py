@@ -15,22 +15,43 @@ from django.template.loader import render_to_string
 from .utils import get_user_agent_hash
 
 
+class CustomRefreshToken(RefreshToken):
+    @classmethod
+    def for_user(cls, user, user_agent_hash=None):
+        token = super().for_user(user)
+        # Add custom claims
+        token['id'] = user.id
+        token['role'] = user.role 
+        token['email'] = user.email
+        if user_agent_hash:
+            token['user_agent'] = user_agent_hash
+        return token
+    
+    
 
 class SignUpSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(required=False, allow_blank=True)
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
     purpose = serializers.CharField(write_only=True)
+    role = serializers.CharField()
+    term_and_condition_accepted = serializers.BooleanField(required=True)
 
     def validate(self, attrs):
         email = attrs.get('email')
+        term_and_condition_accepted = attrs.get('term_and_condition_accepted')
+        
         if User.objects.filter(email=email).exists():
             raise serializers.ValidationError({'email': 'User with this email already exists.'})
+        
+        if term_and_condition_accepted is not True:
+            raise serializers.ValidationError({'term_and_condition_accepted': 'You must accept the terms and conditions to proceed.'})
+        
         return attrs
 
     class Meta:
         model = User
-        fields = ['email', 'password', 'full_name', 'purpose']
+        fields = ['email', 'password', 'full_name', 'purpose', 'role', 'term_and_condition_accepted']
 
     def create(self, validated_data):
         email = validated_data.pop('email')
@@ -38,9 +59,7 @@ class SignUpSerializer(serializers.ModelSerializer):
         purpose = validated_data.pop('purpose')
         
         user = User.objects.create_user(email=email, password=password, **validated_data)
-
-       
-
+        
 
         otp_code = generate_otp()
         otp_hashed = make_password(otp_code)
@@ -65,24 +84,24 @@ class SignUpSerializer(serializers.ModelSerializer):
         return user
     
     def to_representation(self, instance):
+        request = self.context.get('request')
+        user_agent_hash = get_user_agent_hash(request) if request else None
+        print("User Agent Hash:", user_agent_hash)
+
+        refresh = CustomRefreshToken.for_user(instance, user_agent_hash=user_agent_hash)
+        
         return {
-            'id': instance.id,
-            'full_name': instance.full_name,
-            'email': instance.email,
+            'user': {
+                'id': instance.id,
+                'full_name': instance.full_name,
+                'email': instance.email,
+                'role': instance.role,
+            },
+            'refresh': str(refresh),
+            'access': str(refresh.access_token)
         }
 
 
-class CustomRefreshToken(RefreshToken):
-    @classmethod
-    def for_user(cls, user, user_agent_hash=None):
-        token = super().for_user(user)
-        # Add custom claims
-        token['id'] = user.id
-        token['role'] = user.role 
-        token['email'] = user.email
-        if user_agent_hash:
-            token['user_agent'] = user_agent_hash
-        return token
     
 
 class SignInSerializer(serializers.Serializer):

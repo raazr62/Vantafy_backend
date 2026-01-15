@@ -98,29 +98,8 @@ def clear_auth_cookies(response):
 
 
 def create_hybrid_auth_response(data, tokens, request, message="Authentication successful", status_code=200):
-    """
-    Create hybrid authentication response based on client type.
+   
     
-    For Web clients:
-        - Returns user data only in response body
-        - Sets tokens in HttpOnly cookies
-    
-    For Mobile clients:
-        - Returns user data AND tokens in response body
-        - No cookies set
-    
-    Args:
-        data: User data to return
-        tokens: Dict with 'access' and 'refresh' keys
-        request: Django Request object
-        message: Success message
-        status_code: HTTP status code
-    
-    Returns:
-        Response object with appropriate format for client type
-    """
-    
-    # Determine client type
     is_mobile = getattr(request, 'is_mobile_client', False)
     
     if is_mobile:
@@ -138,7 +117,6 @@ def create_hybrid_auth_response(data, tokens, request, message="Authentication s
             status_code=status_code
         )
     else:
-        # Web: Return only user data, tokens in cookies
         response_data = {'user': data}
         response = success(
             data=response_data,
@@ -146,34 +124,14 @@ def create_hybrid_auth_response(data, tokens, request, message="Authentication s
             status_code=status_code
         )
         
-        # Set cookies for web clients
-        secure = not settings.DEBUG  # Use secure cookies in production
+        secure = not settings.DEBUG 
         set_auth_cookies(response, tokens['access'], tokens['refresh'], secure=secure)
     
     return response
 
 
 def create_hybrid_refresh_response(tokens, request, message="Token refreshed successfully", status_code=200):
-    """
-    Create hybrid token refresh response based on client type.
-    
-    For Web clients:
-        - Returns empty data or success message
-        - Sets new tokens in HttpOnly cookies
-    
-    For Mobile clients:
-        - Returns new tokens in response body
-        - No cookies set
-    
-    Args:
-        tokens: Dict with 'access' and optionally 'refresh' keys
-        request: Django Request object
-        message: Success message
-        status_code: HTTP status code
-    
-    Returns:
-        Response object with appropriate format for client type
-    """
+  
     
     # Determine client type
     is_mobile = getattr(request, 'is_mobile_client', False)
