@@ -48,20 +48,7 @@ def get_user_agent_hash(request):
 # ============================================
 
 def set_auth_cookies(response, access_token, refresh_token, secure=False):
-    """
-    Set HttpOnly authentication cookies for web clients.
     
-    Args:
-        response: Django Response object
-        access_token: JWT access token
-        refresh_token: JWT refresh token
-        secure: Whether to use Secure flag (HTTPS only) - should be True in production
-    
-    Security Features:
-    - HttpOnly: Prevents JavaScript access (XSS protection)
-    - Secure: HTTPS only (should be True in production)
-    - SameSite: CSRF protection
-    """
     # Access token cookie
     response.set_cookie(
         key='access_token',
@@ -141,7 +128,7 @@ def create_hybrid_refresh_response(tokens, request, message="Token refreshed suc
         response_data = {
             'tokens': {
                 'access': tokens['access'],
-                'refresh': tokens.get('refresh')  # May not be present if not rotated
+                'refresh': tokens.get('refresh')  
             }
         }
         response = success(
@@ -158,7 +145,7 @@ def create_hybrid_refresh_response(tokens, request, message="Token refreshed suc
         )
         
         # Set cookies for web clients
-        secure = not settings.DEBUG  # Use secure cookies in production
+        secure = not settings.DEBUG 
         response.set_cookie(
             key='access_token',
             value=tokens['access'],

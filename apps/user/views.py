@@ -6,7 +6,8 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from .authentication import CookieJWTAuthentication
-from rest_framework.validators import ValidationError
+
+
 
 
 # Use hybrid response utility
@@ -85,13 +86,7 @@ class SignInView(APIView):
 
 
 class SignOutView(APIView):
-    """
-    Hybrid SignOut View
-    
-    Supports both Web and Mobile clients:
-    - Web: Blacklists token from cookies, clears cookies
-    - Mobile: Blacklists token from request body
-    """
+  
     
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]
@@ -225,28 +220,38 @@ class CookieTokenRefreshView(TokenRefreshView):
 
 
 class CookieTokenVerifyView(TokenVerifyView):
-    """
-    Hybrid Token Verify View
-    
-    Supports both Web and Mobile clients:
-    - Web: Reads access token from HttpOnly cookie
-    - Mobile: Reads token from request body
-    """
+
     
     def post(self, request, *args, **kwargs):
-        # Inject access token from cookie into data if not present (for web clients)
-        data = request.data.copy()
-        if 'token' not in data and 'access_token' in request.COOKIES:
-            data['token'] = request.COOKIES['access_token']
-        
-        serializer = self.get_serializer(data=data)
 
+        data = request.data.copy()
+        
+        # Get token from request or cookie
+        token = data.get('token') or request.COOKIES.get('access_token')
+        if not token:
+            return error(message="No token provided.", errors={}, status_code=status.HTTP_400_BAD_REQUEST)
+        
+        data['token'] = token
+        
+        # Validate token
+        serializer = self.get_serializer(data=data)
         try:
             serializer.is_valid(raise_exception=True)
         except TokenError as e:
             raise InvalidToken(e.args[0])
         
-        return success(data=[], message="Token is valid.", status_code=status.HTTP_200_OK)
+        # Get user from token
+        jwt_auth = JWTAuthentication()
+        validated_token = jwt_auth.get_validated_token(token)
+        user = jwt_auth.get_user(validated_token)
+        
+        user_info = {
+            'id': user.id,
+            'email': user.email,
+            'role': getattr(user, 'role', None),
+        }
+        
+        return success(data=user_info, message="Token is valid.", status_code=status.HTTP_200_OK)
 
 
 
