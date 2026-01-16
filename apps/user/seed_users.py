@@ -11,6 +11,7 @@ def seed_users():
             "password": "12345678",
             "is_staff": True,
             "is_superuser": True,
+            "term_and_condition_accepted": True,
           
         },
         {
@@ -20,6 +21,7 @@ def seed_users():
             "password": "12345678",
             "is_staff": True,
             "is_superuser": True,
+            "term_and_condition_accepted": True,
           
         },
 
@@ -32,6 +34,7 @@ def seed_users():
             "is_staff": False,
             "is_superuser": False,
             "is_vendor": False,
+            "term_and_condition_accepted": True,
            
         },
         {
@@ -43,6 +46,7 @@ def seed_users():
             "is_staff": False,
             "is_superuser": False,
             "is_customer": True,
+            "term_and_condition_accepted": True,
             
         },
         {
@@ -52,6 +56,7 @@ def seed_users():
             "password": "12345678",
             "is_staff": False,
             "is_superuser": False,
+            "term_and_condition_accepted": True,
            
         },
         {
@@ -61,6 +66,7 @@ def seed_users():
             "password": "12345678",
             "is_staff": False,
             "is_superuser": False,
+            "term_and_condition_accepted": True,
            
         }
 
@@ -74,6 +80,7 @@ def seed_users():
             password=user["password"],
             is_staff=user["is_staff"],
             is_superuser=user["is_superuser"],
+            term_and_condition_accepted=user["term_and_condition_accepted"],
         )
 
 
