@@ -308,10 +308,10 @@ class AddSocialAccountsView(APIView):
     def post(self, request):
         user = request.user
         
-        platforms = request.data.get('platforms', [])
-        usernames = request.data.get('usernames', [])
+        platforms = request.data.getlist('platform[]')
+        usernames = request.data.getlist('username[]')
         
-        seriliazer = ConnectedSocialAccountSerializer(data=request.data, many=True)
-        if seriliazer.is_valid():
-            seriliazer.save(customer=user)
-            return success(data=[], message="Customer social accounts added successfully.", status_code=status.HTTP_200_OK)
+        for platform, username in zip(platforms, usernames):
+            ConnectedSocialAccount.objects.get_or_create(customer=user, platform=platform, username=username)
+        
+        return success(data=[], message="Customer social accounts added successfully.", status_code=status.HTTP_200_OK)
