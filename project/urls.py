@@ -27,6 +27,7 @@ urlpatterns = [
     path('api/', include('apps.system_setting.urls')),
     path('api/', include('apps.social_auth.urls')),
     path('api/', include('apps.cms.urls')),
+    path('api/', include('apps.scanner.urls')),
 ]
 
 if settings.DEBUG:
