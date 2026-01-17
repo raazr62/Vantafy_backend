@@ -39,12 +39,20 @@ if DEBUG:
     ]
 
 else:
-    ALLOWED_HOSTS = ['yourdomain.com', 'api.yourdomain.com']  
-    CORS_ALLOW_ALL_ORIGINS = False 
+    ALLOWED_HOSTS = ['*']  
+    CORS_ALLOW_ALL_ORIGINS = True
     CORS_ALLOW_CREDENTIALS = True
     CSRF_TRUSTED_ORIGINS = [
-        'https://yourfrontend.com', 
-        'https://yourbackend.com',  
+        'https://localhost',
+        'https://127.0.0.1',
+        'http://127.0.0.1:5500',
+        'http://localhost:5173',
+        'https://*.ngrok-free.app',
+        "https://vantafy.vercel.app",
+        "http://172.16.200.94:8000",
+        "http://172.16.200.94:9000",
+        "https://328654cec5ff.ngrok-free.app/google-auth/",
+        "https://328654cec5ff.ngrok-free.app"
     ]
 
 
@@ -81,6 +89,7 @@ INSTALLED_APPS = [
     "apps.user",
     "apps.system_setting",
     "apps.cms",
+    "apps.scanner",
 
 ]
 
