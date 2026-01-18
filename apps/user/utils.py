@@ -49,13 +49,22 @@ def get_user_agent_hash(request):
 
 def set_auth_cookies(response, access_token, refresh_token, secure=False):
     
+    # Get domain setting from Django settings
+    domain = getattr(settings, 'SESSION_COOKIE_DOMAIN', None)
+    
+    # Determine SameSite value
+    # For cross-origin requests with credentials, use 'None' with Secure=True
+    # For same-origin, 'Lax' is sufficient
+    samesite = 'None' if secure else 'Lax'
+    
     # Access token cookie
     response.set_cookie(
         key='access_token',
         value=access_token,
+        domain=domain,  # None = current domain, '.domain.com' = all subdomains
         httponly=True,  # XSS protection
         secure=secure,  # HTTPS only in production
-        samesite='Lax',  # CSRF protection (use 'Strict' for more security)
+        samesite=samesite,  # CSRF protection
         max_age=getattr(settings, 'ACCESS_TOKEN_COOKIE_MAX_AGE', 3600)  # 1 hour default
     )
     
@@ -63,9 +72,10 @@ def set_auth_cookies(response, access_token, refresh_token, secure=False):
     response.set_cookie(
         key='refresh_token',
         value=refresh_token,
+        domain=domain,  # None = current domain, '.domain.com' = all subdomains
         httponly=True,  # XSS protection
         secure=secure,  # HTTPS only in production
-        samesite='Lax',  # CSRF protection
+        samesite=samesite,  # CSRF protection
         max_age=getattr(settings, 'REFRESH_TOKEN_COOKIE_MAX_AGE', 86400 * 7)  # 7 days default
     )
     
@@ -79,8 +89,10 @@ def clear_auth_cookies(response):
     Args:
         response: Django Response object
     """
-    response.delete_cookie('access_token')
-    response.delete_cookie('refresh_token')
+    domain = getattr(settings, 'SESSION_COOKIE_DOMAIN', None)
+    
+    response.delete_cookie('access_token', domain=domain)
+    response.delete_cookie('refresh_token', domain=domain)
     return response
 
 
@@ -145,13 +157,17 @@ def create_hybrid_refresh_response(tokens, request, message="Token refreshed suc
         )
         
         # Set cookies for web clients
-        secure = not settings.DEBUG 
+        secure = not settings.DEBUG
+        domain = getattr(settings, 'SESSION_COOKIE_DOMAIN', None)
+        samesite = 'None' if secure else 'Lax'
+        
         response.set_cookie(
             key='access_token',
             value=tokens['access'],
+            domain=domain,
             httponly=True,
             secure=secure,
-            samesite='None', # production should be 'Strict' if possible
+            samesite=samesite,
             max_age=getattr(settings, 'ACCESS_TOKEN_COOKIE_MAX_AGE', 3600)
         )
         
@@ -160,9 +176,10 @@ def create_hybrid_refresh_response(tokens, request, message="Token refreshed suc
             response.set_cookie(
                 key='refresh_token',
                 value=tokens['refresh'],
+                domain=domain,
                 httponly=True,
                 secure=secure,
-                samesite='None', # production should be 'Strict' if possible
+                samesite=samesite,
                 max_age=getattr(settings, 'REFRESH_TOKEN_COOKIE_MAX_AGE', 86400 * 7)
             )
     

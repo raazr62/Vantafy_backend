@@ -279,13 +279,17 @@ ENABLE_CSRF_FOR_COOKIES = False  # Enable in production if needed
 ACCESS_TOKEN_COOKIE_MAX_AGE = 3600  # 1 hour in seconds
 REFRESH_TOKEN_COOKIE_MAX_AGE = 604800  # 7 days in seconds
 
+# Cookie Domain - Set to None in development to allow all subdomains/IPs
+# In production, set to your actual domain (e.g., '.yourdomain.com')
+SESSION_COOKIE_DOMAIN = None  # None = defaults to current domain only
+
 # Production Cookie Security (automatically enabled when DEBUG=False)
 SESSION_COOKIE_SECURE = not DEBUG  # HTTPS only in production
 CSRF_COOKIE_SECURE = not DEBUG  # HTTPS only in production
 SESSION_COOKIE_HTTPONLY = True  # XSS protection
 CSRF_COOKIE_HTTPONLY = True  # XSS protection
-SESSION_COOKIE_SAMESITE = 'Lax'  # CSRF protection ('Strict' for more security)
-CSRF_COOKIE_SAMESITE = 'Lax'  # CSRF protection
+SESSION_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'  # 'None' requires HTTPS in production
+CSRF_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'  # 'None' allows cross-origin
 
 
 

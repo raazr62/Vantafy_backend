@@ -105,6 +105,8 @@ class SignOutView(APIView):
         if 'access_token' not in data and 'access_token' in request.COOKIES:
             data['access_token'] = request.COOKIES['access_token']
         
+        print("COOKIES:", request.COOKIES)
+        
         serializer = SignOutSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
@@ -307,11 +309,24 @@ class AddSocialAccountsView(APIView):
 
     def post(self, request):
         user = request.user
+        accounts = request.data.get("accounts", [])  
         
-        platforms = request.data.getlist('platform[]')
-        usernames = request.data.getlist('username[]')
-        
-        for platform, username in zip(platforms, usernames):
-            ConnectedSocialAccount.objects.get_or_create(customer=user, platform=platform, username=username)
-        
-        return success(data=[], message="Customer social accounts added successfully.", status_code=status.HTTP_200_OK)
+        if not accounts or not isinstance(accounts, list):
+            return error(message="Invalid accounts data.", status_code=status.HTTP_400_BAD_REQUEST)
+
+        created_accounts = []
+        for account in accounts:
+            platform = account.get("platform")
+            username = account.get("username")
+
+            if not platform or not username:
+                continue  # skip invalid entries
+
+            obj, created = ConnectedSocialAccount.objects.get_or_create(
+                customer=user,
+                platform=platform,
+                username=username
+            )
+            created_accounts.append({"platform": obj.platform, "username": obj.username})
+
+        return success(data=created_accounts, message="Social accounts added successfully.", status_code=status.HTTP_200_OK)
