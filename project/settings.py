@@ -35,7 +35,9 @@ if DEBUG:
         "http://172.16.200.94:8000",
         "http://172.16.200.94:9000",
         "https://328654cec5ff.ngrok-free.app/google-auth/",
-        "https://328654cec5ff.ngrok-free.app"
+        "https://328654cec5ff.ngrok-free.app",
+        "https://8db21713ba33.ngrok-free.app",
+        
     ]
 
 else:

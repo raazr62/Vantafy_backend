@@ -120,6 +120,9 @@ def seed_hero_radar_icon():
         {
                 'icon': 'cms/Radar/11.png',
         },
+        {
+                'icon': 'cms/Radar/6.png',
+        },
           
     ]
 
