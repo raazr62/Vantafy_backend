@@ -174,42 +174,42 @@ def seed_among_our_customers():
     customers = [
         {
             "name": "Sarah Johnson",
-            "profile_pic": "cms/customers/1.jpg",
+            "profile_pic": "cms/customers/1.png",
             "social_media_icon": "cms/customers/bchaturbate.png",
             "followers_count": 12.5,
             "status": True
         },
         {
             "name": "Mike Thompson",
-            "profile_pic": "cms/customers/2.jpg",
+            "profile_pic": "cms/customers/2.png",
             "social_media_icon": "cms/customers/Facebook.png",
             "followers_count": 89.0,
             "status": True
         },
         {
             "name": "Emily Chen",
-            "profile_pic": "cms/customers/3.jpg",
+            "profile_pic": "cms/customers/3.png",
             "social_media_icon": "cms/customers/hamster.png",
             "followers_count": 15,
             "status": True
         },
         {
             "name": "Alex Martinez",
-            "profile_pic": "cms/customers/4.jpg",
+            "profile_pic": "cms/customers/4.png",
             "social_media_icon": "cms/customers/facebook.png",
             "followers_count": 2.5,
             "status": True
         },
         {
             "name": "Jessica Williams",
-            "profile_pic": "cms/customers/5.jpg",
+            "profile_pic": "cms/customers/5.png",
             "social_media_icon": "cms/customers/instagram.png",
             "followers_count": 45.3,
             "status": True
         },
         {
             "name": "David Brown",
-            "profile_pic": "cms/customers/6.jpg",
+            "profile_pic": "cms/customers/6.png",
             "social_media_icon": "cms/customers/por.png",
             "followers_count": 8.7,
             "status": True
