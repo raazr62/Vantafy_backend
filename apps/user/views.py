@@ -29,6 +29,7 @@ from .serializers import (
     VerifyOTPSerializer,
     ResetPasswordSerializer,
     UpdataProfileAvatarSerializer,
+    UpdateProfileSerializer,
 )
 
 from apps.utils.helpers import success, error
@@ -272,6 +273,8 @@ class UpdataProfileAvatarView(APIView):
 
     def post(self, request):
         user = request.user
+        cookies = request.COOKIES
+        print("COOKIES IN AVATAR UPDATE VIEW:", cookies)
         
         serializer = UpdataProfileAvatarSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
@@ -280,7 +283,18 @@ class UpdataProfileAvatarView(APIView):
         return error(message="Profile avatar update failed.", status_code=status.HTTP_400_BAD_REQUEST, errors=serializer.errors)
 
 
+class ProfileUpdateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
 
+    def put(self, request):
+        user = request.user
+        
+        serializer = UpdateProfileSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return success(data=serializer.data, message="Profile updated successfully.", status_code=status.HTTP_200_OK)
+        return error(message="Profile update failed.", status_code=status.HTTP_400_BAD_REQUEST, errors=serializer.errors)
 
 class AddNichesAndStageNamesView(APIView):
     permission_classes = [IsAuthenticated]

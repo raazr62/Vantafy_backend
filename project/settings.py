@@ -19,24 +19,56 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY', default="django-insecure-_(4sk(m(!$$xxvz)-7!b7ibkz&2sotl0#=hv8+e*_^__qzgs18")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = config('DEBUG')
+
+# ============================================
+# Cross-Origin Development Mode
+# ============================================
+# Set to True when:
+#   - Backend is on ngrok/remote server (HTTPS)
+#   - Frontend is on localhost (HTTP)
+#   - Distributed team development
+# Set to False when:
+#   - Both frontend and backend on localhost
+#   - Same-origin development
+# In production, this should ALWAYS be False
+CROSS_ORIGIN_DEVELOPMENT = config('CROSS_ORIGIN_DEVELOPMENT', default=False, cast=bool)
+
+print("DEBUG mode is set to:", DEBUG)
+print("CROSS_ORIGIN_DEVELOPMENT mode is set to:", CROSS_ORIGIN_DEVELOPMENT)
 
 if DEBUG:
     ALLOWED_HOSTS = ['*']  
     CORS_ALLOW_ALL_ORIGINS = True
     CORS_ALLOW_CREDENTIALS = True
+    CORS_ALLOW_HEADERS = [
+        'accept',
+        'accept-encoding',
+        'authorization',
+        'content-type',
+        'dnt',
+        'origin',
+        'user-agent',
+        'x-csrftoken',
+        'x-requested-with',
+        'x-client-type',
+    ]
     CSRF_TRUSTED_ORIGINS = [
         'https://localhost',
         'https://127.0.0.1',
-        'http://127.0.0.1:5500',
+        'http://127.0.0.1:5173',
+        'http://127.0.0.1:5173',
         'http://localhost:5173',
+        'https://localhost:5173',
         'https://*.ngrok-free.app',
+        'https://*.ngrok-free.dev',  # ngrok domains
+        'https://geraldine-noncommunistical-starr.ngrok-free.dev',  # Current ngrok URL
         "https://vantafy.vercel.app",
         "http://172.16.200.94:8000",
         "http://172.16.200.94:9000",
-        "https://328654cec5ff.ngrok-free.app/google-auth/",
-        "https://328654cec5ff.ngrok-free.app",
-        "https://8db21713ba33.ngrok-free.app",
+        "https://c5895f67f55f.ngrok-free.app/google-auth/",
+        "https://c5895f67f55f.ngrok-free.app",
+        "https://c5895f67f55f.ngrok-free.app",
         
     ]
 
@@ -44,17 +76,32 @@ else:
     ALLOWED_HOSTS = ['*']  
     CORS_ALLOW_ALL_ORIGINS = True
     CORS_ALLOW_CREDENTIALS = True
+    CORS_ALLOW_HEADERS = [
+        'accept',
+        'accept-encoding',
+        'authorization',
+        'content-type',
+        'dnt',
+        'origin',
+        'user-agent',
+        'x-csrftoken',
+        'x-requested-with',
+        'x-client-type',  # Custom header for hybrid auth
+    ]
     CSRF_TRUSTED_ORIGINS = [
         'https://localhost',
         'https://127.0.0.1',
-        'http://127.0.0.1:5500',
+        'http://127.0.0.1:5173',
+        'http://127.0.0.1:5173',
         'http://localhost:5173',
         'https://*.ngrok-free.app',
         "https://vantafy.vercel.app",
         "http://172.16.200.94:8000",
         "http://172.16.200.94:9000",
-        "https://328654cec5ff.ngrok-free.app/google-auth/",
-        "https://328654cec5ff.ngrok-free.app"
+        "https://c5895f67f55f.ngrok-free.app/google-auth/",
+        "https://c5895f67f55f.ngrok-free.app",
+        "https://c5895f67f55f.ngrok-free.app",
+
     ]
 
 
@@ -286,12 +333,36 @@ REFRESH_TOKEN_COOKIE_MAX_AGE = 604800  # 7 days in seconds
 SESSION_COOKIE_DOMAIN = None  # None = defaults to current domain only
 
 # Production Cookie Security (automatically enabled when DEBUG=False)
-SESSION_COOKIE_SECURE = not DEBUG  # HTTPS only in production
-CSRF_COOKIE_SECURE = not DEBUG  # HTTPS only in production
 SESSION_COOKIE_HTTPONLY = True  # XSS protection
 CSRF_COOKIE_HTTPONLY = True  # XSS protection
-SESSION_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'  # 'None' requires HTTPS in production
-CSRF_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'  # 'None' allows cross-origin
+
+# ============================================
+# Cookie SameSite and Secure Configuration
+# ============================================
+if CROSS_ORIGIN_DEVELOPMENT:
+    # Cross-origin development (e.g., ngrok backend + localhost frontend)
+    # Allows cookies to be sent across different origins
+    SESSION_COOKIE_SAMESITE = 'None'  # Allow cross-site cookies
+    CSRF_COOKIE_SAMESITE = 'None'
+    SESSION_COOKIE_SECURE = True      # Required when SameSite=None (needs HTTPS)
+    CSRF_COOKIE_SECURE = True
+    print("🌐 Cross-origin development mode: Cookies will work across different domains (ngrok + localhost)")
+elif DEBUG:
+    # Same-origin development (both frontend and backend on localhost)
+    SESSION_COOKIE_SAMESITE = 'Lax'   # Sufficient for same-origin
+    CSRF_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_SECURE = False     # HTTP is fine for localhost
+    CSRF_COOKIE_SECURE = False
+    print("🏠 Same-origin development mode: Cookies will work on localhost only")
+else:
+    # Production settings
+    SESSION_COOKIE_SAMESITE = 'Lax'   # Recommended for production
+    CSRF_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_SECURE = True      # Always use HTTPS in production
+    CSRF_COOKIE_SECURE = True
+    print("🔒 Production mode: Secure cookies enabled") 
+
+
 
 
 

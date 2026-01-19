@@ -425,3 +425,17 @@ class ConnectedSocialAccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = ConnectedSocialAccount
         fields = ['id', 'platform', 'username']
+        
+
+class UpdateProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['full_name']
+        
+    def to_representation(self, instance):
+        return {
+            'id': instance.id,
+            'email': instance.email,
+            'full_name': instance.full_name,
+            'role': instance.role,
+        }

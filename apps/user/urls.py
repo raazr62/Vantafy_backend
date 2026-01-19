@@ -7,6 +7,7 @@ from rest_framework_simplejwt.views import (
 from .views import (
     CookieTokenRefreshView,
     CookieTokenVerifyView,
+    ProfileUpdateAPIView,
     SignUpView,
     SignInView,
     SignOutView,
@@ -39,7 +40,7 @@ urlpatterns = [
 
     # profile
     path('avatar-update/', UpdataProfileAvatarView.as_view(), name='avatar-update'),
-    
+    path('profile-update/', ProfileUpdateAPIView.as_view(), name='profile-update'),
     # niches and stage names
     path('add-niches-and-stage-names/', AddNichesAndStageNamesView.as_view(), name='add-niches-and-stage-names'),
     
