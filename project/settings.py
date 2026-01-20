@@ -52,6 +52,8 @@ if DEBUG:
         'x-csrftoken',
         'x-requested-with',
         'x-client-type',
+        'ngrok-skip-browser-warning',
+
     ]
     CSRF_TRUSTED_ORIGINS = [
         'https://localhost',
@@ -66,9 +68,9 @@ if DEBUG:
         "https://vantafy.vercel.app",
         "http://172.16.200.94:8000",
         "http://172.16.200.94:9000",
-        "https://c5895f67f55f.ngrok-free.app/google-auth/",
-        "https://c5895f67f55f.ngrok-free.app",
-        "https://c5895f67f55f.ngrok-free.app",
+        "https://729d88238fd3.ngrok-free.app/google-auth/",
+        "https://729d88238fd3.ngrok-free.app",
+        "https://729d88238fd3.ngrok-free.app",
         
     ]
 
@@ -86,7 +88,8 @@ else:
         'user-agent',
         'x-csrftoken',
         'x-requested-with',
-        'x-client-type',  # Custom header for hybrid auth
+        'x-client-type', 
+        'ngrok-skip-browser-warning',
     ]
     CSRF_TRUSTED_ORIGINS = [
         'https://localhost',
@@ -98,9 +101,9 @@ else:
         "https://vantafy.vercel.app",
         "http://172.16.200.94:8000",
         "http://172.16.200.94:9000",
-        "https://c5895f67f55f.ngrok-free.app/google-auth/",
-        "https://c5895f67f55f.ngrok-free.app",
-        "https://c5895f67f55f.ngrok-free.app",
+        "https://729d88238fd3.ngrok-free.app/google-auth/",
+        "https://729d88238fd3.ngrok-free.app",
+        "https://729d88238fd3.ngrok-free.app",
 
     ]
 
@@ -288,29 +291,10 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": datetime.timedelta(minutes=60),  # 1 hour
     "REFRESH_TOKEN_LIFETIME": datetime.timedelta(days=7),  # 7 days
     "REMEMBER_ME_REFRESH_LIFETIME": datetime.timedelta(days=30),  # 30 days for "Remember Me"
+
     
-    # Token Rotation & Security
-    "ROTATE_REFRESH_TOKENS": True,  # Generate new refresh token on refresh
-    "BLACKLIST_AFTER_ROTATION": True,  # Blacklist old refresh tokens
-    "UPDATE_LAST_LOGIN": False,  # Don't update last_login on token refresh
-    
-    # Algorithm & Keys
-    "ALGORITHM": "HS256",  # Use RS256 with public/private keys for better security in production
-    "SIGNING_KEY": SECRET_KEY,
-    "VERIFYING_KEY": None,
-    
-    # Token Claims
-    "AUTH_HEADER_TYPES": ("Bearer",),
-    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
-    "USER_ID_FIELD": "id",
-    "USER_ID_CLAIM": "user_id",
-    
-    # Token Validation
-    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
-    "TOKEN_TYPE_CLAIM": "token_type",
-    
-    # Additional Security
-    "JTI_CLAIM": "jti",  # Unique token identifier for blacklisting
+  
+  
 }
 
 
