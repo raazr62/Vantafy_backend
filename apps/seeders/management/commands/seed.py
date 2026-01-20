@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 
 from apps.cms.seed_data import seed_faq, seed_hero_radar_icon, seed_hero_section, seed_page, seed_represent_platform, seed_among_our_customers, seed_testimonials, seed_how_it_works, seed_identity_tracking
+from apps.subscriptions.seed_data import seed_subscription_features, seed_subscription_packages
 from apps.system_setting.seed_data import seed_system_color, seed_system_setting, seed_social_media, seed_smtp_credentials
 from apps.user.seed_users import seed_users, seed_customer_niches, seed_customer_stage_names
 
@@ -24,6 +25,9 @@ class Command(BaseCommand):
         seed_testimonials()
         seed_how_it_works()
         seed_identity_tracking()
+        seed_subscription_features()
+        seed_subscription_packages()
+        
         
         
 

@@ -142,6 +142,7 @@ INSTALLED_APPS = [
     "apps.system_setting",
     "apps.cms",
     "apps.scanner",
+    "apps.subscriptions",
 
 ]
 
@@ -381,3 +382,8 @@ from project import unfold_config
 UNFOLD = unfold_config.get_unfold_settings()
 
 
+# Stripe Settings
+
+STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
+STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY')
+STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET')
