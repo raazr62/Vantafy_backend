@@ -9,17 +9,14 @@ class Feature(models.Model):
     name = models.CharField(max_length=100)
 
     def __str__(self):
-        lang = get_language()
-        if lang == 'de':
-            return self.name_de or self.name
-        return self.name_en or self.name
+        return self.name
 
 class Package(models.Model):
 
     class PackageType(models.TextChoices):
         MONTHLY = 'month', 'Monthly'
         YEARLY = 'year', 'Yearly'
-        AGENCY = 'month', 'Agency'
+        AGENCY = 'agency', 'Agency'
 
     features = models.ManyToManyField(Feature, blank=True, related_name='packages')
     name = models.CharField(max_length=100, blank=True, null=True)

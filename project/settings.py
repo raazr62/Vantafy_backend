@@ -19,7 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY', default="django-insecure-_(4sk(m(!$$xxvz)-7!b7ibkz&2sotl0#=hv8+e*_^__qzgs18")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG')
+DEBUG = config('DEBUG', default=True, cast=bool)
 
 # ============================================
 # Cross-Origin Development Mode
@@ -52,26 +52,28 @@ if DEBUG:
         'x-csrftoken',
         'x-requested-with',
         'x-client-type',
-        'ngrok-skip-browser-warning',
-
+        "ngrok-skip-browser-warning",
     ]
     CSRF_TRUSTED_ORIGINS = [
         'https://localhost',
+        'http://localhost',
+        'http://localhost:8000',
+        'http://localhost:3000',
         'https://127.0.0.1',
-        'http://127.0.0.1:5173',
+        'http://127.0.0.1',
+        'http://127.0.0.1:8000',
+        'http://127.0.0.1:3000',
         'http://127.0.0.1:5173',
         'http://localhost:5173',
         'https://localhost:5173',
         'https://*.ngrok-free.app',
-        'https://*.ngrok-free.dev',  # ngrok domains
-        'https://geraldine-noncommunistical-starr.ngrok-free.dev',  # Current ngrok URL
+        'https://*.ngrok-free.dev',
+        'https://geraldine-noncommunistical-starr.ngrok-free.dev',
         "https://vantafy.vercel.app",
         "http://172.16.200.94:8000",
         "http://172.16.200.94:9000",
-        "https://729d88238fd3.ngrok-free.app/google-auth/",
-        "https://729d88238fd3.ngrok-free.app",
-        "https://729d88238fd3.ngrok-free.app",
-        
+        "https://c5895f67f55f.ngrok-free.app/google-auth/",
+        "https://c5895f67f55f.ngrok-free.app",
     ]
 
 else:
@@ -88,24 +90,29 @@ else:
         'user-agent',
         'x-csrftoken',
         'x-requested-with',
-        'x-client-type', 
-        'ngrok-skip-browser-warning',
+        'x-client-type',
+        "ngrok-skip-browser-warning",
     ]
     CSRF_TRUSTED_ORIGINS = [
         'https://localhost',
+        'http://localhost',
+        'http://localhost:8000',
+        'http://localhost:3000',
         'https://127.0.0.1',
+        'http://127.0.0.1',
+        'http://127.0.0.1:8000',
+        'http://127.0.0.1:3000',
         'http://127.0.0.1:5173',
-        'http://127.0.0.1:5173',
+        'http://172.16.200.94:8000',
         'http://localhost:5173',
         'https://*.ngrok-free.app',
         "https://vantafy.vercel.app",
         "http://172.16.200.94:8000",
         "http://172.16.200.94:9000",
-        "https://729d88238fd3.ngrok-free.app/google-auth/",
-        "https://729d88238fd3.ngrok-free.app",
-        "https://729d88238fd3.ngrok-free.app",
-
+        "https://c5895f67f55f.ngrok-free.app/google-auth/",
+        "https://c5895f67f55f.ngrok-free.app",
     ]
+      
 
 
 # Application definition
@@ -143,7 +150,6 @@ INSTALLED_APPS = [
     "apps.cms",
     "apps.scanner",
     "apps.subscriptions",
-
 ]
 
 MIDDLEWARE = [
@@ -292,10 +298,29 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": datetime.timedelta(minutes=60),  # 1 hour
     "REFRESH_TOKEN_LIFETIME": datetime.timedelta(days=7),  # 7 days
     "REMEMBER_ME_REFRESH_LIFETIME": datetime.timedelta(days=30),  # 30 days for "Remember Me"
-
     
-  
-  
+    # Token Rotation & Security
+    "ROTATE_REFRESH_TOKENS": True,  # Generate new refresh token on refresh
+    "BLACKLIST_AFTER_ROTATION": True,  # Blacklist old refresh tokens
+    "UPDATE_LAST_LOGIN": False,  # Don't update last_login on token refresh
+    
+    # Algorithm & Keys
+    "ALGORITHM": "HS256",  # Use RS256 with public/private keys for better security in production
+    "SIGNING_KEY": SECRET_KEY,
+    "VERIFYING_KEY": None,
+    
+    # Token Claims
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
+    
+    # Token Validation
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+    "TOKEN_TYPE_CLAIM": "token_type",
+    
+    # Additional Security
+    "JTI_CLAIM": "jti",  # Unique token identifier for blacklisting
 }
 
 
@@ -347,7 +372,9 @@ else:
     CSRF_COOKIE_SECURE = True
     print("🔒 Production mode: Secure cookies enabled") 
 
-
+# Explicit CSRF settings
+CSRF_COOKIE_AGE = 31449600  # 1 year in seconds
+CSRF_TRUSTED_ORIGINS = CSRF_TRUSTED_ORIGINS if 'CSRF_TRUSTED_ORIGINS' in locals() else []
 
 
 
@@ -380,6 +407,9 @@ GOOGLE_SECRET_KEY = config('GOOGLE_SECRET_KEY')
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 from project import unfold_config
 UNFOLD = unfold_config.get_unfold_settings()
+
+
+
 
 
 # Stripe Settings

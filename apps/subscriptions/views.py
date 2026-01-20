@@ -4,7 +4,8 @@ import os
 from rest_framework.views import APIView
 import stripe
 
-from apps.users.models import User
+from apps.user.authentication import CookieJWTAuthentication
+from apps.user.models import User
 from django.http import HttpResponse
 from .serializers import SubscriptionPackageSerializer, CurrentSubscriptionSerializer
 from .models import IncomeReport, Package, Subscription
@@ -19,9 +20,10 @@ class SubscriptionPackageAPIView(APIView):
 
     def get(self, request):
         try:
-            lang_code = request.GET.get('lan', 'de')  
-            translation.activate(lang_code)
-            packages = Package.objects.all()
+            type = request.query_params.get("type", None)
+            if not type or type not in ["month", "year","agency",]:
+                return error(message="Invalid or missing type parameter. Must be 'month', 'year', 'agency' or 'pay_per_download'")
+            packages = Package.objects.filter(type=type)
 
             if not packages:
                return error(errors="Package list is empty", code=200, message="No packages found")
@@ -35,7 +37,8 @@ class SubscriptionPackageAPIView(APIView):
 
 
 class StripeCheckoutAPIView(APIView):
-    permission_classes = [IsAuthenticated] 
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
 
     def post(self, request):
         price_id = request.data.get('price_id')
@@ -44,14 +47,13 @@ class StripeCheckoutAPIView(APIView):
         type = request.data.get("type") 
  
 
-        if type not in ["month", "pay_per_download"]:
-            return error(message="Invalid type. Must be 'month' or 'pay_per_download'")
+        if type not in ["month", "year", "agency"]:
+            return error(message="Invalid type. Must be 'month', 'year', or 'agency'")
 
         if not price_id or not success_url or not cancel_url:
             return error(message="Missing required parameters", errors="price_id, success_url, and cancel_url are required")
 
         try:
-            mode = 'payment' if type == "pay_per_download" else 'subscription'
 
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
@@ -61,7 +63,7 @@ class StripeCheckoutAPIView(APIView):
                     'price': price_id,
                     'quantity': 1,
                 }],
-                mode=mode,
+                mode='subscription',
                 success_url=success_url,
                 cancel_url=cancel_url,
             )
@@ -156,6 +158,8 @@ class StripeWebhookAPIView(APIView):
 
 class AccessStatusAPIView(APIView):
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+
     
     def get(self, request):
         user = request.user
@@ -201,13 +205,14 @@ class AccessStatusAPIView(APIView):
 
 class CurrentSubscriptionPlanAPIView(APIView):
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
 
     def get(self, request):
         user = request.user
         try:
             subscription = Subscription.objects.filter(user=user).first()
             if(not subscription):
-                return error(message="No subscription found for the user", errors="User does not have a subscription", code=200)
+                return error(message="No subscription found for the user", errors="User does not have a subscription", status_code=200)
             if subscription:
                 serializer = CurrentSubscriptionSerializer(subscription)
                 return success(serializer.data, message="Current subscription plan fetched successfully")
@@ -215,21 +220,3 @@ class CurrentSubscriptionPlanAPIView(APIView):
             return error(message="Failed to fetch current subscription plan", errors=str(e))
 
 
-class PayPerDownloadCreditsDecreaseAPIView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        user = request.user
-        try:
-            subscription = Subscription.objects.filter(user=user).first()
-            if not subscription:
-                return error(message="No subscription found for the user", errors="User does not have a subscription", code=200)
-            
-            if subscription.pay_per_download_credits > 0:
-                subscription.pay_per_download_credits -= 1
-                subscription.save()
-                return success(data={"pay_per_download_credits": subscription.pay_per_download_credits}, message="Pay-per-download credits decreased successfully")
-            else:
-                return error(message="No pay-per-download credits available to decrease", errors="Insufficient credits", code=200)
-        except Exception as e:
-            return error(message="Failed to decrease pay-per-download credits", errors=str(e))

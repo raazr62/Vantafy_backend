@@ -64,6 +64,28 @@ def get_unfold_settings():
                     ],
                 },
                 {
+                    "title": _("Subscription Management"),
+                    "separator": True, 
+                    "collapsible": True, 
+                    "items": [
+                        {
+                            "title": _("Features"),
+                            "icon": "star",
+                            "link": reverse_lazy("admin:subscriptions_feature_changelist"),
+                        },
+                        {
+                            "title": _("Packages"),
+                            "icon": "package",
+                            "link": reverse_lazy("admin:subscriptions_package_changelist"),
+                        },
+                        {
+                            "title": _("Subscriptions"),
+                            "icon": "subscriptions",
+                            "link": reverse_lazy("admin:subscriptions_subscription_changelist"),
+                        },
+                    ],
+                },
+                {
                     "title": _("System Setting"),
                     "separator": True,
                     "collapsible": True,

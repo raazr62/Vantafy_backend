@@ -1,5 +1,5 @@
 from .models import  Package, Feature, Subscription
-from rest_framework import fields, serializers
+from rest_framework import serializers
 
 
 class FeatureSerializer(serializers.ModelSerializer):
@@ -19,10 +19,14 @@ class PackageSerializer(serializers.ModelSerializer):
         model = Package
         fields = ["id", "name", "price", "type", "enabled"]
 
+
+        
+
+
 class CurrentSubscriptionSerializer(serializers.ModelSerializer):
     package = PackageSerializer()
     class Meta:
         model = Subscription
-        fields = ["id", "user", "status", "start_date", "end_date", "pay_per_download_credits", "package"]
-
+        fields = ["package", "status", "start_date", "end_date", "package"]
+        
 
