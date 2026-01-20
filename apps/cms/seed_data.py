@@ -228,7 +228,7 @@ def seed_testimonials():
         {
             "name": "Laura Smith",
             "profession": "Content Creator",
-            "profile_pic": "cms/testimonials/1.jpg",
+            "profile_pic": "cms/testimonials/1.png",
             "rating": 5,
             "platform": "cms/testimonials/chaturbate.png",
             "review_title": "Excellent Service!",
@@ -237,7 +237,7 @@ def seed_testimonials():
         {
             "name": "James Wilson",
             "profession": "Photographer",
-            "profile_pic": "cms/testimonials/2.jpg",
+            "profile_pic": "cms/testimonials/2.png",
             "rating": 4,
             "platform": "cms/testimonials/fanvue.png",
             "review_title": "Very Reliable",
@@ -246,7 +246,7 @@ def seed_testimonials():
         {
             "name": "Megan Lee",
             "profession": "Videographer",
-            "profile_pic": "cms/testimonials/3.jpg",
+            "profile_pic": "cms/testimonials/3.png",
             "rating": 5,
             "platform": "cms/testimonials/ManyVids.png",
             "review_title": "Highly Recommend!",
@@ -255,7 +255,7 @@ def seed_testimonials():
         {
             "name": "David Kim",
             "profession": "Blogger",
-            "profile_pic": "cms/testimonials/4.jpg",
+            "profile_pic": "cms/testimonials/4.png",
             "rating": 4,
             "platform": "cms/testimonials/Onlyfans.svg",
             "review_title": "Great Support",
@@ -264,7 +264,7 @@ def seed_testimonials():
         {
             "name": "Sophia Garcia",
             "profession": "Artist",
-            "profile_pic": "cms/testimonials/5.jpg",
+            "profile_pic": "cms/testimonials/5.png",
             "rating": 5,
             "platform": "cms/testimonials/fanvue.png",
             "review_title": "Fantastic Experience",
@@ -273,7 +273,7 @@ def seed_testimonials():
         {
             "name": "Michael Johnson",
             "profession": "Musician",
-            "profile_pic": "cms/testimonials/6.jpg",
+            "profile_pic": "cms/testimonials/6.png",
             "rating": 5,
             "platform": "cms/testimonials/ManyVids.png",
             "review_title": "Top Notch Protection",
@@ -282,7 +282,7 @@ def seed_testimonials():
         {
             "name": "Olivia Brown",
             "profession": "Influencer",
-            "profile_pic": "cms/testimonials/7.jpg",
+            "profile_pic": "cms/testimonials/7.png",
             "rating": 4,
             "platform": "cms/testimonials/fanvue.png",
             "review_title": "Very Effective",
@@ -291,7 +291,7 @@ def seed_testimonials():
         {
             "name": "Daniel Davis",
             "profession": "Writer",
-            "profile_pic": "cms/testimonials/8.jpg",
+            "profile_pic": "cms/testimonials/8.png",
             "rating": 5,
             "platform": "cms/testimonials/ManyVids.png",
             "review_title": "Impressive Results",
@@ -341,7 +341,7 @@ def seed_identity_tracking():
         {
             "title": "Searching through all of your stage names is how I found you.",
             "short_description": "To ensure full coverage, our AI searches for unauthorized content using all of your stage names.",
-            "image": "cms/identity_tracking/1.jpg",
+            "image": "cms/identity_tracking/1.png",
         },
        
     ]
