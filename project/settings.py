@@ -105,6 +105,9 @@ else:
 # Application definition
 
 INSTALLED_APPS = [
+
+    "daphne",
+
     # unfold packages
     "unfold",
     "unfold.contrib.filters",
@@ -129,6 +132,7 @@ INSTALLED_APPS = [
     "debug_toolbar",
     "import_export",
     "corsheaders",
+    "channels",
 
     # internal apps
     "apps.seeders",
@@ -137,6 +141,7 @@ INSTALLED_APPS = [
     "apps.cms",
     "apps.scanner",
     "apps.subscriptions",
+    "apps.chat",
 
 ]
 
@@ -172,7 +177,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "project.wsgi.application"
+ASGI_APPLICATION = 'project.asgi.application'
 
 #master user
 
