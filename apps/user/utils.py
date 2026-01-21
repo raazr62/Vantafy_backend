@@ -67,7 +67,6 @@ def set_auth_cookies(response, access_token, refresh_token, secure=False):
         httponly=True,  # XSS protection
         secure=secure,  # HTTPS only in production
         samesite=samesite,  # CSRF protection
-        max_age=getattr(settings, 'ACCESS_TOKEN_COOKIE_MAX_AGE', 3600)  # 1 hour default
     )
     
     # Refresh token cookie
@@ -78,7 +77,6 @@ def set_auth_cookies(response, access_token, refresh_token, secure=False):
         httponly=True,  # XSS protection
         secure=secure,  # HTTPS only in production
         samesite=samesite,  # CSRF protection
-        max_age=getattr(settings, 'REFRESH_TOKEN_COOKIE_MAX_AGE', 86400 * 7)  # 7 days default
     )
     
     return response
@@ -124,7 +122,6 @@ def create_hybrid_auth_response(data, tokens, request, message="Authentication s
             status_code=status_code
         )
         
-        # Use the SESSION_COOKIE_SECURE setting which is configured based on CROSS_ORIGIN_DEVELOPMENT
         secure = settings.SESSION_COOKIE_SECURE
         set_auth_cookies(response, tokens['access'], tokens['refresh'], secure=secure)
     
