@@ -65,6 +65,7 @@ if DEBUG:
         "https://c5895f67f55f.ngrok-free.app/google-auth/",
         "https://c5895f67f55f.ngrok-free.app",
         "https://c5895f67f55f.ngrok-free.app",
+        "https://mediamixer.softvencealpha.com",
         
     ]
 
@@ -98,6 +99,7 @@ else:
         "https://c5895f67f55f.ngrok-free.app/google-auth/",
         "https://c5895f67f55f.ngrok-free.app",
         "https://c5895f67f55f.ngrok-free.app",
+        "https://mediamixer.softvencealpha.com",
 
     ]
 
