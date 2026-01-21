@@ -21,7 +21,6 @@ def seed_social_media():
         {"name": "Facebook", "url": "https://facebook.com", "icon": "system_setting/social_media/facebook.png"},
         {"name": "Twitter", "url": "https://twitter.com", "icon": "system_setting/social_media/twitter.png"},
         {"name": "Instagram", "url": "https://instagram.com", "icon": "system_setting/social_media/instagram.png"},
-        {"name": "LinkedIn", "url": "https://linkedin.com", "icon": "system_setting/social_media/linkedin.png"},
     ]
 
     for sm in social_media:
