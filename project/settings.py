@@ -23,6 +23,10 @@ if DEBUG:
     ALLOWED_HOSTS = ['*']  
     CORS_ALLOW_ALL_ORIGINS = True
     CORS_ALLOW_CREDENTIALS = True
+    SESSION_COOKIE_DOMAIN = None
+    SESSION_COOKIE_SECURE  = False
+    COOKIE_SAMESITE = 'None'
+
     CORS_ALLOW_HEADERS = [
         'accept',
         'accept-encoding',
@@ -71,6 +75,10 @@ else:
         'x-client-type',
         "ngrok-skip-browser-warning",
     ]
+    SESSION_COOKIE_DOMAIN = None
+    SESSION_COOKIE_SECURE  = False
+    COOKIE_SAMESITE = 'None'
+
     CSRF_TRUSTED_ORIGINS = [
         'https://localhost',
         'http://localhost',
@@ -88,7 +96,7 @@ else:
 
     ]
       
-SESSION_COOKIE_DOMAIN = None
+
 
 # Application definition
 

@@ -47,48 +47,37 @@ def get_user_agent_hash(request):
 # Hybrid Authentication Response Utilities
 # ============================================
 
-def set_auth_cookies(response, access_token, refresh_token, secure=False):
+def set_auth_cookies(response, access_token, refresh_token):
     
-    # Get domain setting from Django settings
     domain = getattr(settings, 'SESSION_COOKIE_DOMAIN', None)
-    
-    
-    # Determine SameSite value
-    # For cross-origin requests with credentials, use 'None' with Secure=True
-    # For same-origin, 'Lax' is sufficient
-    samesite = settings.CSRF_COOKIE_SAMESITE
-
+    secure = settings.SESSION_COOKIE_SECURE
+    samesite = settings.COOKIE_SAMESITE
     
     # Access token cookie
     response.set_cookie(
         key='access_token',
         value=access_token,
-        domain=domain,  # None = current domain, '.domain.com' = all subdomains
-        httponly=True,  # XSS protection
-        secure=secure,  # HTTPS only in production
-        samesite=samesite,  # CSRF protection
+        domain=domain, 
+        httponly=True, 
+        secure=secure, 
+        samesite=samesite,  
     )
     
     # Refresh token cookie
     response.set_cookie(
         key='refresh_token',
         value=refresh_token,
-        domain=domain,  # None = current domain, '.domain.com' = all subdomains
-        httponly=True,  # XSS protection
-        secure=secure,  # HTTPS only in production
-        samesite=samesite,  # CSRF protection
+        domain=domain,  
+        httponly=True,  
+        secure=secure,  
+        samesite=samesite,  
     )
     
     return response
 
 
 def clear_auth_cookies(response):
-    """
-    Clear authentication cookies on logout.
-    
-    Args:
-        response: Django Response object
-    """
+
     domain = getattr(settings, 'SESSION_COOKIE_DOMAIN', None)
     
     response.delete_cookie('access_token', domain=domain)
@@ -122,15 +111,16 @@ def create_hybrid_auth_response(data, tokens, request, message="Authentication s
             status_code=status_code
         )
         
-        secure = settings.SESSION_COOKIE_SECURE
-        set_auth_cookies(response, tokens['access'], tokens['refresh'], secure=secure)
+        set_auth_cookies(response, tokens['access'], tokens['refresh'])
     
     return response
 
 
 def create_hybrid_refresh_response(tokens, request, message="Token refreshed successfully", status_code=200):
   
-    
+    domain = getattr(settings, 'SESSION_COOKIE_DOMAIN', None)
+    secure = settings.SESSION_COOKIE_SECURE
+    samesite = settings.COOKIE_SAMESITE
     # Determine client type
     is_mobile = getattr(request, 'is_mobile_client', False)
     
@@ -155,11 +145,6 @@ def create_hybrid_refresh_response(tokens, request, message="Token refreshed suc
             status_code=status_code
         )
         
-        # Set cookies for web clients
-        secure = not settings.DEBUG
-        domain = getattr(settings, 'SESSION_COOKIE_DOMAIN', None)
-        samesite = settings.CSRF_COOKIE_SAMESITE
-                
         response.set_cookie(
             key='access_token',
             value=tokens['access'],
