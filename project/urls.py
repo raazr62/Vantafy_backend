@@ -29,7 +29,7 @@ urlpatterns = [
     path('api/', include('apps.cms.urls')),
     path('api/', include('apps.scanner.urls')),
     path('api/', include('apps.subscriptions.urls')),
-    # path('api/', include('apps.chat.urls')),
+    path('api/', include('apps.chat.urls')),
 ]
 
 if settings.DEBUG:

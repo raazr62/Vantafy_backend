@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
+from apps.user.authentication import CookieJWTAuthentication
 from apps.user.models import User
 from apps.utils.helpers import success, error
 from .models import ChatRoom, Message, MessageReaction
@@ -12,23 +13,28 @@ from .serializers import  MessageSerializer, MyChatListUserSerializer
 
 class MyChatListUserAPIView(APIView):
     permission_classes = [IsAuthenticated]
-
+    authentication_classes = [CookieJWTAuthentication]
+    
     def get(self, request):
+    
         my_chat_list_users = User.objects.filter(
             Q(sent_message__receiver=request.user) | Q(received_message__sender=request.user)
         ).distinct()
+
+        print("My chat list users:", my_chat_list_users)
         
-        serializer = MyChatListUserSerializer(my_chat_list_users, many=True)
+        serializer = MyChatListUserSerializer(my_chat_list_users, many=True, context={'request': request})
         return success(data=serializer.data, message="My chat list users retrieved successfully")
 
 
 class GetSingleUserAPIView(APIView):
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
 
     def get(self, request, user_id):
         try:
             user = User.objects.get(id=user_id)
-            serializer = MyChatListUserSerializer(user)
+            serializer = MyChatListUserSerializer(user, context={'request': request})
 
             data = serializer.data
                 
@@ -39,15 +45,16 @@ class GetSingleUserAPIView(APIView):
 
 class SearchUserAPIView(APIView):
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
 
     def get(self, request):
         query = request.GET.get('name', '')
 
         users = User.objects.filter(
-            Q(name__icontains=query) | Q(father_name__icontains=query) | Q(seller_profile__store_name__icontains=query)
-        ).select_related('customer_profile', 'seller_profile')
+            Q(full_name__icontains=query) | Q(email__icontains=query)
+        ).exclude(id=request.user.id)
         
-        serializer = MyChatListUserSerializer(users, many=True)
+        serializer = MyChatListUserSerializer(users, many=True, context={'request': request})
 
         return success(data=serializer.data, message="User search results retrieved successfully")
 
@@ -56,6 +63,7 @@ class SearchUserAPIView(APIView):
 
 class GetMessageAPIView(APIView):
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
 
     def get(self, request, user_id):
         try:
@@ -81,6 +89,7 @@ class GetMessageAPIView(APIView):
 
 class MarkReadAPIView(APIView):
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
 
     def post(self, request):
         message_ids = request.data.get('message_ids', [])
@@ -103,6 +112,7 @@ class MarkReadAPIView(APIView):
 
 class AllUnreadNewMessagesCountAPIView(APIView):
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
 
     def get(self, request):
         unread_count = Message.objects.filter(
@@ -114,6 +124,7 @@ class AllUnreadNewMessagesCountAPIView(APIView):
 
 class AddReactionAPIView(APIView):
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
 
     def post(self, request):
         message_id = request.data.get('message_id')
@@ -158,7 +169,7 @@ class AddReactionAPIView(APIView):
                     'type': 'message_reaction',
                     'message_id': message.id,
                     'user_id': request.user.id,
-                    'user_name': request.user.name,
+                    'user_name': request.user.full_name,
                     'emoji': emoji,
                     'action': 'added'
                 }
@@ -172,6 +183,7 @@ class AddReactionAPIView(APIView):
 
 class SendFileMessageAPIView(APIView):
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
 
     def post(self, request):
         receiver_id = request.data.get('receiver_id')

@@ -15,8 +15,50 @@ class MyChatListUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'full_name', 'avatar', 'last_message', 'is_online', 'unread_message_count', 'unread_message_ids']
 
+    def get_last_message(self, obj):
+        last_message = Message.objects.filter(Q(sender=obj) | Q(receiver=obj)).order_by('-timestamp').first()
+        return last_message.content if last_message else None
+
+    def get_is_online(self, obj):
+        """
+        Check if user is online by checking the cache
+        Users are marked as online when they connect to WebSocket
+        and marked as offline when they disconnect
+        """
+        try:
+            # Get online users from cache
+            online_users = cache.get('online_users', set())
+            return obj.id in online_users
+        except Exception as e:
+            # If cache fails, return False
+            print(f"Error checking online status for user {obj.id}: {e}")
+            return False
+    
+    def get_unread_message_count(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            room_name = f"chat_{min(request.user.id, obj.id)}_{max(request.user.id, obj.id)}"
+            try:
+                room = ChatRoom.objects.get(name=room_name)
+                return Message.objects.filter(room=room, sender=obj, receiver=request.user, is_read=False).count()
+            except ChatRoom.DoesNotExist:
+                return 0
+        return 0
+    
+    def get_unread_message_ids(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            room_name = f"chat_{min(request.user.id, obj.id)}_{max(request.user.id, obj.id)}"
+            try:
+                room = ChatRoom.objects.get(name=room_name)
+                unread_messages = Message.objects.filter(room=room, sender=obj, receiver=request.user, is_read=False)
+                return list(unread_messages.values_list('id', flat=True))
+            except ChatRoom.DoesNotExist:
+                return []
+        return []
+
 class MessageReactionSerializer(serializers.ModelSerializer):
-    user_name = serializers.CharField(source='user.name', read_only=True)
+    user_name = serializers.CharField(source='user.full_name', read_only=True)
     
     class Meta:
         model = MessageReaction
@@ -43,53 +85,3 @@ class MessageSerializer(serializers.ModelSerializer):
         if obj.parent_message:
             return MessageSerializer(obj.parent_message).data
         return None
-
-
-
-
-    def get_last_message(self, obj):
-        last_message = Message.objects.filter(Q(sender=obj) | Q(receiver=obj)).order_by('-timestamp').first()
-        return last_message.content if last_message else None
-
-    def get_is_online(self, obj):
-        """
-        Check if user is online by checking the cache
-        Users are marked as online when they connect to WebSocket
-        and marked as offline when they disconnect
-        """
-        try:
-            # Get online users from cache
-            online_users = cache.get('online_users', set())
-            return obj.id in online_users
-        except Exception as e:
-            # If cache fails, return False
-            print(f"Error checking online status for user {obj.id}: {e}")
-            return False
-    
-
-    def get_unread_message_count(self, obj):
-        request = self.context.get('request')
-        if request and request.user.is_authenticated:
-            room_name = f"chat_{min(request.user.id, obj.id)}_{max(request.user.id, obj.id)}"
-            try:
-                room = ChatRoom.objects.get(name=room_name)
-                return Message.objects.filter(room=room, sender=obj, receiver=request.user, is_read=False).count()
-            except ChatRoom.DoesNotExist:
-                return 0
-        return 0
-    
-
-    def get_unread_message_ids(self, obj):
-        request = self.context.get('request')
-        if request and request.user.is_authenticated:
-            room_name = f"chat_{min(request.user.id, obj.id)}_{max(request.user.id, obj.id)}"
-            try:
-                room = ChatRoom.objects.get(name=room_name)
-                unread_messages = Message.objects.filter(room=room, sender=obj, receiver=request.user, is_read=False)
-                return list(unread_messages.values_list('id', flat=True))
-            except ChatRoom.DoesNotExist:
-                return []
-        return []
-
-    
-    

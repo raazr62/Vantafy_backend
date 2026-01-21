@@ -26,7 +26,7 @@ class SubscriptionPackageAPIView(APIView):
             packages = Package.objects.filter(type=type)
 
             if not packages:
-               return error(errors="Package list is empty", code=200, message="No packages found")
+               return error(errors="Package list is empty", status_code=200, message="No packages found")
 
             serializer = SubscriptionPackageSerializer(packages, many=True)
             
