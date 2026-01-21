@@ -356,27 +356,26 @@ CSRF_COOKIE_HTTPONLY = True  # XSS protection
 # Cookie SameSite and Secure Configuration
 # ============================================
 if CROSS_ORIGIN_DEVELOPMENT:
-    # Cross-origin development (e.g., ngrok backend + localhost frontend)
-    # Allows cookies to be sent across different origins
-    SESSION_COOKIE_SAMESITE = 'None'  # Allow cross-site cookies
+
+    SESSION_COOKIE_SAMESITE = 'None' 
     CSRF_COOKIE_SAMESITE = 'None'
-    SESSION_COOKIE_SECURE = True      # Required when SameSite=None (needs HTTPS)
+    SESSION_COOKIE_SECURE = True     
     CSRF_COOKIE_SECURE = True
-    print("🌐 Cross-origin development mode: Cookies will work across different domains (ngrok + localhost)")
 elif DEBUG:
-    # Same-origin development (both frontend and backend on localhost)
-    SESSION_COOKIE_SAMESITE = 'Lax'   # Sufficient for same-origin
+    SESSION_COOKIE_SAMESITE = 'Lax'  
     CSRF_COOKIE_SAMESITE = 'Lax'
-    SESSION_COOKIE_SECURE = False     # HTTP is fine for localhost
+    SESSION_COOKIE_SECURE = False    
     CSRF_COOKIE_SECURE = False
-    print("🏠 Same-origin development mode: Cookies will work on localhost only")
 else:
-    # Production settings
-    SESSION_COOKIE_SAMESITE = 'Lax'   # Recommended for production
-    CSRF_COOKIE_SAMESITE = 'Lax'
-    SESSION_COOKIE_SECURE = True      # Always use HTTPS in production
+    # SESSION_COOKIE_SAMESITE = 'Lax'   
+    # CSRF_COOKIE_SAMESITE = 'Lax'
+    # SESSION_COOKIE_SECURE = True      
+    # CSRF_COOKIE_SECURE = True
+
+    SESSION_COOKIE_SAMESITE = 'None'  
+    CSRF_COOKIE_SAMESITE = 'None'
+    SESSION_COOKIE_SECURE = True    
     CSRF_COOKIE_SECURE = True
-    print("🔒 Production mode: Secure cookies enabled") 
 
 
 
