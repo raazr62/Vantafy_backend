@@ -26,7 +26,7 @@ class Command(BaseCommand):
         seed_how_it_works()
         seed_identity_tracking()
         seed_subscription_features()
-        seed_subscription_packages()
+        # seed_subscription_packages()
         
         
         
