@@ -21,9 +21,16 @@ class SubscriptionPackageAPIView(APIView):
     def get(self, request):
         try:
             type = request.query_params.get("type", None)
+            is_recommend = request.query_params.get("is_recommend", None)
             if not type or type not in ["month", "year","agency",]:
                 return error(message="Invalid or missing type parameter. Must be 'month', 'year', 'agency' or 'pay_per_download'")
-            packages = Package.objects.filter(type=type)
+            
+            if is_recommend and  type == 'agency':
+                packages = Package.objects.filter(type=type, enabled=True, is_recommend=True)
+            elif is_recommend:
+                packages = Package.objects.filter(is_recommend=True, enabled=True).exclude(type=Package.PackageType.AGENCY)
+            else:
+                packages = Package.objects.filter(type=type, enabled=True)
 
             if not packages:
                return error(errors="Package list is empty", status_code=200, message="No packages found")

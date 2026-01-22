@@ -26,9 +26,11 @@ class Package(models.Model):
     type = models.CharField(
         max_length=20,
         choices=PackageType.choices,
-        default=PackageType.MONTHLY  # Optional: default value
+        default=PackageType.MONTHLY 
     )
+    is_recommend = models.BooleanField(default=False)
     enabled = models.BooleanField(default=True)
+
 
     def __str__(self):
         return f"{self.name} - {self.get_type_display()} - {self.price} USD"

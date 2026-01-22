@@ -48,5 +48,6 @@ urlpatterns = [
     
     # customer Social Accounts
     path('add-social-accounts/', AddSocialAccountsView.as_view(), name='add-social-accounts'),
+
     
 ]

@@ -71,6 +71,7 @@ def seed_subscription_packages():
             'name': 'Star',
             'price': 64.99,
             'type': Package.PackageType.MONTHLY,
+            'is_recommend': True,
             'feature_names': [
                 'Anonymity',
                 'Weekly Report',
@@ -138,6 +139,7 @@ def seed_subscription_packages():
             'name': 'Star (Yearly)',
             'price': 549.99,
             'type': Package.PackageType.YEARLY,
+            'is_recommend': True,
             'feature_names': [
                 'Anonymity',
                 'Weekly Report',
@@ -208,6 +210,7 @@ def seed_subscription_packages():
             'name': 'Gold',
             'price': 1700.00,
             'type': Package.PackageType.AGENCY,
+            'is_recommend': True,
             'feature_names': [
                 'Daily Report',
                 '10 Stage Names',
