@@ -24,10 +24,37 @@ class MessageSerializer(serializers.ModelSerializer):
     """Basic message serializer"""
     sender = UserBasicSerializer(read_only=True)
     recipient = UserBasicSerializer(read_only=True)
+    image_url = serializers.SerializerMethodField()
+    file_url = serializers.SerializerMethodField()
+    document_url = serializers.SerializerMethodField()
     
     class Meta:
         model = Message
-        fields = ['id', 'sender', 'recipient', 'txt', 'sent_at']
+        fields = ['id', 'sender', 'recipient', 'txt', 'image', 'file', 'document', 'image_url', 'file_url', 'document_url', 'sent_at']
+    
+    def get_image_url(self, obj):
+        if obj.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
+    
+    def get_file_url(self, obj):
+        if obj.file:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.file.url)
+            return obj.file.url
+        return None
+    
+    def get_document_url(self, obj):
+        if obj.document:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.document.url)
+            return obj.document.url
+        return None
 
 
 class GetMessageSerializer(serializers.ModelSerializer):
@@ -36,10 +63,37 @@ class GetMessageSerializer(serializers.ModelSerializer):
     recipient = UserBasicSerializer(read_only=True)
     replies = ReplySerializer(many=True, read_only=True)
     reply_count = serializers.SerializerMethodField()
+    image_url = serializers.SerializerMethodField()
+    file_url = serializers.SerializerMethodField()
+    document_url = serializers.SerializerMethodField()
     
     class Meta:
         model = Message
-        fields = ['id', 'sender', 'recipient', 'txt', 'sent_at', 'replies', 'reply_count']
+        fields = ['id', 'sender', 'recipient', 'txt', 'image', 'file', 'document', 'image_url', 'file_url', 'document_url', 'sent_at', 'replies', 'reply_count']
     
     def get_reply_count(self, obj):
         return obj.replies.count()
+    
+    def get_image_url(self, obj):
+        if obj.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
+    
+    def get_file_url(self, obj):
+        if obj.file:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.file.url)
+            return obj.file.url
+        return None
+    
+    def get_document_url(self, obj):
+        if obj.document:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.document.url)
+            return obj.document.url
+        return None

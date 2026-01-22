@@ -54,6 +54,36 @@
             margin-bottom: 10px;
             margin-left: 20px;
         }
+        .attachments-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .attachment-item {
+            display: inline-block;
+            margin-right: 15px;
+            margin-bottom: 10px;
+        }
+        .attachment-item img {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        .attachment-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 12px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            text-decoration: none;
+            color: #333;
+            font-size: 14px;
+        }
+        .attachment-link:hover {
+            background: #e0e0e0;
+        }
     </style>
 {% endblock %}
 
@@ -74,6 +104,41 @@
             <div class="message-content">
                 {{ message.txt|linebreaks }}
             </div>
+            
+            <!-- Attachments -->
+            {% if message.image or message.file or message.document %}
+            <div class="attachments-section">
+                <strong>Attachments:</strong>
+                <div style="margin-top: 10px;">
+                    {% if message.image %}
+                    <div class="attachment-item">
+                        <strong>Image:</strong><br>
+                        <a href="{{ message.image.url }}" target="_blank">
+                            <img src="{{ message.image.url }}" alt="Attached Image">
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    {% if message.file %}
+                    <div class="attachment-item">
+                        <a href="{{ message.file.url }}" target="_blank" class="attachment-link" download>
+                            <span>📎</span>
+                            <span>Download File</span>
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    {% if message.document %}
+                    <div class="attachment-item">
+                        <a href="{{ message.document.url }}" target="_blank" class="attachment-link" download>
+                            <span>📄</span>
+                            <span>Download Document</span>
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Previous Replies -->

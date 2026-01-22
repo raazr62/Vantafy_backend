@@ -17,6 +17,7 @@ class MessageAdmin(ModelAdmin):
         'sender_info', 
         'recipient_info', 
         'sent_at_formatted',
+        'attachments_indicator',
         'status_badges',
         'reply_count',
         'message_actions'
@@ -30,6 +31,10 @@ class MessageAdmin(ModelAdmin):
     fieldsets = (
         (None, {
             'fields': ('sender', 'recipient', 'txt', 'sent_at', 'is_read')
+        }),
+        ('Attachments', {
+            'fields': ('image', 'file', 'document'),
+            'classes': ('collapse',)
         }),
     )
 
@@ -51,6 +56,18 @@ class MessageAdmin(ModelAdmin):
     @display(description="Sent At", ordering="sent_at")
     def sent_at_formatted(self, obj):
         return obj.sent_at.strftime("%Y-%m-%d %H:%M")
+    
+    @display(description="Attachments")
+    def attachments_indicator(self, obj):
+        """Show icons for attachments"""
+        icons = []
+        if obj.image:
+            icons.append('<span style="color: #3498db;" title="Has Image">🖼️</span>')
+        if obj.file:
+            icons.append('<span style="color: #9b59b6;" title="Has File">📎</span>')
+        if obj.document:
+            icons.append('<span style="color: #e67e22;" title="Has Document">📄</span>')
+        return format_html(' '.join(icons)) if icons else format_html('<span style="color: #bdc3c7;">—</span>')
 
     @display(description="Status")
     def status_badges(self, obj):

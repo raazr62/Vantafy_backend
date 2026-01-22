@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from rest_framework.permissions import IsAuthenticated
 from apps.customer_support.models import Message, Reply
+from apps.user.authentication import CookieJWTAuthentication
 from apps.user.models import User
 from rest_framework.views import APIView
 from .serializers import GetMessageSerializer
@@ -11,16 +12,24 @@ from apps.utils.helpers import success, error
 # Create your views here.
 class SendMessageView(APIView):
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+
     
     def post(self, request):
         user = request.user
         admin = User.objects.get(id=1)
-        txt = request.data.get('txt')
-        print(txt)
+        txt = request.data.get('txt', '')
+        image = request.FILES.get('image')
+        file = request.FILES.get('file')
+        document = request.FILES.get('document')
+        
         message = Message.objects.create(
             sender=user,
             recipient=admin,
-            txt=txt
+            txt=txt,
+            image=image,
+            file=file,
+            document=document
         )
         return success(data={"message_id": message.id}, message="Message sent successfully")
 
@@ -28,6 +37,7 @@ class SendMessageView(APIView):
 
 class GetMessagesView(APIView):
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
     
     def get(self, request):
         user = request.user
@@ -41,7 +51,7 @@ class GetMessagesView(APIView):
         if not messages.exists():
             return error(message="No messages found.", errors=None, code=200)
 
-        get_message = GetMessageSerializer(messages, many=True)
+        get_message = GetMessageSerializer(messages, many=True, context={'request': request})
 
         return success(data=get_message.data)
         

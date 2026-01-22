@@ -6,6 +6,9 @@ class Message(models.Model):
     sender = models.ForeignKey(User, related_name='sent_messages', on_delete=models.CASCADE)
     recipient = models.ForeignKey(User, related_name='received_messages', on_delete=models.CASCADE)
     txt = models.TextField()
+    image = models.ImageField(upload_to='customer_support/messages/', null=True, blank=True)
+    file = models.FileField(upload_to='customer_support/files/', null=True, blank=True)
+    document = models.FileField(upload_to='customer_support/documents/', null=True, blank=True)
     sent_at = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
 
