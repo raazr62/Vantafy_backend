@@ -64,6 +64,20 @@ def get_unfold_settings():
                     ],
                 },
                 {
+                    "title": _("Customer Support"),
+                    "separator": True,
+                    "collapsible": True,
+                    "items": [
+                        {
+                            "title": _("Support Tickets"),
+                            "icon": "support_agent",
+                            "link": reverse_lazy("admin:customer_support_message_changelist"),
+                        },
+                        
+                       
+                    ],
+                },
+                {
                     "title": _("Subscription Management"),
                     "separator": True, 
                     "collapsible": True, 

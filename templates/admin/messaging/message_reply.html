@@ -1,0 +1,135 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <style>
+        .message-thread {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .original-message {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #007cba;
+            margin-bottom: 15px;
+        }
+        .reply-form {
+            background: white;
+            padding: 20px;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+        }
+        .message-meta {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .message-content {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .reply-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        .form-actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        .reply-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #28a745;
+            margin-bottom: 10px;
+            margin-left: 20px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="px-6 py-8">
+    <h1 class="text-2xl font-semibold text-gray-900 mb-6">
+        {{ title }}
+    </h1>
+
+    <div class="message-thread">
+        <!-- Original Message -->
+        <div class="original-message">
+            <div class="message-meta">
+                <strong>From:</strong> {{ message.sender.email }} | 
+                <strong>To:</strong> {{ message.recipient.email }} | 
+                <strong>Sent:</strong> {{ message.sent_at|date:"M d, Y H:i" }}
+            </div>
+            <div class="message-content">
+                {{ message.txt|linebreaks }}
+            </div>
+        </div>
+
+        <!-- Previous Replies -->
+        {% if replies %}
+        <div class="replies-section">
+            <h3 class="font-medium text-gray-700 mb-3">Previous Replies:</h3>
+            {% for reply in replies %}
+            <div class="reply-item">
+                <div class="message-meta">
+                    <strong>By:</strong> {{ reply.responder.email }} | 
+                    <strong>Replied:</strong> {{ reply.replied_at|date:"M d, Y H:i" }} |
+                    <strong>Status:</strong> 
+                    {% if reply.is_read %}
+                        <span style="color: green;">Read</span>
+                    {% else %}
+                        <span style="color: orange;">Unread</span>
+                    {% endif %}
+                </div>
+                <div class="message-content">
+                    {{ reply.reply_txt|linebreaks }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Reply Form -->
+    <div class="reply-form">
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label for="reply_text" class="block text-sm font-medium text-gray-700 mb-2">
+                    Your Reply:
+                </label>
+                <textarea 
+                    id="reply_text" 
+                    name="reply_text" 
+                    class="reply-textarea" 
+                    placeholder="Type your reply here..."
+                    required></textarea>
+            </div>
+            
+            <div class="form-actions">
+                <button 
+                    type="submit" 
+                    class="bg-primary-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-primary-700 transition">
+                    Send Reply
+                </button>
+                <a 
+                    href="{% url 'admin:customer_support_message_changelist' %}" 
+                    class="bg-gray-500 text-white px-4 py-2 rounded text-sm font-medium hover:bg-gray-600 transition no-underline">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -144,6 +144,7 @@ INSTALLED_APPS = [
     "apps.scanner",
     "apps.subscriptions",
     "apps.chat",
+    "apps.customer_support",
 
 ]
 
@@ -355,17 +356,13 @@ CSRF_COOKIE_HTTPONLY = True  # XSS protection
 # ============================================
 # Cookie SameSite and Secure Configuration
 # ============================================
-if CROSS_ORIGIN_DEVELOPMENT:
+if CROSS_ORIGIN_DEVELOPMENT and DEBUG:
 
-    SESSION_COOKIE_SAMESITE = 'None' 
+    SESSION_COOKIE_SAMESITE = 'None'  
     CSRF_COOKIE_SAMESITE = 'None'
-    SESSION_COOKIE_SECURE = True     
+    SESSION_COOKIE_SECURE = True    
     CSRF_COOKIE_SECURE = True
-elif DEBUG:
-    SESSION_COOKIE_SAMESITE = 'Lax'  
-    CSRF_COOKIE_SAMESITE = 'Lax'
-    SESSION_COOKIE_SECURE = False    
-    CSRF_COOKIE_SECURE = False
+
 else:
     # SESSION_COOKIE_SAMESITE = 'Lax'   
     # CSRF_COOKIE_SAMESITE = 'Lax'
