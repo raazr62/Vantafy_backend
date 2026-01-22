@@ -41,7 +41,6 @@ class GetMessagesView(APIView):
     
     def get(self, request):
         user = request.user
-        # Get messages where user is either sender or recipient
         messages = Message.objects.filter(
             Q(sender=user) | Q(recipient=user)
         ).select_related('sender', 'recipient').prefetch_related(

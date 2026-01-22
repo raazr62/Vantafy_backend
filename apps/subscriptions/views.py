@@ -10,9 +10,9 @@ from django.http import HttpResponse
 from .serializers import SubscriptionPackageSerializer, CurrentSubscriptionSerializer
 from .models import IncomeReport, Package, Subscription
 from apps.utils.helpers import success, error
-from django.utils import translation
 from django.utils.timezone import now
 from rest_framework.permissions import IsAuthenticated
+from django.conf import settings
 
 class SubscriptionPackageAPIView(APIView):
 
@@ -86,7 +86,7 @@ class StripeWebhookAPIView(APIView):
     def post(self, request):
         payload = request.body
         sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
-        endpoint_secret = os.getenv('STRIPE_WEBHOOK_SECRET', '')
+        endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
 
         try:
             event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
@@ -152,9 +152,13 @@ class StripeWebhookAPIView(APIView):
 
 
 
-                IncomeReport.objects.update(
-                    total_income=IncomeReport.objects.first().total_income + package.price,
-                )
+                income_report = IncomeReport.objects.first()
+                if income_report is None:
+                    income_report = IncomeReport.objects.create(total_income=0)
+
+                income_report.total_income += package.price
+                income_report.save()
+
 
         except Exception as e:
             logger.exception("Error handling Stripe webhook event: %s", str(e))

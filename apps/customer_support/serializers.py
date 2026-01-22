@@ -10,6 +10,12 @@ class UserBasicSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'email']
 
+class UserInfoSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = User
+        fields = ['id', 'full_name','avatar']
+
 
 class ReplySerializer(serializers.ModelSerializer):
     """Serializer for Reply model"""
@@ -59,8 +65,8 @@ class MessageSerializer(serializers.ModelSerializer):
 
 class GetMessageSerializer(serializers.ModelSerializer):
     """Serializer for getting messages with replies"""
-    sender = UserBasicSerializer(read_only=True)
-    recipient = UserBasicSerializer(read_only=True)
+    sender = UserInfoSerializer(read_only=True)
+    recipient = UserInfoSerializer(read_only=True)
     replies = ReplySerializer(many=True, read_only=True)
     reply_count = serializers.SerializerMethodField()
     image_url = serializers.SerializerMethodField()
