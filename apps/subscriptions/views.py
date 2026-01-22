@@ -7,7 +7,11 @@ import stripe
 from apps.user.authentication import CookieJWTAuthentication
 from apps.user.models import User
 from django.http import HttpResponse
-from .serializers import SubscriptionPackageSerializer, CurrentSubscriptionSerializer
+from .serializers import (
+    SubscriptionPackageSerializer,
+    CurrentSubscriptionSerializer,
+    FeatureSerializer,
+)
 from .models import IncomeReport, Package, Subscription
 from apps.utils.helpers import success, error
 from django.utils.timezone import now
@@ -174,44 +178,28 @@ class AccessStatusAPIView(APIView):
     
     def get(self, request):
         user = request.user
-        try:
-            subscription = Subscription.objects.filter(user=user).first()
-            
-            if subscription:
-                has_subscription = subscription.has_subscription()
-                has_pay_per_download_credits = subscription.has_pay_per_download_credits()
-                
-                # Determine the additional features based on subscription package
-                # You'll need to adjust this logic based on your actual model structure
-                water_mark = getattr(subscription.package, 'water_mark', False) if subscription.package else False
-                multilingual_support = getattr(subscription.package, 'multilingual_support', False) if subscription.package else False
-                cover_letter = getattr(subscription.package, 'cover_letter', False) if subscription.package else False
-                
-                return success(
-                    data={
-                        "has_subscription": has_subscription,
-                        "has_pay_per_download_credits": has_pay_per_download_credits,
-                        "water_mark": water_mark,
-                        "multilingual_support": multilingual_support,
-                        "cover_letter": cover_letter
-                    },
-                    message="Access status checked successfully"
-                )
-            else:
-                # Return default values if no subscription exists
-                return success(
-                    data={
-                        "has_subscription": False,
-                        "has_pay_per_download_credits": False,
-                        "water_mark": False,
-                        "multilingual_support": False,
-                        "cover_letter": False
-                    },
-                    message="Access status checked successfully"
-                )
-        except Exception as e:
-            return error(message="Failed to check access status", errors=str(e))
-              
+        subscription = Subscription.objects.filter(user=user).first()
+        if subscription and subscription.package:
+            # Serialize package and its features to avoid returning a ManyRelatedManager
+            package_data = SubscriptionPackageSerializer(subscription.package).data
+           
+            has_access = subscription.has_subscription()
+            return success(
+                data={
+                    "has_access": has_access,
+                    "subscription_package": package_data,
+                },
+            )
+
+        # No subscription found
+        return success(
+            data={
+                "has_access": False,
+                "subscription_package": None,
+                "subscription_features": [],
+            },
+            message="No active subscription",
+        )
 
 
 class CurrentSubscriptionPlanAPIView(APIView):

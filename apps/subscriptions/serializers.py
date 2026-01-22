@@ -30,3 +30,7 @@ class CurrentSubscriptionSerializer(serializers.ModelSerializer):
         fields = ["package", "status", "start_date", "end_date", "package"]
         
 
+class SubscriptionFeatureSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Feature
+        fields = ['name']
