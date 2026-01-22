@@ -99,62 +99,62 @@ class StripeWebhookAPIView(APIView):
 
         try:
             if event['type'] == 'checkout.session.completed':
+
                 session = event['data']['object']
+
                 session_id = session.get('id')
+
                 checkout_session = stripe.checkout.Session.retrieve(
                     session_id,
                     expand=['line_items']
                 )
 
                 customer_email = session.get('customer_email')
+
                 user = User.objects.filter(email=customer_email).first()
+
                 if not user:
                     return HttpResponse(status=200)
 
                 line_items = checkout_session['line_items']['data']
                 price_id = line_items[0]['price']['id'] if line_items else None
-                print("Price ID:", price_id)
                 package = Package.objects.filter(stripe_price_id=price_id).first()
-                print("Package:", package)
                 if not package:
                     return HttpResponse(status=200)
 
-                if package.type == Package.PackageType.PAY_PER_DOWNLOAD:
+                type = package.type
 
-                    if not Subscription.objects.filter(user=user).exists():
-                        Subscription.objects.create(
-                            user=user,
-                        )
-                    subscription = Subscription.objects.filter(user=user).first()
-                    print("Subscription:", subscription)
-                    if subscription:
-                        subscription.pay_per_download_credits += 1
-                        subscription.save()
-                else:
-                    print(Subscription.objects.filter(user=user).first())
-                    if(not Subscription.objects.filter(user=user).exists()):
-                        Subscription.objects.create(
-                            user=user,
-                            package=package,
-                            stripe_subscription_id=session.get('subscription'),
-                            status='active',
-                            start_date=now(),
-                            end_date=now() + timedelta(days=30),
-                        )
-                    else:   
-                        subscription = Subscription.objects.get(user=user)
-                        subscription.package = package
-                        subscription.stripe_subscription_id = session.get('subscription')
-                        subscription.status = 'active'
-                        subscription.start_date = now()
-                        subscription.end_date = now() + timedelta(days=30)
-                        subscription.save()
+                if type == 'month':
+                    duration_days = 30
+                elif type == 'year':
+                    duration_days = 365
+                elif type == 'agency':
+                    duration_days = 30
+      
+
+                if(not Subscription.objects.filter(user=user).exists()):
+                    Subscription.objects.create(
+                        user=user,
+                        package=package,
+                        stripe_subscription_id=session.get('subscription'),
+                        status='active',
+                        start_date=now(),
+                        end_date=now() + timedelta(days=duration_days),
+                    )
+                else:   
+                    subscription = Subscription.objects.get(user=user)
+                    subscription.package = package
+                    subscription.stripe_subscription_id = session.get('subscription')
+                    subscription.status = 'active'
+                    subscription.start_date = now()
+                    subscription.end_date = now() + timedelta(days=duration_days)
+                    subscription.save()
 
 
 
-                # IncomeReport.objects.update(
-                #     total_income=IncomeReport.objects.first().total_income + package.price,
-                # )
+                IncomeReport.objects.update(
+                    total_income=IncomeReport.objects.first().total_income + package.price,
+                )
 
         except Exception as e:
             logger.exception("Error handling Stripe webhook event: %s", str(e))
