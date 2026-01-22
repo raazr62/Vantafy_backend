@@ -17,6 +17,7 @@ from .views import (
     VerifyOTPView,
     ResetPasswordView,
     UpdataProfileAvatarView,
+    GetNichesView,
     AddNichesAndStageNamesView,
     AddSocialAccountsView,
     )
@@ -42,6 +43,7 @@ urlpatterns = [
     path('avatar-update/', UpdataProfileAvatarView.as_view(), name='avatar-update'),
     path('profile-update/', ProfileUpdateAPIView.as_view(), name='profile-update'),
     # niches and stage names
+    path("get-niches/", GetNichesView.as_view(), name="get-niches"),
     path('add-niches-and-stage-names/', AddNichesAndStageNamesView.as_view(), name='add-niches-and-stage-names'),
     
     # customer Social Accounts

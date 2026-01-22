@@ -1,6 +1,6 @@
 
 from apps.system_setting.models import AboutSystem
-from .models import ConnectedSocialAccount, User, OTP
+from .models import ConnectedSocialAccount, Niche, User, OTP
 from rest_framework import  serializers
 from django.core.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
@@ -439,3 +439,9 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
             'full_name': instance.full_name,
             'role': instance.role,
         }
+    
+
+class GetNichesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Niche
+        fields = ['name']

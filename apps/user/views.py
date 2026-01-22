@@ -30,6 +30,7 @@ from .serializers import (
     ResetPasswordSerializer,
     UpdataProfileAvatarSerializer,
     UpdateProfileSerializer,
+    GetNichesSerializer,
 )
 
 from apps.utils.helpers import success, error
@@ -295,6 +296,22 @@ class ProfileUpdateAPIView(APIView):
             serializer.save()
             return success(data=serializer.data, message="Profile updated successfully.", status_code=status.HTTP_200_OK)
         return error(message="Profile update failed.", status_code=status.HTTP_400_BAD_REQUEST, errors=serializer.errors)
+    
+class GetNichesView(APIView):
+    permission_classes = []
+
+    def get(self, request):
+    
+        niches = Niche.objects.all()
+
+        if not niches.exists():
+            return error(message="No niches found.", errors=None, code=200)
+        
+        serializer = GetNichesSerializer(niches, many=True)
+        return success(data=serializer.data,message="Customer niches fetched successfully.", status_code=status.HTTP_200_OK)
+
+        
+        
 
 class AddNichesAndStageNamesView(APIView):
     permission_classes = [IsAuthenticated]
