@@ -100,6 +100,19 @@ def get_unfold_settings():
                     ],
                 },
                 {
+                    "title": _("Agency Member List"),
+                    "separator": True, 
+                    "collapsible": True, 
+                    "items": [
+                        {
+                            "title": _("Agency Members"),
+                            "icon": "group",
+                            "link": reverse_lazy("admin:user_agencymemberlist_changelist"),
+                        },
+                       
+                    ],
+                },
+                {
                     "title": _("System Setting"),
                     "separator": True,
                     "collapsible": True,
