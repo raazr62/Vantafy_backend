@@ -33,11 +33,8 @@ class HybridJWTAuthentication(JWTAuthentication):
     """
     
     def authenticate(self, request):
-        print("ONLY Request in Hybrid JWT Auth:", request)
-        # Detect client type (set by ClientTypeMiddleware)
         is_mobile = getattr(request, 'is_mobile_client', False)
         
-        # Step 1: Try Authorization header first (mobile/API clients)
         header = self.get_header(request)
         if header is not None:
             raw_token = self.get_raw_token(header)
@@ -47,7 +44,6 @@ class HybridJWTAuthentication(JWTAuthentication):
         # Step 2: Fallback to cookies (web clients)
         if raw_token is None:
             raw_token = request.COOKIES.get('access_token') or None
-            print("Access Token from Cookie:", raw_token)
         
         # Handle common frontend error: token value is literally "null"
         if raw_token is not None:

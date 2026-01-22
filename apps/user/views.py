@@ -1,3 +1,4 @@
+from datetime import timezone
 from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 from rest_framework import status
@@ -5,11 +6,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
-
 from apps.user.models import Niche
 from .authentication import CookieJWTAuthentication
 from .models import Niche, StageName
 from .models import ConnectedSocialAccount
+from apps.subscriptions.models import Subscription
 
 
 
@@ -19,7 +20,6 @@ from .models import ConnectedSocialAccount
 from .utils import create_hybrid_auth_response
 
 from .serializers import (
-    ConnectedSocialAccountSerializer,
     SignUpSerializer,
     SignInSerializer,
     SignOutSerializer,
@@ -41,6 +41,10 @@ class SignUpView(APIView):
     permission_classes = []
 
     def post(self, request):
+
+        role = request.data.get('role')
+        if role not in ['customer', 'agency']:
+            return error(message="Invalid role provided.", status_code=status.HTTP_400_BAD_REQUEST)
 
         serializer = SignUpSerializer(data=request.data, context={'request': request})
         
@@ -254,11 +258,14 @@ class CookieTokenVerifyView(TokenVerifyView):
         jwt_auth = JWTAuthentication()
         validated_token = jwt_auth.get_validated_token(token)
         user = jwt_auth.get_user(validated_token)
-        
+
+        has_subscription = Subscription.objects.filter(user=user,status='active',).exists()        
+    
         user_info = {
             'id': user.id,
             'email': user.email,
             'role': getattr(user, 'role', None),
+            'has_subscription': has_subscription
         }
         
         return success(data=user_info, message="Token is valid.", status_code=status.HTTP_200_OK)
