@@ -11,7 +11,7 @@ from .authentication import CookieJWTAuthentication
 from .models import Niche, StageName
 from .models import ConnectedSocialAccount
 from apps.subscriptions.models import Subscription
-
+from .utils import clear_auth_cookies
 
 
 
@@ -123,7 +123,6 @@ class SignOutView(APIView):
             # Clear cookies for web clients
             is_web = getattr(request, 'is_web_client', True)
             if is_web or 'access_token' in request.COOKIES:
-                from .utils import clear_auth_cookies
                 clear_auth_cookies(response)
             
             return response
@@ -243,7 +242,7 @@ class CookieTokenVerifyView(TokenVerifyView):
         # Get token from request or cookie
         token = data.get('token') or request.COOKIES.get('access_token')
         if not token:
-            return error(message="No token provided.", errors={}, status_code=status.HTTP_400_BAD_REQUEST)
+            return error(message="No token provided.", errors={}, status_code=status.HTTP_401_UNAUTHORIZED)
         
         data['token'] = token
         
