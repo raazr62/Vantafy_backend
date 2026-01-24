@@ -16,10 +16,7 @@ class GoogleAuthView(APIView):
     permission_classes = [AllowAny]  
 
     def post(self, request):
-        role = request.data.get('role')
-
-        if role not in User.Roles.values:
-            return error("Invalid role specified", status_code=status.HTTP_400_BAD_REQUEST)
+        
 
         access_token = request.data.get('access_token')
         if not access_token:
@@ -46,20 +43,23 @@ class GoogleAuthView(APIView):
             return error("Email not available in Google user info", status_code=status.HTTP_400_BAD_REQUEST)
 
         # Check if the user exists, if not create one.
-        print("Role in Google Auth View:", role)
         try:
             user = User.objects.get(email=email)
 
-            user.role = role
             user.save()
         except User.DoesNotExist:
-            # Generate secure random password for social auth users
+
+            role = request.data.get('role')
+            if role not in [User.Roles.CUSTOMER, User.Roles.AGENCY]:
+                    return error("Invalid role specified", status_code=status.HTTP_400_BAD_REQUEST)
+            
             random_password = secrets.token_urlsafe(32)
             user = User.objects.create_user(
                 email=email,
                 full_name=full_name,
                 password=random_password,
-                role=role
+                role=role,
+                term_and_condition_accepted =  True
             )
 
             if picture:
@@ -69,7 +69,6 @@ class GoogleAuthView(APIView):
                     if hasattr(user, 'avatar'):
                         user.avatar.save(file_name, ContentFile(image_response.content))
 
-           
         
         # Get user agent hash for token binding (security feature)
         user_agent_hash = get_user_agent_hash(request)
