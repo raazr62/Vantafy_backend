@@ -3,7 +3,6 @@ from django.core.files.base import ContentFile
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.permissions import AllowAny
-from rest_framework_simplejwt.tokens import RefreshToken
 from apps.user.models import User
 from apps.utils.helpers import error
 from uuid import uuid4

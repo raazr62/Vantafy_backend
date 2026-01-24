@@ -1,6 +1,6 @@
 
 from apps.system_setting.models import AboutSystem
-from .models import ConnectedSocialAccount, Niche, User, OTP
+from .models import AgencyMemberList, ConnectedSocialAccount, Niche, User, OTP
 from rest_framework import  serializers
 from django.core.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
@@ -445,3 +445,8 @@ class GetNichesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Niche
         fields = ['name']
+
+class AgencyMemberListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AgencyMemberList
+        fields = ['id', 'name', 'profile_image']

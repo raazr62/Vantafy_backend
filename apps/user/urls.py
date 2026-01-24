@@ -20,6 +20,10 @@ from .views import (
     GetNichesView,
     AddNichesAndStageNamesView,
     AddSocialAccountsView,
+    AddAgencyMemberView,
+    AgencyMemberListView,
+    UpdateAgencyMemberDataView,
+
     )
 
 urlpatterns = [
@@ -48,6 +52,12 @@ urlpatterns = [
     
     # customer Social Accounts
     path('add-social-accounts/', AddSocialAccountsView.as_view(), name='add-social-accounts'),
+
+    # agency members
+
+    path('add-agency-member/', AddAgencyMemberView.as_view(), name='add-agency-members'),
+    path('agency-member-list/', AgencyMemberListView.as_view(), name='agency-member-list'),
+    path('update-agency-member-data/<int:member_id>/', UpdateAgencyMemberDataView.as_view(), name='update-agency-member-data'),
 
     
 ]
