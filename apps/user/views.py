@@ -398,7 +398,7 @@ class AgencyMemberListView(APIView):
         serializer = AgencyMemberListSerializer(members, many=True)
         return success(data=serializer.data, message="Agency members fetched successfully.", status_code=status.HTTP_200_OK)
     
-    
+
 class UpdateAgencyMemberDataView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]
@@ -418,3 +418,20 @@ class UpdateAgencyMemberDataView(APIView):
             serializer.save()
             return success(data=serializer.data, message="Agency member updated successfully.", status_code=status.HTTP_200_OK)
         return error(message="Invalid data.", status_code=status.HTTP_400_BAD_REQUEST, errors=serializer.errors)
+    
+class DeleteAgencyMemberDataView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+
+    def delete(self, request, member_id):
+        agency = request.user
+        if agency.role != User.Roles.AGENCY:
+            return error(message="Only agency users can delete agency members.", status_code=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            member = AgencyMemberList.objects.get(id=member_id, agency=agency)
+        except AgencyMemberList.DoesNotExist:
+            return error(message="Agency member not found.", status_code=status.HTTP_404_NOT_FOUND)
+        
+        member.delete()
+        return success(data=[], message="Agency member deleted successfully.", status_code=status.HTTP_200_OK)

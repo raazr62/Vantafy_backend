@@ -7,6 +7,7 @@ from rest_framework_simplejwt.views import (
 from .views import (
     CookieTokenRefreshView,
     CookieTokenVerifyView,
+    DeleteAgencyMemberDataView,
     ProfileUpdateAPIView,
     SignUpView,
     SignInView,
@@ -58,6 +59,7 @@ urlpatterns = [
     path('add-agency-member/', AddAgencyMemberView.as_view(), name='add-agency-members'),
     path('agency-member-list/', AgencyMemberListView.as_view(), name='agency-member-list'),
     path('update-agency-member-data/<int:member_id>/', UpdateAgencyMemberDataView.as_view(), name='update-agency-member-data'),
+    path('delete-agency-member/<int:member_id>/',DeleteAgencyMemberDataView.as_view(), name='delete-agency-member'),
 
     
 ]
