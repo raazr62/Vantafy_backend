@@ -29,14 +29,7 @@ class SpiderListView(APIView):
 
 
 class ScanNowView(APIView):
-    """
-    POST: Start a new scan job.
-    
-    Request body:
-    {
-        "creator_name": "Name to search for"
-    }
-    """
+
     permission_classes = [AllowAny]
     
     def post(self, request):

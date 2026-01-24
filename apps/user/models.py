@@ -16,6 +16,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     email = models.EmailField(_("email address"), unique=True)
     full_name = models.CharField(max_length=255, blank=True, null=True)
+    country = models.CharField(max_length=100, blank=True, null=True)
+    time_zone = models.CharField(max_length=100, blank=True, null=True)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     role = models.CharField(max_length=20, choices=Roles.choices, default=Roles.CUSTOMER)
     is_staff = models.BooleanField(default=False)

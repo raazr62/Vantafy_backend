@@ -304,6 +304,19 @@ class ProfileUpdateAPIView(APIView):
             return success(data=serializer.data, message="Profile updated successfully.", status_code=status.HTTP_200_OK)
         return error(message="Profile update failed.", status_code=status.HTTP_400_BAD_REQUEST, errors=serializer.errors)
     
+class MyNichesView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+
+    def get(self, request):
+        user = request.user
+        
+        niches = Niche.objects.filter(customer=user)
+        
+        data = GetNichesSerializer(niches, many=True).data
+        
+        return success(data=data, message="User niches and stage names fetched successfully.", status_code=status.HTTP_200_OK)
+    
 class GetNichesView(APIView):
     permission_classes = []
 

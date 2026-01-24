@@ -25,6 +25,8 @@ from .views import (
     AgencyMemberListView,
     UpdateAgencyMemberDataView,
 
+    MyNichesView,
+
     )
 
 urlpatterns = [
@@ -44,12 +46,14 @@ urlpatterns = [
     path('verify-otp/', VerifyOTPView.as_view(), name='verify-otp'),
     path('reset-password/', ResetPasswordView.as_view(), name='reset-password'),
 
-    # profile
-    path('avatar-update/', UpdataProfileAvatarView.as_view(), name='avatar-update'),
-    path('profile-update/', ProfileUpdateAPIView.as_view(), name='profile-update'),
-    # niches and stage names
+    # onboarding 
     path("get-niches/", GetNichesView.as_view(), name="get-niches"),
     path('add-niches-and-stage-names/', AddNichesAndStageNamesView.as_view(), name='add-niches-and-stage-names'),
+
+    # My account updates
+    path('avatar-update/', UpdataProfileAvatarView.as_view(), name='avatar-update'),
+    path('profile-update/', ProfileUpdateAPIView.as_view(), name='profile-update'),
+    path('my-niches/', MyNichesView.as_view(), name='my-niches'),
     
     # customer Social Accounts
     path('add-social-accounts/', AddSocialAccountsView.as_view(), name='add-social-accounts'),
