@@ -6,6 +6,7 @@ from django.core.files.base import ContentFile
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.permissions import AllowAny
+from stripe import Subscription
 
 from apps.user.models import User
 from apps.utils.helpers import error
@@ -47,7 +48,7 @@ class GoogleAuthView(APIView):
         #  CHECK USER
         
         user = User.objects.filter(email=email).first()
-        
+
         if not user:
             role = request.data.get('role')
             if role not in [User.Roles.CUSTOMER, User.Roles.AGENCY]:
@@ -87,11 +88,14 @@ class GoogleAuthView(APIView):
             'refresh': str(refresh)
         }
 
+        has_subscription = Subscription.objects.filter(user=user,status='active',).exists()        
+
         user_data = {
             'id': user.id,
             'email': user.email,
             'full_name': user.full_name,
             'role': user.role,
+            'has_subscription': has_subscription,
         }
 
         return create_hybrid_auth_response(
