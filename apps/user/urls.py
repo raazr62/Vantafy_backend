@@ -26,6 +26,7 @@ from .views import (
     UpdateAgencyMemberDataView,
 
     MyNichesView,
+    MyProfileView,
 
     )
 
@@ -53,6 +54,7 @@ urlpatterns = [
     # My account updates
     path('avatar-update/', UpdataProfileAvatarView.as_view(), name='avatar-update'),
     path('profile-update/', ProfileUpdateAPIView.as_view(), name='profile-update'),
+    path('my-profile/', MyProfileView.as_view(), name='my-profile'),
     path('my-niches/', MyNichesView.as_view(), name='my-niches'),
     
     # customer Social Accounts

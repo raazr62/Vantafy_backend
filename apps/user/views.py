@@ -304,6 +304,28 @@ class ProfileUpdateAPIView(APIView):
             return success(data=serializer.data, message="Profile updated successfully.", status_code=status.HTTP_200_OK)
         return error(message="Profile update failed.", status_code=status.HTTP_400_BAD_REQUEST, errors=serializer.errors)
     
+class MyProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+
+    def get(self, request):
+        user = request.user
+        
+        has_subscription = Subscription.objects.filter(user=user,status='active',).exists()        
+        
+        user_data = {
+            'id': user.id,
+            'email': user.email,
+            'full_name': user.full_name,
+            'country': user.country,
+            'time_zone': user.time_zone,
+            'avatar': user.avatar.url if user.avatar else None,
+            'role': user.role,
+            'has_subscription': has_subscription,
+        }
+        
+        return success(data=user_data, message="User profile fetched successfully.", status_code=status.HTTP_200_OK)
+    
 class MyNichesView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]
