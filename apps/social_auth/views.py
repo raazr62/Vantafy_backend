@@ -6,8 +6,7 @@ from django.core.files.base import ContentFile
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.permissions import AllowAny
-from stripe import Subscription
-
+from apps.subscriptions.models import Subscription
 from apps.user.models import User
 from apps.utils.helpers import error
 from apps.user.serializers import CustomRefreshToken
