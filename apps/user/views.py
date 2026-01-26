@@ -267,7 +267,8 @@ class CookieTokenVerifyView(TokenVerifyView):
             'id': user.id,
             'email': user.email,
             'role': getattr(user, 'role', None),
-            'has_subscription': has_subscription
+            'has_subscription': has_subscription,
+            'is_google_login': user.is_google_login,
         }
         
         return success(data=user_info, message="Token is valid.", status_code=status.HTTP_200_OK)
@@ -383,6 +384,23 @@ class AddStageNameView(APIView):
                 "created": created
             },
             message="Stage name created successfully." if created else "Stage name already exists.",
+            status_code=status.HTTP_200_OK
+        )
+    
+
+class MyStageNamesView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+
+    def get(self, request):
+        user = request.user
+        
+        stage_names = StageName.objects.filter(customer=user)
+        stage_name_data = [{"id": stage_name.id, "name": stage_name.name} for stage_name in stage_names]
+
+        return success(
+            data=stage_name_data,
+            message="Stage names fetched successfully.",
             status_code=status.HTTP_200_OK
         )
 

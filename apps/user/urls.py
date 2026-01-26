@@ -26,6 +26,7 @@ from .views import (
     UpdateAgencyMemberDataView,
     CreateOrDeleteNichesView,
     AddStageNameView,
+    MyStageNamesView,
 
     # My niches and profile
     MyNichesView,
@@ -83,7 +84,7 @@ urlpatterns = [
     # state name
 
     path('add-stage-name/', AddStageNameView.as_view(), name='add-stage-names'),
-    
+    path('my-stage-names/', MyStageNamesView.as_view(), name='get-stage-names'),   
     # customer Social Accounts
     path('add-social-accounts/', AddSocialAccountsView.as_view(), name='add-social-accounts'),
 

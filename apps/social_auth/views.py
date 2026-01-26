@@ -88,6 +88,9 @@ class GoogleAuthView(APIView):
         }
 
         has_subscription = Subscription.objects.filter(user=user,status='active',).exists()        
+        is_google_login = True
+        user.is_google_login = is_google_login
+        user.save()
 
         user_data = {
             'id': user.id,

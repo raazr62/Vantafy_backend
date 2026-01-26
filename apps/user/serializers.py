@@ -139,7 +139,7 @@ class SignInSerializer(serializers.Serializer):
         )
 
         has_subscription = Subscription.objects.filter(user=user,status='active',).exists()        
-
+        
 
         return {
             'user': {
@@ -147,6 +147,7 @@ class SignInSerializer(serializers.Serializer):
                 'email': user.email,
                 'role': user.role,
                 'has_subscription': has_subscription,
+                'is_google_login': user.is_google_login,
             },
             'refresh': str(refresh),
             'access': str(refresh.access_token),
