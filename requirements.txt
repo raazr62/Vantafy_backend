@@ -39,6 +39,8 @@ jmespath==1.0.1
 lxml==6.0.2
 MarkupSafe==3.0.3
 msgpack==1.1.2
+names-dataset==3.3.1
+numpy==2.4.1
 oauthlib==3.3.1
 packaging==25.0
 parsel==1.10.0
@@ -50,6 +52,7 @@ psycopg2-binary==2.9.11
 py-ubjson==0.16.1
 pyasn1==0.6.1
 pyasn1_modules==0.4.2
+pycountry==24.6.1
 pycparser==2.23
 PyDispatcher==2.0.7
 PyJWT==2.10.1

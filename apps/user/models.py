@@ -47,6 +47,7 @@ class Niche(models.Model):
 class StageName(models.Model):
     customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='stage_names')
     name = models.CharField(max_length=255)
+    is_common = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -56,7 +57,7 @@ class ConnectedSocialAccount(models.Model):
     customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='social_accounts')
     platform = models.CharField(max_length=100)
 
-    
+
 
 PURPOSE = (
     ('password_reset', 'Password Reset'),

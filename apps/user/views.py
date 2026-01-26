@@ -13,7 +13,7 @@ from .models import AgencyMemberList, AgencyMemberNiches, AgencyMemberSocialAcco
 from .models import ConnectedSocialAccount
 from apps.subscriptions.models import Subscription
 from .utils import clear_auth_cookies
-
+from names_dataset import NameDataset
 
 
 
@@ -375,7 +375,25 @@ class AddStageNameView(APIView):
         if not name:
             return error(message="Stage name is required.", status_code=status.HTTP_400_BAD_REQUEST)
         
-        stage_name, created = StageName.objects.get_or_create(customer=user, name=name)
+        nd = NameDataset()
+
+        def is_common_name(name: str, use_first_names=True, country_alpha2=None, gender=None, top_n=100):
+
+            top_names = nd.get_top_names(n=top_n, use_first_names=use_first_names)
+            # If country specified, get names only for that country
+            if country_alpha2:
+                country_names = top_names.get(country_alpha2, [])
+            else:
+            # Combine all countries
+                country_names = []  
+            for names_list in top_names.values():
+                country_names.extend(names_list)
+            return name.title() in country_names
+
+
+        is_common = is_common_name(name, country_alpha2=None, top_n=1000)
+        
+        stage_name, created = StageName.objects.get_or_create(customer=user, name=name, is_common=is_common)
 
         return success(
             data={
