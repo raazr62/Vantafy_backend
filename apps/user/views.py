@@ -414,7 +414,7 @@ class MyStageNamesView(APIView):
         user = request.user
         
         stage_names = StageName.objects.filter(customer=user)
-        stage_name_data = [{"id": stage_name.id, "name": stage_name.name} for stage_name in stage_names]
+        stage_name_data = [{"id": stage_name.id, "name": stage_name.name, "is_common": stage_name.is_common} for stage_name in stage_names]
 
         return success(
             data=stage_name_data,
