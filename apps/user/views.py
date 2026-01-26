@@ -515,7 +515,23 @@ class CreateOrUpdateAgencyMemberNichesView(APIView):
                 status_code=status.HTTP_400_BAD_REQUEST
             )
 
-        niche, created = AgencyMemberNiches.objects.get_or_create(
+        niche = AgencyMemberNiches.objects.filter(
+            agency_member=member,
+            name=name
+        ).first()
+
+        if niche:
+            niche.delete()
+            return success(
+                data={
+                    "name": name,
+                    "deleted": True
+                },
+                message="Agency member niche removed successfully.",
+                status_code=status.HTTP_200_OK
+            )
+
+        niche = AgencyMemberNiches.objects.create(
             agency_member=member,
             name=name
         )
@@ -524,11 +540,12 @@ class CreateOrUpdateAgencyMemberNichesView(APIView):
             data={
                 "niche_id": niche.id,
                 "name": niche.name,
-                "created": created
+                "created": True
             },
-            message="Agency member niche created successfully." if created else "Agency member niche already exists.",
-            status_code=status.HTTP_200_OK
+            message="Agency member niche created successfully.",
+            status_code=status.HTTP_201_CREATED
         )
+
 
 class AgencyMemberNichesView(APIView):
     permission_classes = [IsAuthenticated]
