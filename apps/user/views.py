@@ -804,3 +804,36 @@ class GetAgencyMemberSocialAccountsView(APIView):
             message="Agency member social accounts fetched successfully.",
             status_code=status.HTTP_200_OK
         )
+    
+class DeleteAgencyMemberSocialAccountView(APIView):
+
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+
+    def delete(self, request, account_id):
+        agency = request.user
+
+        if agency.role != User.Roles.AGENCY:
+            return error(
+                message="Only agency users can delete social accounts for agency members.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+
+        try:
+            social_account = AgencyMemberSocialAccounts.objects.get(
+                id=account_id,
+                agency_member__agency=agency
+            )
+        except AgencyMemberSocialAccounts.DoesNotExist:
+            return error(
+                message="Agency member social account not found.",
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+
+        social_account.delete()
+
+        return success(
+            data=[],
+            message="Agency member social account deleted successfully.",
+            status_code=status.HTTP_200_OK
+        )

@@ -42,7 +42,7 @@ from .views import (
     # agency member social accounts
     AddAgencyMemberSocialAccountsView,
     GetAgencyMemberSocialAccountsView,
-
+    DeleteAgencyMemberSocialAccountView,
 
 
 
@@ -101,5 +101,6 @@ urlpatterns = [
     # agency member social accounts
     path('add-agency-member-social-accounts/<int:member_id>/', AddAgencyMemberSocialAccountsView.as_view(), name='add-agency-member-social-accounts'),
     path('get-agency-member-social-accounts/<int:member_id>/', GetAgencyMemberSocialAccountsView.as_view(), name='get-agency-member-social-accounts'),
+    path('delete-agency-member-social-account/<int:account_id>/', DeleteAgencyMemberSocialAccountView.as_view(), name='delete-agency-member-social-account'),
     
 ]
