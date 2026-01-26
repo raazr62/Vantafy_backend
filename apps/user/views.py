@@ -8,7 +8,7 @@ from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from apps.user.models import Niche
 from .authentication import CookieJWTAuthentication
-from .models import AgencyMemberList, Niche, StageName, User
+from .models import AgencyMemberList, AgencyMemberNiches, AgencyMemberStageNames, Niche, StageName, User
 from .models import ConnectedSocialAccount
 from apps.subscriptions.models import Subscription
 from .utils import clear_auth_cookies
@@ -26,11 +26,12 @@ from .serializers import (
     ChangePasswordSerializer,
     SendOTPSerializer,
     ResendOTPSerializer,
+    StageNameSerializer,
     VerifyOTPSerializer,
     ResetPasswordSerializer,
     UpdataProfileAvatarSerializer,
     UpdateProfileSerializer,
-    GetNichesSerializer,
+    NichesSerializer,
     AgencyMemberListSerializer
 )
 
@@ -335,7 +336,7 @@ class MyNichesView(APIView):
         
         niches = Niche.objects.filter(customer=user)
         
-        data = GetNichesSerializer(niches, many=True).data
+        data = NichesSerializer(niches, many=True).data
         
         return success(data=data, message="User niches and stage names fetched successfully.", status_code=status.HTTP_200_OK)
     
@@ -349,7 +350,7 @@ class GetNichesView(APIView):
         if not niches.exists():
             return error(message="No niches found.", errors=None, code=200)
         
-        serializer = GetNichesSerializer(niches, many=True)
+        serializer = NichesSerializer(niches, many=True)
         return success(data=serializer.data,message="Customer niches fetched successfully.", status_code=status.HTTP_200_OK)
 
         
@@ -365,14 +366,22 @@ class AddNichesAndStageNamesView(APIView):
         niches = request.data.get('niches', [])
         stage_names = request.data.get('stage_names', [])
         
+        niche_serializer = NichesSerializer(data=niches, many=True)
+        stage_name_serializer = StageNameSerializer(data=stage_names, many=True)
+
+        if not niche_serializer.is_valid():
+            return error(message="Invalid niches data.", status_code=status.HTTP_400_BAD_REQUEST, errors=niche_serializer.errors)
+        if not stage_name_serializer.is_valid():
+            return error(message="Invalid stage names data.", status_code=status.HTTP_400_BAD_REQUEST, errors=stage_name_serializer.errors)
         
-        # Add niches
-        for niche in niches:
-            Niche.objects.get_or_create(customer=user, name=niche)
-        
-        # Add stage names
-        for stage_name in stage_names:
-            StageName.objects.get_or_create(customer=user, name=stage_name)
+        # Save niches
+        for niche_data in niche_serializer.validated_data:
+            Niche.objects.create(customer=user, **niche_data)
+
+        # Save stage names
+        for stage_name_data in stage_name_serializer.validated_data:
+            StageName.objects.create(customer=user, **stage_name_data)
+
         
         return success(data=[], message="Customer niches and stage names added successfully.", status_code=status.HTTP_200_OK)
     
@@ -413,12 +422,16 @@ class AddAgencyMemberView(APIView):
         if agency.role != User.Roles.AGENCY:
             return error(message="Only agency users can add agency members.", status_code=status.HTTP_403_FORBIDDEN)
         
+        name = request.data.get('name')
+        profile_image = request.FILES.get('profile_image')
 
-        member =    AgencyMemberListSerializer(data=request.data)
-        if member.is_valid():
-            member.save(agency=agency)
-            return success(data=member.data, message="Agency member added successfully.", status_code=status.HTTP_200_OK)
-        return error(message="Invalid data.", status_code=status.HTTP_400_BAD_REQUEST, errors=member.errors)
+        member = AgencyMemberList.objects.create(
+            agency=agency,
+            name=name,
+            profile_image=profile_image
+        )
+
+        return success(data={"member_id": member.id}, message="Agency member added successfully.", status_code=status.HTTP_201_CREATED)
     
 class AgencyMemberListView(APIView):
     permission_classes = [IsAuthenticated]
@@ -470,3 +483,222 @@ class DeleteAgencyMemberDataView(APIView):
         
         member.delete()
         return success(data=[], message="Agency member deleted successfully.", status_code=status.HTTP_200_OK)
+    
+
+
+class CreateOrUpdateAgencyMemberNichesView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+
+    def post(self, request, member_id):
+        agency = request.user
+
+        if agency.role != User.Roles.AGENCY:
+            return error(
+                message="Only agency users can manage agency member niches.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+
+        try:
+            member = AgencyMemberList.objects.get(id=member_id, agency=agency)
+        except AgencyMemberList.DoesNotExist:
+            return error(
+                message="Agency member not found.",
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+
+        name = request.data.get("name")
+        if not name:
+            return error(
+                message="Niche name is required.",
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
+        niche, created = AgencyMemberNiches.objects.get_or_create(
+            agency_member=member,
+            name=name
+        )
+
+        return success(
+            data={
+                "niche_id": niche.id,
+                "name": niche.name,
+                "created": created
+            },
+            message="Agency member niche created successfully." if created else "Agency member niche already exists.",
+            status_code=status.HTTP_200_OK
+        )
+
+class AgencyMemberNichesView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+
+    def get(self, request, member_id):
+        agency = request.user
+
+        if agency.role != User.Roles.AGENCY:
+            return error(
+                message="Only agency users can view agency member niches.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+
+        try:
+            member = AgencyMemberList.objects.get(id=member_id, agency=agency)
+        except AgencyMemberList.DoesNotExist:
+            return error(
+                message="Agency member not found.",
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+
+        niches = AgencyMemberNiches.objects.filter(agency_member=member)
+        niche_data = [{"id": niche.id, "name": niche.name} for niche in niches]
+
+        return success(
+            data=niche_data,
+            message="Agency member niches fetched successfully.",
+            status_code=status.HTTP_200_OK
+        )
+    
+
+
+class AddAgencyMemberStageNamesView(APIView):
+
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+
+    def post(self, request, member_id):
+        agency = request.user
+
+        if agency.role != User.Roles.AGENCY:
+            return error(
+                message="Only agency users can manage agency member stage names.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+
+        try:
+            member = AgencyMemberList.objects.get(id=member_id, agency=agency)
+        except AgencyMemberList.DoesNotExist:
+            return error(
+                message="Agency member not found.",
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+
+        name = request.data.get("name")
+        if not name:
+            return error(
+                message="Stage name is required.",
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
+        stage_name, created = AgencyMemberStageNames.objects.get_or_create(
+            agency_member=member,
+            name=name
+        )
+
+        return success(
+            data={
+                "stage_name_id": stage_name.id,
+                "name": stage_name.name,
+                "created": created
+            },
+            message="Agency member stage name created successfully." if created else "Agency member stage name already exists.",
+            status_code=status.HTTP_200_OK
+        )
+    
+class UpdateAgencyMemberStageNamesView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+
+    def put(self, request, stage_name_id):
+        agency = request.user
+
+        if agency.role != User.Roles.AGENCY:
+            return error(
+                message="Only agency users can edit agency member stage names.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+
+        try:
+            stage_name = AgencyMemberStageNames.objects.get(id=stage_name_id, agency_member__agency=agency)
+        except AgencyMemberStageNames.DoesNotExist:
+            return error(
+                message="Agency member stage name not found.",
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+        name = request.data.get("name")
+        if not name:
+            return error(
+                message="Stage name is required.",
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        
+        stage_name.name = name
+        stage_name.save()
+
+        return success(
+            data={
+                "stage_name_id": stage_name.id,
+                "name": stage_name.name
+            },
+            message="Agency member stage name updated successfully.",
+            status_code=status.HTTP_200_OK
+        )
+           
+class GetAgencyMemberStageNamesView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+
+    def get(self, request, member_id):
+        agency = request.user
+
+        if agency.role != User.Roles.AGENCY:
+            return error(
+                message="Only agency users can view agency member stage names.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+
+        try:
+            member = AgencyMemberList.objects.get(id=member_id, agency=agency)
+        except AgencyMemberList.DoesNotExist:
+            return error(
+                message="Agency member not found.",
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+
+        stage_names = AgencyMemberStageNames.objects.filter(agency_member=member)
+        stage_name_data = [{"id": stage_name.id, "name": stage_name.name} for stage_name in stage_names]
+
+        return success(
+            data=stage_name_data,
+            message="Agency member stage names fetched successfully.",
+            status_code=status.HTTP_200_OK
+        )
+    
+class DeleteAgencyMemberStageNameView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+
+    def delete(self, request, stage_name_id):
+        agency = request.user
+
+        if agency.role != User.Roles.AGENCY:
+            return error(
+                message="Only agency users can delete agency member stage names.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+
+        try:
+            stage_name = AgencyMemberStageNames.objects.get(id=stage_name_id, agency_member__agency=agency)
+        except AgencyMemberStageNames.DoesNotExist:
+            return error(
+                message="Agency member stage name not found.",
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+
+        stage_name.delete()
+
+        return success(
+            data=[],
+            message="Agency member stage name deleted successfully.",
+            status_code=status.HTTP_200_OK
+        )

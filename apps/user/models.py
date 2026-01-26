@@ -93,3 +93,25 @@ class AgencyMemberList(models.Model):
 
     def __str__(self):
         return self.name
+    
+
+class AgencyMemberNiches(models.Model):
+    agency_member = models.ForeignKey(AgencyMemberList, on_delete=models.CASCADE, related_name='niches_of_agency_member')
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+    
+class AgencyMemberStageNames(models.Model):
+    agency_member = models.ForeignKey(AgencyMemberList, on_delete=models.CASCADE, related_name='stage_names_of_agency_member')
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+    
+class AgencyMemberSocialAccounts(models.Model):
+    agency_member = models.ForeignKey(AgencyMemberList, on_delete=models.CASCADE, related_name='social_accounts_of_agency_member')
+    platform = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.platform

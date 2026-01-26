@@ -25,8 +25,19 @@ from .views import (
     AgencyMemberListView,
     UpdateAgencyMemberDataView,
 
+    # My niches and profile
     MyNichesView,
     MyProfileView,
+
+    # Agency Member Niches
+    CreateOrUpdateAgencyMemberNichesView,
+    AgencyMemberNichesView,
+
+    # agency member stage names
+    AddAgencyMemberStageNamesView,
+    UpdateAgencyMemberStageNamesView,
+    GetAgencyMemberStageNamesView,
+    DeleteAgencyMemberStageNameView,
 
     )
 
@@ -67,5 +78,16 @@ urlpatterns = [
     path('update-agency-member-data/<int:member_id>/', UpdateAgencyMemberDataView.as_view(), name='update-agency-member-data'),
     path('delete-agency-member/<int:member_id>/', DeleteAgencyMemberDataView.as_view(), name='delete-agency-member'),
 
+
+    # Agency Member Niches
+    path("create-or-update-agency-member-niches/<int:member_id>/", CreateOrUpdateAgencyMemberNichesView.as_view(), name="create-or-update-agency-member-niches"),
+    path('agency-member-niches/<int:member_id>/', AgencyMemberNichesView.as_view(), name='agency-member-niches'),
+
+    # agency member stage names
+
+    path('add-agency-member-stage-names/<int:member_id>/', AddAgencyMemberStageNamesView.as_view(), name='add-agency-member-stage-names'),
+    path('update-agency-member-stage-names/<int:stage_name_id>/', UpdateAgencyMemberStageNamesView.as_view(), name='update-agency-member-stage-names'),
+    path('get-agency-member-stage-names/<int:member_id>/', GetAgencyMemberStageNamesView.as_view(), name='get-agency-member-stage-names'),
+    path('delete-agency-member-stage-name/<int:stage_name_id>/', DeleteAgencyMemberStageNameView.as_view(), name='delete-agency-member-stage-name'),
     
 ]

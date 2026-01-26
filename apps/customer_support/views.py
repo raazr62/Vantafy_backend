@@ -48,7 +48,7 @@ class GetMessagesView(APIView):
         ).order_by('sent_at')
         
         if not messages.exists():
-            return error(message="No messages found.", errors=None, code=200)
+            return error(message="No messages found.", errors=None, status_code=200)
 
         get_message = GetMessageSerializer(messages, many=True, context={'request': request})
 
