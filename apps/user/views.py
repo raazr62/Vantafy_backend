@@ -453,7 +453,7 @@ class DeleteStageNameView(APIView):
 
 
 
-
+    
 
     
 class GetNichesView(APIView):
@@ -518,27 +518,40 @@ class AddSocialAccountsView(APIView):
 
     def post(self, request):
         user = request.user
-        accounts = request.data.get("accounts", [])  
+        platform = request.data.get('platform')
+
+        if not platform:
+            return error(message="Platform is required.", status_code=status.HTTP_400_BAD_REQUEST)
         
-        if not accounts or not isinstance(accounts, list):
-            return error(message="Invalid accounts data.", status_code=status.HTTP_400_BAD_REQUEST)
+        social_account, created = ConnectedSocialAccount.objects.get_or_create(customer=user, platform=platform)
 
-        created_accounts = []
-        for account in accounts:
-            platform = account.get("platform")
-            username = account.get("username")
+        return success(
+            data={
+                "social_account_id": social_account.id,
+                "platform": social_account.platform,
+                "created": created
+            },
+            message="Social account added successfully." if created else "Social account already exists.",
+            status_code=status.HTTP_200_OK
+        )
+        
+class GetSocialAccountView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
 
-            if not platform or not username:
-                continue  # skip invalid entries
+    def get(self, request):
+        user = request.user
+        
+        social_accounts = ConnectedSocialAccount.objects.filter(customer=user)
+        social_account_data = [{"id": account.id, "platform": account.platform} for account in social_accounts]
 
-            obj, created = ConnectedSocialAccount.objects.get_or_create(
-                customer=user,
-                platform=platform,
-                username=username
-            )
-            created_accounts.append({"platform": obj.platform, "username": obj.username})
+        return success(
+            data=social_account_data,
+            message="Social accounts fetched successfully.",
+            status_code=status.HTTP_200_OK
+        )
 
-        return success(data=created_accounts, message="Social accounts added successfully.", status_code=status.HTTP_200_OK)
+
     
 class AddAgencyMemberView(APIView):
     permission_classes = [IsAuthenticated]

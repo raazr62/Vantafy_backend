@@ -30,6 +30,9 @@ from .views import (
     UpdateStageNameApi,
     DeleteStageNameView,
 
+    GetSocialAccountView,
+
+
     # My niches and profile
     MyNichesView,
     MyProfileView,
@@ -90,8 +93,10 @@ urlpatterns = [
     path('delete-stage-name/<int:stage_name_id>/', DeleteStageNameView.as_view(), name='delete-stage-names'),
 
 
+
     # customer Social Accounts
     path('add-social-accounts/', AddSocialAccountsView.as_view(), name='add-social-accounts'),
+    path('get-social-accounts/', GetSocialAccountView.as_view(), name='get-social-accounts'),
 
     # agency members
 
