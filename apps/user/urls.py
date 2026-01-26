@@ -38,8 +38,14 @@ from .views import (
     UpdateAgencyMemberStageNamesView,
     GetAgencyMemberStageNamesView,
     DeleteAgencyMemberStageNameView,
+
+    # agency member social accounts
     AddAgencyMemberSocialAccountsView,
-    
+    GetAgencyMemberSocialAccountsView,
+
+
+
+
 
     )
 
@@ -94,5 +100,6 @@ urlpatterns = [
 
     # agency member social accounts
     path('add-agency-member-social-accounts/<int:member_id>/', AddAgencyMemberSocialAccountsView.as_view(), name='add-agency-member-social-accounts'),
+    path('get-agency-member-social-accounts/<int:member_id>/', GetAgencyMemberSocialAccountsView.as_view(), name='get-agency-member-social-accounts'),
     
 ]

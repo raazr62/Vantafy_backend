@@ -756,3 +756,34 @@ class AddAgencyMemberSocialAccountsView(APIView):
             message="Agency member social account added successfully.",
             status_code=status.HTTP_201_CREATED
         )
+    
+
+class GetAgencyMemberSocialAccountsView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+
+    def get(self, request, member_id):
+        agency = request.user
+
+        if agency.role != User.Roles.AGENCY:
+            return error(
+                message="Only agency users can view social accounts for agency members.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+
+        try:
+            member = AgencyMemberList.objects.get(id=member_id, agency=agency)
+        except AgencyMemberList.DoesNotExist:
+            return error(
+                message="Agency member not found.",
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+
+        social_accounts = AgencyMemberSocialAccounts.objects.filter(agency_member=member)
+        account_data = [{"id": account.id, "platform": account.platform} for account in social_accounts]
+
+        return success(
+            data=account_data,
+            message="Agency member social accounts fetched successfully.",
+            status_code=status.HTTP_200_OK
+        )
