@@ -1,5 +1,8 @@
 from datetime import timezone
 from email.mime import message
+import json
+import os
+from django.conf import settings
 from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 from rest_framework import status
@@ -370,35 +373,44 @@ class AddStageNameView(APIView):
 
     def post(self, request):
         user = request.user
-        name = request.data.get('name')
+        raw_name = request.data.get('name')
+
+        if not raw_name:
+            return error(message="Stage name is required.", status_code=status.HTTP_400_BAD_REQUEST)
+
+        name = str(raw_name).strip()
 
         if not name:
             return error(message="Stage name is required.", status_code=status.HTTP_400_BAD_REQUEST)
-        
-        # nd = NameDataset()
 
-        # def is_common_name(name: str, use_first_names=True, country_alpha2=None, gender=None, top_n=100):
+        try:
+            file_path = os.path.join(settings.BASE_DIR, 'common-names', 'common-names.json')
+            with open(file_path, 'r') as file:
+                payload = json.load(file)
 
-        #     top_names = nd.get_top_names(n=top_n, use_first_names=use_first_names)
-        #     # If country specified, get names only for that country
-        #     if country_alpha2:
-        #         country_names = top_names.get(country_alpha2, [])
-        #     else:
-        #     # Combine all countries
-        #         country_names = []  
-        #     for names_list in top_names.values():
-        #         country_names.extend(names_list)
-        #     return name.title() in country_names
+            print("COMMON NAMES PAYLOAD LOADED:", payload)
+            # Extract first_name values from the list of dicts
+            common_names_set = {
+                str(item.get("first_name", "")).strip().lower()
+                for item in payload
+                if isinstance(item, dict) and item.get("first_name")
+            }
+        except (FileNotFoundError, json.JSONDecodeError, Exception):
+            common_names_set = set()
 
+        is_common = name.lower() in common_names_set
 
-        # is_common = is_common_name(name, country_alpha2=None, top_n=1000)
-        
-        stage_name, created = StageName.objects.get_or_create(customer=user, name=name)
+        stage_name, created = StageName.objects.get_or_create(
+            customer=user,
+            name=name,
+            is_common=is_common
+        )
 
         return success(
             data={
                 "stage_name_id": stage_name.id,
                 "name": stage_name.name,
+                "is_common": stage_name.is_common,
                 "created": created
             },
             message="Stage name created successfully." if created else "Stage name already exists.",
