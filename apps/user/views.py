@@ -1,4 +1,5 @@
 from datetime import timezone
+from email.mime import message
 from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 from rest_framework import status
@@ -8,7 +9,7 @@ from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from apps.user.models import Niche
 from .authentication import CookieJWTAuthentication
-from .models import AgencyMemberList, AgencyMemberNiches, AgencyMemberStageNames, Niche, StageName, User
+from .models import AgencyMemberList, AgencyMemberNiches, AgencyMemberSocialAccounts, AgencyMemberStageNames, Niche, StageName, User
 from .models import ConnectedSocialAccount
 from apps.subscriptions.models import Subscription
 from .utils import clear_auth_cookies
@@ -701,4 +702,57 @@ class DeleteAgencyMemberStageNameView(APIView):
             data=[],
             message="Agency member stage name deleted successfully.",
             status_code=status.HTTP_200_OK
+        )
+    
+class AddAgencyMemberSocialAccountsView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+
+    def post(self, request, member_id):
+        agency = request.user
+
+        if agency.role != User.Roles.AGENCY:
+            return error(
+                message="Only agency users can add social accounts for agency members.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+
+        try:
+            member = AgencyMemberList.objects.get(id=member_id, agency=agency)
+        except AgencyMemberList.DoesNotExist:
+            return error(
+                message="Agency member not found.",
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+
+        platform = request.data.get("platform")
+
+        existing_accounts = AgencyMemberSocialAccounts.objects.filter(
+            agency_member=member,
+            platform=platform
+        )
+        
+        if existing_accounts.exists():
+            if existing_accounts.count() > 1:
+                social_account = existing_accounts.latest('id')
+                existing_accounts.exclude(id=social_account.id).delete()
+                created = False
+            else:
+                social_account = existing_accounts.first()
+                created = False
+        else:
+            social_account = AgencyMemberSocialAccounts.objects.create(
+                agency_member=member,
+                platform=platform
+            )
+            created = True
+
+        return success(
+            data={
+                "platform": social_account.platform,
+                "id": social_account.id,
+                "created": created
+            },
+            message="Agency member social account added successfully.",
+            status_code=status.HTTP_201_CREATED
         )
