@@ -571,6 +571,23 @@ class GetSocialAccountView(APIView):
 
 
     
+
+class DeleteSocialAccountView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+
+    def delete(self, request, account_id):
+        user = request.user
+
+        try:
+            social_account = ConnectedSocialAccount.objects.get(id=account_id, customer=user)
+        except ConnectedSocialAccount.DoesNotExist:
+            return error(message="Social account not found.", status_code=status.HTTP_404_NOT_FOUND)
+        
+        social_account.delete()
+
+        return success(data=[], message="Social account deleted successfully.", status_code=status.HTTP_200_OK)
+  
 class AddAgencyMemberView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]

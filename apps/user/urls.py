@@ -32,6 +32,8 @@ from .views import (
 
     GetSocialAccountView,
 
+    DeleteSocialAccountView,
+
 
     # My niches and profile
     MyNichesView,
@@ -97,6 +99,7 @@ urlpatterns = [
     # customer Social Accounts
     path('add-social-accounts/', AddSocialAccountsView.as_view(), name='add-social-accounts'),
     path('get-social-accounts/', GetSocialAccountView.as_view(), name='get-social-accounts'),
+    path("delete-social-account/<int:account_id>/", DeleteSocialAccountView.as_view(), name="delete-social-account"),
 
     # agency members
 
