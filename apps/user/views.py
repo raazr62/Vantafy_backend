@@ -363,28 +363,39 @@ class AddNichesAndStageNamesView(APIView):
 
     def post(self, request):
         user = request.user
-        
+
         niches = request.data.get('niches', [])
-        stage_names = request.data.get('stage_names', [])
-        
-        niche_serializer = NichesSerializer(data=niches, many=True)
-        stage_name_serializer = StageNameSerializer(data=stage_names, many=True)
+        stage_names = request.data.get('stageNames', [])
+
+        # Convert string arrays to object arrays
+        niche_data = [{"name": n} for n in niches]
+        stage_name_data = [{"name": s} for s in stage_names]
+
+        niche_serializer = NichesSerializer(data=niche_data, many=True)
+        stage_name_serializer = StageNameSerializer(data=stage_name_data, many=True)
 
         if not niche_serializer.is_valid():
-            return error(message="Invalid niches data.", status_code=status.HTTP_400_BAD_REQUEST, errors=niche_serializer.errors)
+            return error(
+                message="Invalid niches data.",
+                status_code=status.HTTP_400_BAD_REQUEST,
+                errors=niche_serializer.errors
+            )
+
         if not stage_name_serializer.is_valid():
-            return error(message="Invalid stage names data.", status_code=status.HTTP_400_BAD_REQUEST, errors=stage_name_serializer.errors)
-        
-        # Save niches
-        for niche_data in niche_serializer.validated_data:
-            Niche.objects.create(customer=user, **niche_data)
+            return error(
+                message="Invalid stage names data.",
+                status_code=status.HTTP_400_BAD_REQUEST,
+                errors=stage_name_serializer.errors
+            )
 
-        # Save stage names
-        for stage_name_data in stage_name_serializer.validated_data:
-            StageName.objects.create(customer=user, **stage_name_data)
+        niche_serializer.save(customer=user)
+        stage_name_serializer.save(customer=user)
 
-        
-        return success(data=[], message="Customer niches and stage names added successfully.", status_code=status.HTTP_200_OK)
+        return success(
+            data=[],
+            message="Customer niches and stage names added successfully.",
+            status_code=status.HTTP_200_OK
+        )
     
 class AddSocialAccountsView(APIView):
     permission_classes = [IsAuthenticated]

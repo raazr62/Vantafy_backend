@@ -451,12 +451,12 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
 class NichesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Niche
-        fields = '__all__'
+        fields = ['name']
 
 class StageNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = StageName
-        fields = '__all__'
+        fields = ['name']
 
 class AgencyMemberListSerializer(serializers.ModelSerializer):
     class Meta:
