@@ -405,6 +405,55 @@ class MyStageNamesView(APIView):
         )
 
 
+class UpdateStageNameApi(APIView):
+
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+
+    def put(self, request, stage_name_id):
+        user = request.user
+
+        try:
+            stage_name = StageName.objects.get(id=stage_name_id, customer=user)
+        except StageName.DoesNotExist:
+            return error(message="Stage name not found.", status_code=status.HTTP_404_NOT_FOUND)
+        
+        name = request.data.get("name")
+        if not name:
+            return error(message="Stage name is required.", status_code=status.HTTP_400_BAD_REQUEST)
+        
+        stage_name.name = name
+        stage_name.save()
+
+        return success(
+            data={
+                "stage_name_id": stage_name.id,
+                "name": stage_name.name
+            },
+            message="Stage name updated successfully.",
+            status_code=status.HTTP_200_OK
+        )
+    
+
+
+class DeleteStageNameView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+
+    def delete(self, request, stage_name_id):
+        user = request.user
+
+        try:
+            stage_name = StageName.objects.get(id=stage_name_id, customer=user)
+        except StageName.DoesNotExist:
+            return error(message="Stage name not found.", status_code=status.HTTP_404_NOT_FOUND)
+        
+        stage_name.delete()
+        return success(data=[], message="Stage name deleted successfully.", status_code=status.HTTP_200_OK)
+
+
+
+
 
     
 class GetNichesView(APIView):

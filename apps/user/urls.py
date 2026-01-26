@@ -27,6 +27,8 @@ from .views import (
     CreateOrDeleteNichesView,
     AddStageNameView,
     MyStageNamesView,
+    UpdateStageNameApi,
+    DeleteStageNameView,
 
     # My niches and profile
     MyNichesView,
@@ -82,9 +84,12 @@ urlpatterns = [
     path("create-or-delete-niches/", CreateOrDeleteNichesView.as_view(), name="create-or-delete-niches"),
 
     # state name
-
     path('add-stage-name/', AddStageNameView.as_view(), name='add-stage-names'),
-    path('my-stage-names/', MyStageNamesView.as_view(), name='get-stage-names'),   
+    path('my-stage-names/', MyStageNamesView.as_view(), name='get-stage-names'), 
+    path('update-stage-name/<int:stage_name_id>/', UpdateStageNameApi.as_view(), name='update-stage-names'),
+    path('delete-stage-name/<int:stage_name_id>/', DeleteStageNameView.as_view(), name='delete-stage-names'),
+
+
     # customer Social Accounts
     path('add-social-accounts/', AddSocialAccountsView.as_view(), name='add-social-accounts'),
 
