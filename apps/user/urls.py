@@ -24,6 +24,8 @@ from .views import (
     AddAgencyMemberView,
     AgencyMemberListView,
     UpdateAgencyMemberDataView,
+    CreateOrDeleteNichesView,
+    AddStageNameView,
 
     # My niches and profile
     MyNichesView,
@@ -75,6 +77,12 @@ urlpatterns = [
     path('profile-update/', ProfileUpdateAPIView.as_view(), name='profile-update'),
     path('my-profile/', MyProfileView.as_view(), name='my-profile'),
     path('my-niches/', MyNichesView.as_view(), name='my-niches'),
+    # niches
+    path("create-or-delete-niches/", CreateOrDeleteNichesView.as_view(), name="create-or-delete-niches"),
+
+    # state name
+
+    path('add-stage-name/', AddStageNameView.as_view(), name='add-stage-names'),
     
     # customer Social Accounts
     path('add-social-accounts/', AddSocialAccountsView.as_view(), name='add-social-accounts'),

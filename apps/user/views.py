@@ -341,6 +341,54 @@ class MyNichesView(APIView):
         
         return success(data=data, message="User niches and stage names fetched successfully.", status_code=status.HTTP_200_OK)
     
+class CreateOrDeleteNichesView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+
+    def post(self, request):
+        user = request.user
+        name = request.data.get('name')
+
+        if not name:
+            return error(message="Niche name is required.", status_code=status.HTTP_400_BAD_REQUEST)
+        
+        niche = Niche.objects.filter(customer=user, name=name).first()
+
+        if niche:
+            niche.delete()
+            return success(data={"name": name, "deleted": True}, message="Niche deleted successfully.", status_code=status.HTTP_200_OK)
+        
+        else:
+            niche = Niche.objects.create(customer=user, name=name)
+            return success(data={"niche_id": niche.id, "name": niche.name, "created": True}, message="Niche created successfully.", status_code=status.HTTP_201_CREATED)
+
+
+class AddStageNameView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+
+    def post(self, request):
+        user = request.user
+        name = request.data.get('name')
+
+        if not name:
+            return error(message="Stage name is required.", status_code=status.HTTP_400_BAD_REQUEST)
+        
+        stage_name, created = StageName.objects.get_or_create(customer=user, name=name)
+
+        return success(
+            data={
+                "stage_name_id": stage_name.id,
+                "name": stage_name.name,
+                "created": created
+            },
+            message="Stage name created successfully." if created else "Stage name already exists.",
+            status_code=status.HTTP_200_OK
+        )
+
+
+
+    
 class GetNichesView(APIView):
     permission_classes = []
 
