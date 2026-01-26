@@ -13,6 +13,7 @@ from django.utils import timezone
 from apps.utils.helpers import send_email, success, error
 from django.template.loader import render_to_string
 from .utils import get_user_agent_hash
+from apps.subscriptions.models import Subscription
 
 
 
@@ -137,15 +138,19 @@ class SignInSerializer(serializers.Serializer):
             user_agent_hash=user_agent_hash
         )
 
+        has_subscription = Subscription.objects.filter(user=user,status='active',).exists()        
+
+
         return {
             'user': {
                 'id': user.id,
                 'email': user.email,
                 'role': user.role,
+                'has_subscription': has_subscription,
             },
             'refresh': str(refresh),
             'access': str(refresh.access_token),
-            'remember_me': remember_me
+            'remember_me': remember_me,
         }
     
         
