@@ -493,6 +493,9 @@ class GetNichesView(APIView):
     
         niches = Niche.objects.all()
 
+        # remove duplicates
+        niches = niches.distinct()
+
         if not niches.exists():
             return error(message="No niches found.", errors=None, code=200)
         
