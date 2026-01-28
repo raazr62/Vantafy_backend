@@ -3,40 +3,29 @@ from django.db import connection
 
 def seed_subscription_features():
     feature_data = [
-        {'name': 'Anonymity'},
-
-        {'name': 'Weekly Report'},
-        {'name': 'Daily Report'},
-
-        {'name': '2 Stage Names'},
-        {'name': '3 Stage Names'},
-        {'name': '4 Stage Names'},
-        {'name': '5 Stage Names'},
-        {'name': '10 Stage Names'},
-        {'name': '15 Stage Names'},
-        {'name': '20 Stage Names'},
-        {'name': 'Unlimited Stage Names'},
-
-        {'name': 'Weekly Scans'},
-        {'name': 'Daily Scans'},
-
-        {'name': 'Unlimited Google Delisting'},
-        {'name': 'Unlimited Bing Delisting'},
-        {'name': 'Unlimited Social Media Removals'},
-
-        {'name': '50 User Submitted Requests /mo'},
-        {'name': '100 User Submitted Requests /mo'},
-        {'name': '200 User Submitted Requests /mo'},
-        {'name': 'Unlimited User Submitted Requests /mo'},
-
-        {'name': 'Basic Scan with up to 150 links removed /mo'},
-        {'name': 'Basic Scan with up to 300 links removed /mo'},
-        {'name': 'Advanced Scan with up to 600 links removed /mo'},
-        {'name': 'Quantum Scan with unlimited links removed'},
-
-        {'name': 'Specialized human searches'},
-        {'name': 'Dedicated Support'},
-    ]
+    {'name': 'Anonymity'},
+    {'name': 'Weekly Report'},
+    {'name': 'Daily Report'},
+    {'name': '2 Stage Names'},
+    {'name': '3 Stage Names'},
+    {'name': '4 Stage Names'},
+    {'name': 'Unlimited Stage Names'},
+    {'name': 'Weekly Scans'},
+    {'name': 'Daily Scans'},
+    {'name': 'Unlimited Google Delisting'},
+    {'name': 'Unlimited Bing Delisting'},
+    {'name': 'Unlimited Social Media Removals'},
+    {'name': '50 User Submitted Requests per Month'},
+    {'name': '100 User Submitted Requests per Month'},
+    {'name': '200 User Submitted Requests per Month'},
+    {'name': 'Unlimited User Submitted Requests per Month'},
+    {'name': 'Basic Scan (up to 150 links removed per month)'},
+    {'name': 'Basic Scan (up to 300 links removed per month)'},
+    {'name': 'Advanced Scan (up to 600 links removed per month)'},
+    {'name': 'Quantum Scan with Unlimited Links Removed'},
+    {'name': 'Specialized Human Searches'},
+    {'name': 'Dedicated Support'},
+]
 
     for feature in feature_data:
         Feature.objects.create(**feature)
