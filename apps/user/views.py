@@ -489,18 +489,20 @@ class DeleteStageNameView(APIView):
 class GetNichesView(APIView):
     permission_classes = []
 
-    def get(self, request):
-    
-        niches = Niche.objects.all()
 
-        # remove duplicates
-        niches = niches.distinct()
+    def get(self, request):
+        niches = Niche.objects.values_list('name', flat=True).distinct()
+
 
         if not niches.exists():
             return error(message="No niches found.", errors=None, code=200)
-        
-        serializer = NichesSerializer(niches, many=True)
-        return success(data=serializer.data,message="Customer niches fetched successfully.", status_code=status.HTTP_200_OK)
+
+
+        return success(
+        data=list(niches),
+        message="Customer niches fetched successfully.",
+        status_code=status.HTTP_200_OK
+    )
 
         
         
