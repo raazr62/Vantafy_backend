@@ -196,14 +196,14 @@ def seed_among_our_customers():
         {
             "name": "Alex Martinez",
             "profile_pic": "cms/customers/4.png",
-            "social_media_icon": "cms/customers/facebook.png",
+            "social_media_icon": "cms/customers/Facebook.png",
             "followers_count": 2.5,
             "status": True
         },
         {
             "name": "Jessica Williams",
             "profile_pic": "cms/customers/5.png",
-            "social_media_icon": "cms/customers/instagram.png",
+            "social_media_icon": "cms/customers/Instagram.png",
             "followers_count": 45.3,
             "status": True
         },
