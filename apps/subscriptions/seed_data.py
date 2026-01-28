@@ -186,23 +186,24 @@ def seed_subscription_packages():
             ]
         },
 
-        # --------------------
-        # AGENCY PACKAGES
-        # --------------------
+    # --------------------
+    # AGENCY PACKAGES
+    # --------------------
         {
             'name': 'Silver',
             'price': 900.00,
             'type': Package.PackageType.AGENCY,
+            'member_limit': 10,
             'feature_names': [
                 'Daily Report',
-                '5 Stage Names',
+                'Unlimited Stage Names',
                 'Daily Scans',
                 'Unlimited Google Delisting',
                 'Unlimited Bing Delisting',
                 'Unlimited Social Media Removals',
-                'Unlimited User Submitted Requests /mo',
-                'Quantum Scan with unlimited links removed',
-                'Specialized human searches',
+                'Unlimited User Submitted Requests per Month',
+                'Quantum Scan with Unlimited Links Removed',
+                'Specialized Human Searches',
                 'Dedicated Support',
             ]
         },
@@ -210,17 +211,18 @@ def seed_subscription_packages():
             'name': 'Gold',
             'price': 1700.00,
             'type': Package.PackageType.AGENCY,
+            'member_limit': 20,
             'is_recommend': True,
             'feature_names': [
                 'Daily Report',
-                '10 Stage Names',
+                'Unlimited Stage Names',
                 'Daily Scans',
                 'Unlimited Google Delisting',
                 'Unlimited Bing Delisting',
                 'Unlimited Social Media Removals',
-                'Unlimited User Submitted Requests /mo',
-                'Quantum Scan with unlimited links removed',
-                'Specialized human searches',
+                'Unlimited User Submitted Requests per Month',
+                'Quantum Scan with Unlimited Links Removed',
+                'Specialized Human Searches',
                 'Dedicated Support',
             ]
         },
@@ -228,16 +230,17 @@ def seed_subscription_packages():
             'name': 'Platinum',
             'price': 2400.00,
             'type': Package.PackageType.AGENCY,
+            'member_limit': 30,
             'feature_names': [
                 'Daily Report',
-                '15 Stage Names',
+                'Unlimited Stage Names',
                 'Daily Scans',
                 'Unlimited Google Delisting',
                 'Unlimited Bing Delisting',
                 'Unlimited Social Media Removals',
-                'Unlimited User Submitted Requests /mo',
-                'Quantum Scan with unlimited links removed',
-                'Specialized human searches',
+                'Unlimited User Submitted Requests per Month',
+                'Quantum Scan with Unlimited Links Removed',
+                'Specialized Human Searches',
                 'Dedicated Support',
             ]
         },
@@ -245,16 +248,17 @@ def seed_subscription_packages():
             'name': 'Diamond',
             'price': 3000.00,
             'type': Package.PackageType.AGENCY,
+            'member_limit': 50,
             'feature_names': [
                 'Daily Report',
-                '20 Stage Names',
+                'Unlimited Stage Names',
                 'Daily Scans',
                 'Unlimited Google Delisting',
                 'Unlimited Bing Delisting',
                 'Unlimited Social Media Removals',
-                'Unlimited User Submitted Requests /mo',
-                'Quantum Scan with unlimited links removed',
-                'Specialized human searches',
+                'Unlimited User Submitted Requests per Month',
+                'Quantum Scan with Unlimited Links Removed',
+                'Specialized Human Searches',
                 'Dedicated Support',
             ]
         },
