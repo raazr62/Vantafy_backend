@@ -117,6 +117,7 @@ class StripeWebhookAPIView(APIView):
 
                 user = User.objects.filter(email=customer_email).first()
 
+
                 if not user:
                     return HttpResponse(status=200)
 
@@ -127,6 +128,7 @@ class StripeWebhookAPIView(APIView):
                     return HttpResponse(status=200)
 
                 type = package.type
+                print("type:",type)
 
                 if type == 'month':
                     duration_days = 30

@@ -1084,25 +1084,37 @@ class AffiliateProgramView(APIView):
 
         total_people_referred = User.objects.filter(
             referral_code=user_id
-        ).count()
+        )
+
+        counter = 0 
+        all_user_refer_by_me = []
+
+        for person in total_people_referred:
+            if person.subscriptions.filter(status='active').exists():
+                counter +=1
+                all_user_refer_by_me.append({
+                    "id": person.id,
+                    "email": person.email,
+                    "full_name": person.full_name,
+                })
+                
+                
+
+
 
         total_earning_month = user.total_earning_month
 
-        all_user_refer_by_me = User.objects.filter(
-            referral_code=user_id
-        )
-
         # serialize referred users
         referred_users_data = UserSerializer(
-            all_user_refer_by_me,
+            total_people_referred,
             many=True
         ).data
 
         return success(
             data={
-                "total_people_referred": total_people_referred,
+                "total_people_referred": counter,
                 "total_earning_month": total_earning_month,
-                "all_user_refer_by_me": referred_users_data,
+                "all_user_refer_by_me": all_user_refer_by_me,
             },
             message="Affiliate program data fetched successfully.",
             status_code=status.HTTP_200_OK
