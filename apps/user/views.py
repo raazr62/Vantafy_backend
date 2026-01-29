@@ -1028,3 +1028,38 @@ class DeleteAgencyMemberSocialAccountView(APIView):
             message="Agency member social account deleted successfully.",
             status_code=status.HTTP_200_OK
         )
+    
+
+class MemberLimitsView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+
+    def get(self, request):
+        user = request.user
+
+        if user.role != User.Roles.AGENCY:
+            return error(
+                message="Only agency users can view member limits.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+
+        subscription = Subscription.objects.filter(user=user, status='active').first()
+        if not subscription:
+            return error(
+                message="No active subscription found.",
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+
+        package = subscription.package
+        member_limit = package.member_limit
+
+        current_member_count = AgencyMemberList.objects.filter(agency=user).count()
+
+        return success(
+            data={
+                "member_limit": member_limit,
+                "current_member_count": current_member_count
+            },
+            message="Member limits fetched successfully.",
+            status_code=status.HTTP_200_OK
+        )

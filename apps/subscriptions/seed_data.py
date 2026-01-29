@@ -265,3 +265,34 @@ def seed_subscription_packages():
 
 
 
+def seed_subscription():
+
+    subscriptions_data = [
+        {
+            'user_id': 1,
+            'package_name': 'Star',
+            'status': 'active',
+            'start_date': '2024-01-01T00:00:00Z',
+            'end_date': '2028-02-01T00:00:00Z',
+        },
+        {
+            'user_id': 2,
+            'package_name': 'Superstar',
+            'status': 'active',
+            'start_date': '2023-12-15T00:00:00Z',
+            'end_date': '2028-02-15T00:00:00Z',
+        },
+        {
+            'user_id': 4,
+            'package_name': 'VIP',
+            'status': 'active',
+            'start_date': '2023-12-01T00:00:00Z',
+            'end_date': '2028-01-01T00:00:00Z',
+        },
+    ]
+
+    for sub_data in subscriptions_data:
+        package = Package.objects.get(name=sub_data.pop('package_name'))
+        Subscription.objects.create(package=package, **sub_data)
+
+    print("✅ Subscriptions seeded successfully.")

@@ -54,6 +54,8 @@ from .views import (
     GetAgencyMemberSocialAccountsView,
     DeleteAgencyMemberSocialAccountView,
 
+    # Member limits
+    MemberLimitsView,
 
 
 
@@ -124,5 +126,9 @@ urlpatterns = [
     path('add-agency-member-social-accounts/<int:member_id>/', AddAgencyMemberSocialAccountsView.as_view(), name='add-agency-member-social-accounts'),
     path('get-agency-member-social-accounts/<int:member_id>/', GetAgencyMemberSocialAccountsView.as_view(), name='get-agency-member-social-accounts'),
     path('delete-agency-member-social-account/<int:account_id>/', DeleteAgencyMemberSocialAccountView.as_view(), name='delete-agency-member-social-account'),
+
+
+    # Member limits
+    path('member-limits/',MemberLimitsView.as_view(), name='member-limits'),
     
 ]
