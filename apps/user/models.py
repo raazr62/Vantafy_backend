@@ -25,6 +25,17 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_superuser = models.BooleanField(default=False)
     term_and_condition_accepted = models.BooleanField()
+    is_verified_for_earning = models.BooleanField(default=False)
+
+    # reference fields
+    referral_code = models.CharField(max_length=10,  null=True, blank=True)
+    referred_by = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='referrals')
+    referral_count = models.IntegerField(default=0)
+
+    # earning fields
+    total_earning_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    total_earning_month = models.IntegerField(default=0)
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     ip_address = models.GenericIPAddressField(blank=True, null=True)

@@ -42,6 +42,7 @@ class SignUpSerializer(serializers.ModelSerializer):
     purpose = serializers.CharField(write_only=True)
     role = serializers.CharField()
     term_and_condition_accepted = serializers.BooleanField(required=True)
+    referral_code = serializers.CharField(required=False, allow_blank=True)
 
     def validate(self, attrs):
         email = attrs.get('email')
@@ -57,7 +58,7 @@ class SignUpSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['email', 'password', 'full_name', 'purpose', 'role', 'term_and_condition_accepted']
+        fields = ['email', 'password', 'full_name', 'purpose', 'role', 'term_and_condition_accepted', 'referral_code']
 
     def create(self, validated_data):
         email = validated_data.pop('email')
@@ -148,6 +149,7 @@ class SignInSerializer(serializers.Serializer):
                 'role': user.role,
                 'has_subscription': has_subscription,
                 'is_google_login': user.is_google_login,
+                'is_verified_for_earning': user.is_verified_for_earning,
             },
             'refresh': str(refresh),
             'access': str(refresh.access_token),

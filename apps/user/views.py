@@ -49,6 +49,7 @@ class SignUpView(APIView):
     def post(self, request):
 
         role = request.data.get('role')
+          
         if role not in ['customer', 'agency']:
             return error(message="Invalid role provided.", status_code=status.HTTP_400_BAD_REQUEST)
 
@@ -272,6 +273,7 @@ class CookieTokenVerifyView(TokenVerifyView):
             'role': getattr(user, 'role', None),
             'has_subscription': has_subscription,
             'is_google_login': user.is_google_login,
+            'is_verified_for_earning': user.is_verified_for_earning,
         }
         
         return success(data=user_info, message="Token is valid.", status_code=status.HTTP_200_OK)

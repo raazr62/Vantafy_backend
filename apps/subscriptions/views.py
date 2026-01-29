@@ -163,6 +163,25 @@ class StripeWebhookAPIView(APIView):
                 income_report.total_income += package.price
                 income_report.save()
 
+                referral_code = user.referral_code
+                if referral_code:
+                    referrer = User.objects.filter(referral_code=referral_code).first()
+                    if referrer.is_verified_for_earning:
+                        referrer.total_earning_amount += package.referral_bonus_percentage
+                        referrer.save()
+                    else:
+                        counter = referrer.referral_count 
+                        total_earning_month = referrer.total_earning_month
+                        counter = counter - (total_earning_month * 3)
+                        if counter >= 3:
+                            referrer.subscriptions.end_date += timedelta(days=30)
+                            referrer.total_earning_month +=1
+                            referrer.save()
+
+                        else:   
+                            referrer.referral_count +=1
+                            referrer.save()
+
 
         except Exception as e:
             logger.exception("Error handling Stripe webhook event: %s", str(e))

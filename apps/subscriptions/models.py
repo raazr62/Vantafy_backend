@@ -24,6 +24,7 @@ class Package(models.Model):
     stripe_price_id = models.CharField(max_length=100, blank=True, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     member_limit = models.IntegerField(default=0)
+    referral_bonus_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=5.00)
     type = models.CharField(
         max_length=20,
         choices=PackageType.choices,
