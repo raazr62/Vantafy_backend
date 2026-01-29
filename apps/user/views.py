@@ -614,6 +614,13 @@ class AddAgencyMemberView(APIView):
         if agency.role != User.Roles.AGENCY:
             return error(message="Only agency users can add agency members.", status_code=status.HTTP_403_FORBIDDEN)
         
+        member_count = AgencyMemberList.objects.filter(agency=agency).count()
+        subscription = Subscription.objects.filter(user=agency, status='active').first()
+        if subscription:
+            member_limit = subscription.package.member_limit
+            if member_count >= member_limit:
+                return error(message="Agency member limit reached. Please upgrade your subscription to add more members.", status_code=status.HTTP_403_FORBIDDEN)
+        
         name = request.data.get('name')
         profile_image = request.FILES.get('profile_image')
 

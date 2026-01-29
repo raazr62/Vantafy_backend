@@ -81,6 +81,7 @@ def seed_users():
             is_staff=user["is_staff"],
             is_superuser=user["is_superuser"],
             term_and_condition_accepted=user["term_and_condition_accepted"],
+            role=user.get("role", "customer"),
         )
 
 

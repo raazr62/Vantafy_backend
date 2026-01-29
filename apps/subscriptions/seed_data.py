@@ -284,7 +284,7 @@ def seed_subscription():
         },
         {
             'user_id': 4,
-            'package_name': 'VIP',
+            'package_name': 'Silver',
             'status': 'active',
             'start_date': '2023-12-01T00:00:00Z',
             'end_date': '2028-01-01T00:00:00Z',
