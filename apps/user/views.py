@@ -31,6 +31,7 @@ from .serializers import (
     SendOTPSerializer,
     ResendOTPSerializer,
     StageNameSerializer,
+    UserSerializer,
     VerifyOTPSerializer,
     ResetPasswordSerializer,
     UpdataProfileAvatarSerializer,
@@ -1070,5 +1071,39 @@ class MemberLimitsView(APIView):
                 "current_member_count": current_member_count
             },
             message="Member limits fetched successfully.",
+            status_code=status.HTTP_200_OK
+        )
+
+class AffiliateProgramView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+
+    def get(self, request):
+        user = request.user
+        user_id = user.id
+
+        total_people_referred = User.objects.filter(
+            referral_code=user_id
+        ).count()
+
+        total_earning_month = user.total_earning_month
+
+        all_user_refer_by_me = User.objects.filter(
+            referral_code=user_id
+        )
+
+        # serialize referred users
+        referred_users_data = UserSerializer(
+            all_user_refer_by_me,
+            many=True
+        ).data
+
+        return success(
+            data={
+                "total_people_referred": total_people_referred,
+                "total_earning_month": total_earning_month,
+                "all_user_refer_by_me": referred_users_data,
+            },
+            message="Affiliate program data fetched successfully.",
             status_code=status.HTTP_200_OK
         )

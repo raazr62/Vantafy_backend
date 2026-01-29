@@ -57,6 +57,8 @@ from .views import (
     # Member limits
     MemberLimitsView,
 
+    # affiliate program
+    AffiliateProgramView,
 
 
     )
@@ -130,5 +132,9 @@ urlpatterns = [
 
     # Member limits
     path('member-limits/',MemberLimitsView.as_view(), name='member-limits'),
+
+    # affiliate-program
+
+    path('affiliate-program/',AffiliateProgramView.as_view(), name='affiliate-program'),
     
 ]
