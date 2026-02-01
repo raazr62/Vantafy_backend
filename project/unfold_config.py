@@ -64,6 +64,40 @@ def get_unfold_settings():
                     ],
                 },
                 {
+                    "title": _("Customer Scanner"),
+                    "separator": True,
+                    "collapsible": True,
+                    "items": [
+                        {
+                            "title": _("Scan Jobs"),
+                            "icon": "person",
+                            "link": reverse_lazy("admin:scanner_customerscanjob_changelist"),
+                        },
+                        {
+                            "title": _("Scan Results"),
+                            "icon": "image",
+                            "link": reverse_lazy("admin:scanner_customerscanresult_changelist"),
+                        },
+                    ],
+                },
+                {
+                    "title": _("Agency Scanner"),
+                    "separator": True,
+                    "collapsible": True,
+                    "items": [
+                        {
+                            "title": _("Scan Jobs"),
+                            "icon": "business",
+                            "link": reverse_lazy("admin:scanner_agencyscanjob_changelist"),
+                        },
+                        {
+                            "title": _("Scan Results"),
+                            "icon": "image",
+                            "link": reverse_lazy("admin:scanner_agencyscanresult_changelist"),
+                        },
+                    ],
+                },
+                {
                     "title": _("Customer Support"),
                     "separator": True,
                     "collapsible": True,
@@ -109,6 +143,20 @@ def get_unfold_settings():
                             "icon": "group",
                             "link": reverse_lazy("admin:user_agencymemberlist_changelist"),
                         },
+                       
+                    ],
+                },
+                {
+                    "title": _("Unauthorized Websites & Emails"),
+                    "separator": True,
+                    "collapsible": True,
+                    "items": [
+                        {
+                            "title": _("Unauthorized Websites & Emails"),
+                            "icon": "support_agent",
+                            "link": reverse_lazy("admin:scanner_unauthorizedwebsiteandemail_changelist"),
+                        },
+                        
                        
                     ],
                 },

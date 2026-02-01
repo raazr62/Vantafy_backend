@@ -1,0 +1,318 @@
+from apps.scanner.models import UnauthorizedWebsiteAndEmail
+
+def seed_unauthorized_websites():
+    unauthorized_website_and_email = [
+    {
+        "website": "asianviralhub.com",
+        "email": "ABUSE@mojohost.com"
+    },
+    {
+        "website": "baddiehub.com",
+        "email": "abuse@iqweb.io"
+    },
+    {
+        "website": "baddiesonly.tv",
+        "email": "dmca.BaddiesOnly.TV@gmail.com"
+    },
+    {
+        "website": "bigtitslust.com",
+        "email": "dmcalegalreport@gmail.com"
+    },
+    {
+        "website": "cambay.tv",
+        "email": "webcamdmca@protonmail.com"
+    },
+    {
+        "website": "camclips.tv",
+        "email": "webcamdmca@protonmail.com"
+    },
+    {
+        "website": "camhoes.tv",
+        "email": "webcamdmca@protonmail.com"
+    },
+    {
+        "website": "camstreams.tv",
+        "email": "abuse@sharktech.net"
+    },
+    {
+        "website": "camvideos.org",
+        "email": "dmca@camwhores.email"
+    },
+    {
+        "website": "camwhores.cloud",
+        "email": "dmca@camwhores.email"
+    },
+    {
+        "website": "camwhores.tv",
+        "email": "dmca@camwhores.email"
+    },
+    {
+        "website": "camwhores.video",
+        "email": "dmca@camwhores.email"
+    },
+    {
+        "website": "celebexposed.com",
+        "email": "contact@of.celebexposed.com "
+    },
+    {
+        "website": "cliptrend.com",
+        "email": "thecliptrend@gmail.com"
+    },
+    {
+        "website": "coomer.st",
+        "email": "contact@coomer.email"
+    },
+    {
+        "website": "dankwank.net",
+        "email": "admin@frantech.ca"
+    },
+    {
+        "website": "ebony8.com",
+        "email": "dmcalegalreport@gmail.com"
+    },
+    {
+        "website": "erome.com",
+        "email": "contact@erome.com"
+    },
+    {
+        "website": "erome.fan",
+        "email": "contact@erome.fan"
+    },
+    {
+        "website": "erome.tv",
+        "email": "ABUSE@mojohost.com"
+    },
+    {
+        "website": "erothots1.com",
+        "email": "erothots@proton.me"
+    },
+    {
+        "website": "fapachi.com",
+        "email": "adminfap@fapachi.com"
+    },
+    {
+        "website": "fapello.com",
+        "email": "johnfapello@gmail.com"
+    },
+    {
+        "website": "fapello.ru",
+        "email": "abuse@koddos.com"
+    },
+    {
+        "website": "fapello.to",
+        "email": "abuse@as201744.net"
+    },
+    {
+        "website": "fapexy.com",
+        "email": "fapexyweb@gmail.com"
+    },
+    {
+        "website": "fapeza.com",
+        "email": "fapezan@gmail.com"
+    },
+    {
+        "website": "fapmenu.com",
+        "email": "abuse@server-panel.net"
+    },
+    {
+        "website": "fapodrop.com",
+        "email": "abusedrop@fapodrop.com"
+    },
+    {
+        "website": "fapomania.com",
+        "email": "fapomania990@gmail.com"
+    },
+    {
+        "website": "faponic.com",
+        "email": "faponic@gmail.com"
+    },
+    {
+        "website": "fapopedia.net",
+        "email": "johnnysinsmom@gmail.com"
+    },
+    {
+        "website": "fappeningbook.com",
+        "email": "lopapopator@gmail.com"
+    },
+    {
+        "website": "fig.to",
+        "email": "abuse@koddos.com"
+    },
+    {
+        "website": "f.logisticssameday.co.uk",
+        "email": "abuse@eurohoster.org"
+    },
+    {
+        "website": "gifhq.com",
+        "email": "abuse@gifhq.com"
+    },
+    {
+        "website": "hardgif.com",
+        "email": "abuse@hardgif.com"
+    },
+    {
+        "website": "hotleaks.tv",
+        "email": "abuse@alexhost.com"
+    },
+    {
+        "website": "hotleak.vip",
+        "email": "abuse@alexhost.com"
+    },
+    {
+        "website": "ibradome.com",
+        "email": "dmcacontact@cock.li"
+    },
+    {
+        "website": "leakedmodels.com",
+        "email": "leakedmodmca@gmail.com "
+    },
+    {
+        "website": "leakedzone.com",
+        "email": "abuse@alexhost.com"
+    },
+    {
+        "website": "leaked.fans",
+        "email": "abuse@global-layer.com"
+    },
+    {
+        "website": "leaknudes.com",
+        "email": "leaknudes.j5lxe@simplelogin.com"
+    },
+    {
+        "website": "leaksphotos.com",
+        "email": "assist@leaksphotos.com"
+    },
+    {
+        "website": "leak.xxx",
+        "email": "abuse@global-layer.com"
+    },
+    {
+        "website": "masterfap.net",
+        "email": "dmcamasterfap@protonmail.com"
+    },
+    {
+        "website": "mat6tube.com",
+        "email": "abuse@noodlemagazine.com"
+    },
+    {
+        "website": "noodlemagazine.com",
+        "email": "abuse@noodlemagazine.com"
+    },
+    {
+        "website": "nsfw.xxx",
+        "email": "abuse@nsfw.xxx"
+    },
+    {
+        "website": "nudegirls.wiki",
+        "email": "abuse@global-layer.com"
+    },
+    {
+        "website": "nudogram.com",
+        "email": "nudogram@gmail.com"
+    },
+    {
+        "website": "nudostar.com",
+        "email": "abuse@internet.bs"
+    },
+    {
+        "website": "nudostar.tv",
+        "email": "johnnysinsmom@gmail.com"
+    },
+    {
+        "website": "onlybestgals.com",
+        "email": "novo@onlybestgals.com"
+    },
+    {
+        "website": "onlybestwomen.com",
+        "email": "noc@alexhost.com"
+    },
+    {
+        "website": "onlygirlspics.com",
+        "email": "nikolas@onlygirlspics.com"
+    },
+    {
+        "website": "onlynakedgirls.com",
+        "email": "noc@alexhost.com"
+    },
+    {
+        "website": "picazor.com",
+        "email": "dmca@picazor.com"
+    },
+    {
+        "website": "porn7.net",
+        "email": "abuse@global-layer.com"
+    },
+    {
+        "website": "porno.supply",
+        "email": "help@porno.supply"
+    },
+    {
+        "website": "pornpics.click",
+        "email": "help@pornpics.click"
+    },
+    {
+        "website": "thotbook.co",
+        "email": "abuse@koddos.com"
+    },
+    {
+        "website": "thothd.com",
+        "email": "abuse@koddos.net"
+    },
+    {
+        "website": "thothd.to",
+        "email": "abuse@koddos.net"
+    },
+    {
+        "website": "thothub.is",
+        "email": "abuse@medera.cloud"
+    },
+    {
+        "website": "thothub.lol",
+        "email": "abuse@medera.cloud"
+    },
+    {
+        "website": "thothub.to",
+        "email": "abuse@medera.cloud"
+    },
+    {
+        "website": "thothub.vip",
+        "email": "ABUSE@mojohost.com"
+    },
+    {
+        "website": "thotporn.tv",
+        "email": "abuse@alexhost.com"
+    },
+    {
+        "website": "topfapgirlspics.com",
+        "email": "piava@topfapgirlspics.com"
+    },
+    {
+        "website": "ukdevilz.com",
+        "email": "abuse@noodlemagazine.com"
+    },
+    {
+        "website": "viralxxxporn.com",
+        "email": "ABUSE@mojohost.com"
+    },
+    {
+        "website": "wildskirts.com",
+        "email": "hello.wildskirts@gmail.com"
+    },
+    {
+        "website": "xpics.me",
+        "email": "help@xpics.me"
+    },
+    {
+        "website": "xxbrits.com",
+        "email": "xxbrits@protonmail.com"
+    }
+]
+    
+    print(f"Seeding {len(unauthorized_website_and_email)} websites...")
+    for item in unauthorized_website_and_email:
+        UnauthorizedWebsiteAndEmail.objects.get_or_create(
+            website=item['website'],
+            defaults={'email': item['email']}
+        )
+
+    print("✅ Unauthorized websites seeded successfully.")

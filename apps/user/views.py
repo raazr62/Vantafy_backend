@@ -1,5 +1,3 @@
-from datetime import timezone
-from email.mime import message
 import json
 import os
 from django.conf import settings

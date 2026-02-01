@@ -5,6 +5,7 @@ from apps.customer_support.seed_data import seed_messages
 from apps.subscriptions.seed_data import seed_subscription_features, seed_subscription_packages, seed_subscription
 from apps.system_setting.seed_data import seed_system_color, seed_system_setting, seed_social_media, seed_smtp_credentials
 from apps.user.seed_users import seed_users, seed_customer_niches, seed_customer_stage_names
+from apps.scanner.seed_data import seed_unauthorized_websites
 
 
 class Command(BaseCommand):
@@ -30,9 +31,9 @@ class Command(BaseCommand):
         seed_subscription_packages()
         seed_subscription()
         seed_messages()
+        seed_unauthorized_websites()
         
         
         
-
-
+        
         self.stdout.write(self.style.SUCCESS("Seeding completed."))

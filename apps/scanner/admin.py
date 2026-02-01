@@ -1,48 +1,119 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
-from .models import ScanJob, ScanResult
+from .models import CustomerScanProcessing, CustomerScanResult, CustomerScanResultImage, CustomerScanResultVideo, CustomerScanResultPageUrl
 
 
-@admin.register(ScanJob)
-class ScanJobAdmin(ModelAdmin):
-    list_display = [
-        'id', 'creator_name', 'status', 
-        'completed_spiders', 'total_spiders', 
-        'get_total_images', 'get_total_videos',
-        'created_at'
-    ]
-    list_filter = ['status', 'created_at']
-    search_fields = ['creator_name', 'id']
-    readonly_fields = [
-        'id', 'created_at', 'updated_at', 'completed_at',
-        'total_spiders', 'completed_spiders'
-    ]
-    ordering = ['-created_at']
-    
+# -------------------------
+# Customer Scan Processing
+# -------------------------
+@admin.register(CustomerScanProcessing)
+class CustomerScanProcessingAdmin(ModelAdmin):
+    list_display = (
+        'id', 
+        'customer', 
+        'status', 
+        'progress_percentage_display', 
+        'total_images_display', 
+        'total_videos_display', 
+        'total_page_urls_display', 
+        'created_at', 
+        'updated_at', 
+        'completed_at'
+    )
+    list_filter = ('status', 'created_at', 'updated_at')
+    search_fields = ('customer__username', 'customer__email', 'error_message')
+    readonly_fields = (
+        'created_at', 
+        'updated_at', 
+        'completed_at', 
+        'progress_percentage_display', 
+        'total_images_display', 
+        'total_videos_display', 
+        'total_page_urls_display'
+    )
+
+    # Display methods for readonly fields
+    @admin.display(description='Progress %')
+    def progress_percentage_display(self, obj):
+        return obj.progress_percentage
+
     @admin.display(description='Total Images')
-    def get_total_images(self, obj):
+    def total_images_display(self, obj):
         return obj.total_images
-    
+
     @admin.display(description='Total Videos')
-    def get_total_videos(self, obj):
+    def total_videos_display(self, obj):
         return obj.total_videos
 
+    @admin.display(description='Total Page URLs')
+    def total_page_urls_display(self, obj):
+        return obj.total_page_urls
 
-@admin.register(ScanResult)
-class ScanResultAdmin(ModelAdmin):
-    list_display = [
-        'id', 'scan_job', 'website',
-        'get_image_count', 'get_video_count', 'scraped_at'
-    ]
-    list_filter = ['website', 'scraped_at']
-    search_fields = ['website', 'scan_job__creator_name']
-    readonly_fields = ['id', 'scraped_at']
-    ordering = ['-scraped_at']
-    
-    @admin.display(description='Images')
-    def get_image_count(self, obj):
-        return len(obj.images or [])
-    
-    @admin.display(description='Videos')
-    def get_video_count(self, obj):
-        return len(obj.videos or [])
+
+# -------------------------
+# Customer Scan Result
+# -------------------------
+@admin.register(CustomerScanResult)
+class CustomerScanResultAdmin(ModelAdmin):
+    list_display = (
+        'id', 
+        'customer', 
+        'website', 
+        'status', 
+        'total_images_display', 
+        'total_videos_display', 
+        'total_page_urls_display', 
+        'created_at', 
+        'updated_at'
+    )
+    list_filter = ('status', 'website', 'created_at', 'updated_at')
+    search_fields = ('customer__username', 'customer__email', 'website')
+    readonly_fields = (
+        'created_at', 
+        'updated_at', 
+        'total_images_display', 
+        'total_videos_display', 
+        'total_page_urls_display'
+    )
+
+    # Display methods to show related totals
+    @admin.display(description='Total Images')
+    def total_images_display(self, obj):
+        return obj.total_images
+
+    @admin.display(description='Total Videos')
+    def total_videos_display(self, obj):
+        return obj.total_videos
+
+    @admin.display(description='Total Page URLs')
+    def total_page_urls_display(self, obj):
+        return obj.total_page_urls
+
+
+# -------------------------
+# Optional: Inline for Scan Result Images/Videos/URLs
+# -------------------------
+class CustomerScanResultImageInline(admin.TabularInline):
+    model = CustomerScanResultImage
+    extra = 0
+    readonly_fields = ('image_url', 'image')
+
+
+class CustomerScanResultVideoInline(admin.TabularInline):
+    model = CustomerScanResultVideo
+    extra = 0
+    readonly_fields = ('video_url',)
+
+
+class CustomerScanResultPageUrlInline(admin.TabularInline):
+    model = CustomerScanResultPageUrl
+    extra = 0
+    readonly_fields = ('page_url',)
+
+
+# Add inlines to CustomerScanResult
+CustomerScanResultAdmin.inlines = [
+    CustomerScanResultImageInline,
+    CustomerScanResultVideoInline,
+    CustomerScanResultPageUrlInline
+]

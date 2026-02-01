@@ -1,14 +1,11 @@
-"""
-Spider Runner Service - Runs Scrapy spiders directly from Django.
-No Scrapyd required - spiders execute in a background thread.
-"""
-
 import os
 import sys
 import json
 import threading
 import importlib.util
 from pathlib import Path
+from django.apps import apps
+from django.conf import settings
 from django.utils import timezone
 
 
@@ -17,10 +14,7 @@ SPIDERS_DIR = Path(__file__).resolve().parent / 'spiders'
 
 
 def get_available_spiders():
-    """
-    Get list of all available spider names by scanning the local spiders directory.
-    Returns a list of spider module names (without .py extension).
-    """
+
     spiders = []
     
     if SPIDERS_DIR.exists():
@@ -32,9 +26,7 @@ def get_available_spiders():
 
 
 def get_spider_class(spider_module_name):
-    """
-    Dynamically import and return a spider class from the local spiders directory.
-    """
+
     spider_file = SPIDERS_DIR / f'{spider_module_name}.py'
     
     if not spider_file.exists():
@@ -60,20 +52,28 @@ def get_spider_class(spider_module_name):
     return None
 
 
-def run_all_spiders_async(name_query, scan_job_id, spider_names=None):
-    """
-    Run all spiders in a background thread using subprocess.
-    Updates the ScanJob as spiders complete.
-    """
-    from .models import ScanJob, ScanResult
+def run_all_spiders_async(name_query, job_id, app_label, model_name, spider_names=None):
+
     
     def run_in_thread():
-        # Get the scan job
+        # Get the job model dynamically
         try:
-            scan_job = ScanJob.objects.get(id=scan_job_id)
-        except ScanJob.DoesNotExist:
-            return
-        
+             JobModel = apps.get_model(app_label, model_name)
+             scan_job = JobModel.objects.get(id=job_id)
+        except LookupError:
+             print(f"Model {app_label}.{model_name} not found.")
+             return
+        except JobModel.DoesNotExist:
+             print(f"Job {job_id} not found.")
+             return
+
+        # Determine the Result Model
+        try:
+            ScanResultModel = scan_job.get_result_model()
+        except AttributeError:
+             # Fallback if get_result_model is missing (shouldn't happen with correct inheritence)
+             return
+
         # Get spiders to run
         spiders_to_run = spider_names or get_available_spiders()
         scan_job.total_spiders = len(spiders_to_run)
@@ -120,20 +120,36 @@ for name in dir(module):
             break
 
 if spider_cls:
-    collected = {{"images": [], "videos": []}}
+    collected = {{
+        "images": [], 
+        "videos": [], 
+        "page_urls": [],
+        "emails": getattr(spider_cls, "emails", [])
+    }}
     
     class Collector:
         def process_item(self, item, spider):
+            # Collect Images
             if item.get("image"):
                 if isinstance(item["image"], list):
                     collected["images"].extend(item["image"])
                 else:
                     collected["images"].append(item["image"])
+            
+            # Collect Videos
             if item.get("video"):
                 if isinstance(item["video"], list):
                     collected["videos"].extend(item["video"])
                 else:
                     collected["videos"].append(item["video"])
+            
+            # Collect Page URLs
+            if item.get("page_url"):
+                if isinstance(item["page_url"], list):
+                    collected["page_urls"].extend(item["page_url"])
+                else:
+                    collected["page_urls"].append(item["page_url"])
+                    
             return item
     
     process = CrawlerProcess({{
@@ -146,7 +162,7 @@ if spider_cls:
     process.start()
     print("RESULT:" + json.dumps(collected))
 else:
-    print("RESULT:" + json.dumps({{"images": [], "videos": []}}))
+    print("RESULT:" + json.dumps({{"images": [], "videos": [], "page_urls": [], "emails": []}}))
 '''
                 
                 result = subprocess.run(
@@ -168,13 +184,43 @@ else:
                                 pass
                             break
                 
-                # Save result
-                ScanResult.objects.update_or_create(
+                # Process results with S3 upload
+                from .utils import download_file, upload_to_s3
+                
+                final_images = []
+                final_videos = collected_items.get('videos', [])
+                
+                original_images = collected_items.get('images', [])
+                page_urls = collected_items.get('page_urls', [])
+                profile_url = page_urls[0] if page_urls else None
+                
+                for img_url in original_images:
+                    # Download and upload to S3
+                    content, content_type = download_file(img_url)
+                    s3_url = None
+                    if content:
+                        filename = img_url.split('/')[-1]
+                        if len(filename) > 50: filename = filename[-50:]
+                        if not filename: filename = "image.jpg"
+                        
+                        s3_url = upload_to_s3(content, filename, content_type)
+                    
+                    final_images.append({
+                        'original': img_url,
+                        's3': s3_url
+                    })
+                
+                
+                ScanResultModel.objects.update_or_create(
                     scan_job=scan_job,
                     website=website_name,
                     defaults={
-                        'images': collected_items.get('images', []),
-                        'videos': collected_items.get('videos', []),
+                        'images': final_images,
+                        'videos': final_videos,
+                        'page_urls': page_urls,
+                        'profile_url': profile_url,
+                        'contact_emails': collected_items.get('emails', []),
+                        'status': 'pending'
                     }
                 )
                 
@@ -198,3 +244,4 @@ else:
     thread = threading.Thread(target=run_in_thread, daemon=True)
     thread.start()
     return thread
+
