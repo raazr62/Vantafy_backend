@@ -51,52 +51,39 @@ def get_unfold_settings():
                         },
                     ],
                 },
-                {
+               {
                     "title": _("User Management"),
-                    "separator": True,  # Top border
-                    "collapsible": True,  # Collapsible group of links
+                    "separator": True, 
+                    "collapsible": True,  
                     "items": [
                         {
-                            "title": _("Users"),
-                            "icon": "people",
-                            "link": reverse_lazy("admin:user_user_changelist"),
+                            "title": _("Admin Users"),
+                            "icon": "admin_panel_settings",  # or "security"
+                            "link": reverse_lazy("admin:user_admin_changelist"),
+                            "description": _("System administrators and staff"),
                         },
+                        {
+                            "title": _("Individual Users"),
+                            "icon": "person",  # or "person_outline"
+                            "link": reverse_lazy("admin:user_individual_changelist"),
+                            "description": _("Regular customer accounts"),
+                        },
+                        {
+                            "title": _("Agency Accounts"),
+                            "icon": "business",  # or "apartment"
+                            "link": reverse_lazy("admin:user_agency_changelist"),
+                            "description": _("Agency organization accounts"),
+                        },
+                        {
+                            "title": _("Agency Members"),
+                            "icon": "groups",  # or "people"
+                            "link": reverse_lazy("admin:user_agencymemberlist_changelist"),
+                            "description": _("Members belonging to agencies"),
+                        }
                     ],
                 },
-                {
-                    "title": _("Customer Scanner"),
-                    "separator": True,
-                    "collapsible": True,
-                    "items": [
-                        {
-                            "title": _("Scan Jobs"),
-                            "icon": "person",
-                            "link": reverse_lazy("admin:scanner_customerscanjob_changelist"),
-                        },
-                        {
-                            "title": _("Scan Results"),
-                            "icon": "image",
-                            "link": reverse_lazy("admin:scanner_customerscanresult_changelist"),
-                        },
-                    ],
-                },
-                {
-                    "title": _("Agency Scanner"),
-                    "separator": True,
-                    "collapsible": True,
-                    "items": [
-                        {
-                            "title": _("Scan Jobs"),
-                            "icon": "business",
-                            "link": reverse_lazy("admin:scanner_agencyscanjob_changelist"),
-                        },
-                        {
-                            "title": _("Scan Results"),
-                            "icon": "image",
-                            "link": reverse_lazy("admin:scanner_agencyscanresult_changelist"),
-                        },
-                    ],
-                },
+                
+               
                 {
                     "title": _("Customer Support"),
                     "separator": True,
@@ -133,33 +120,21 @@ def get_unfold_settings():
                         },
                     ],
                 },
-                {
-                    "title": _("Agency Member List"),
-                    "separator": True, 
-                    "collapsible": True, 
-                    "items": [
-                        {
-                            "title": _("Agency Members"),
-                            "icon": "group",
-                            "link": reverse_lazy("admin:user_agencymemberlist_changelist"),
-                        },
-                       
-                    ],
-                },
-                {
-                    "title": _("Unauthorized Websites & Emails"),
-                    "separator": True,
-                    "collapsible": True,
-                    "items": [
-                        {
-                            "title": _("Unauthorized Websites & Emails"),
-                            "icon": "support_agent",
-                            "link": reverse_lazy("admin:scanner_unauthorizedwebsiteandemail_changelist"),
-                        },
+              
+                # {
+                #     "title": _("Unauthorized Websites & Emails"),
+                #     "separator": True,
+                #     "collapsible": True,
+                #     "items": [
+                #         {
+                #             "title": _("Unauthorized Websites & Emails"),
+                #             "icon": "support_agent",
+                #             "link": reverse_lazy("admin:scanner_unauthorizedwebsiteandemail_changelist"),
+                #         },
                         
                        
-                    ],
-                },
+                #     ],
+                # },
                 {
                     "title": _("System Setting"),
                     "separator": True,

@@ -64,7 +64,21 @@ class CustomerScanResult(models.Model):
     customer = models.ForeignKey(User,on_delete=models.CASCADE,related_name='customer_scan_results',)
     website = models.CharField(max_length=255, help_text="Spider/website name")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     
+    @property
+    def total_images(self):
+        return self.image_entries.count()
+
+    @property
+    def total_videos(self):
+        return self.video_entries.count()
+
+    @property
+    def total_page_urls(self):
+        return self.page_url_entries.count()
     
     def __str__(self):
         return self.website
