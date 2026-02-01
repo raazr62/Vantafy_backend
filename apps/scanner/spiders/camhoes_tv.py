@@ -105,4 +105,7 @@ class CamhoesTvSpider(scrapy.Spider):
 
     def parse_post(self, response):
         images = response.xpath('.//a[@rel="screenshots"]/@href').getall()
-        yield {"image": images, "video": response.url}
+        yield {
+            "page_url": response.url,
+            "image": images 
+        }

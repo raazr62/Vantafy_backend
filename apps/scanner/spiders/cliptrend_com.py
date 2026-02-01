@@ -58,4 +58,8 @@ class CliptrendComSpider(scrapy.Spider):
         video_href = response.xpath('//meta[@property="og:url"]/@content').get()
         thumbnail = response.xpath('//meta[@itemprop="thumbnailUrl"]/@content').get()
 
-        yield {"video": video_href, "image": thumbnail}
+        yield {
+            "page_url": response.url,
+            "image": thumbnail,
+            "video": video_href
+        }

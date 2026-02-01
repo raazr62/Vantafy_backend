@@ -50,11 +50,18 @@ class NudostarTvSpider(scrapy.Spider):
         if _title:
             title = self._slugify(_title)
             if self.slug in title:
-                all_images = response.xpath(
-                    '//div[@id="list_videos_common_videos_list_items"]//img/@src'
-                ).getall()
-                images = [re.sub(r"_\d+px(?=\.\w+$)", "", _img) for _img in all_images]
-                yield {"image": images}
+                data = response.xpath(
+                    './/div[@id="list_videos_common_videos_list_items"]'
+                )
+                for i in data:
+                    image = i.xpath('.//img/@src').get()
+                    images = re.sub(r"_\d+px(?=\.\w+$)", "",image)
+                    
+                    page_url = i.xpath('.//a/@href').get()
+                yield {
+                    "page_url": page_url,
+                    "image": images
+                }
 
         next_page = response.xpath('//a[text()="Next"]/@href').get()
         if next_page:

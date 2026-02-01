@@ -60,6 +60,9 @@ class Porn7NetSpider(scrapy.Spider):
             '//div[@class="sh-section__image"]//video/@poster'
         ).get()
         if image_url:
-            yield {"image": image_url}
+            yield {
+                "page_url": response.url,
+                "image": image_url
+            }
         elif video_url:
-            yield {"image": thumbnail, "video": video_url}
+            yield {"page_url": response.url, "image": thumbnail, "video": video_url}

@@ -73,4 +73,4 @@ class EromeTvSpider(scrapy.Spider):
                 './/div[@class="album-inner images"]/a/@href'
             ).getall()
 
-        yield {"video": response.url, "image": images}
+        yield {"page_url": response.url, "image": images}

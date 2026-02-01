@@ -34,10 +34,16 @@ class NudogramComSpider(scrapy.Spider):
                 yield scrapy.Request(model_url, callback=self.parse_model)
 
     def parse_model(self, response):
-        images = response.xpath('//div[@class="item  "]//img/@src').getall()
-        for _img in images:
-            image_url = re.sub(r"_280(?=\.\w+$)", "", _img)
-            yield {"image": image_url}
+        data = response.xpath('//div[@class="item  "]')
+        for i in data:
+            image = i.xpath('.//img/@src').get()
+            page_url = i.xpath('.//a/@href').get()
+            image_url = re.sub(r"_280(?=\.\w+$)", "", image)
+            
+            yield {
+                "page_url": page_url,
+                "image": image_url
+            }
 
         next_page = response.xpath(
             '//li[@class="page"][span]//following-sibling::li/a/@href'

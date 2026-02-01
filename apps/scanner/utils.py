@@ -12,6 +12,23 @@ logger = logging.getLogger(__name__)
 
 
 
+
+def download_file(url):
+    """
+    Download a file from a URL.
+    Returns: (content, content_type) or (None, None)
+    """
+    try:
+        response = requests.get(url, timeout=30, stream=True)
+        if response.status_code == 200:
+            content = response.content
+            content_type = response.headers.get('Content-Type')
+            return content, content_type
+    except Exception as e:
+        logger.error(f"Error downloading {url}: {e}")
+    
+    return None, None
+
 def send_dmca_notice(contact_emails, collected_data, creator_name):
     """
     Send DMCA takedown notice to specific emails.

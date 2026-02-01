@@ -95,12 +95,23 @@ class CamwhoresCloudSpider(scrapy.Spider):
 
         if preview:
             images = thumbnails + [preview]
-            yield {"image": images, "video": video}
+            yield {
+                "page_url" : response.url,
+                "image": images,
+                "video": video
+            }
         else:
-            yield {"image": thumbnails, "video": video}
+            yield {
+                "page_url" : response.url,
+                "image": thumbnails,
+                "video": video
+                }
 
     def parse_album(self, response):
         images = response.xpath(
             './/div[@class="album-holder"]/div[@class="images"]/a/@href'
         ).getall()
-        yield {"video": response.url, "image": images}
+        yield {
+            "page_url": response.url,
+            "image": images
+        }

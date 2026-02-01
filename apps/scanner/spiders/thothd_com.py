@@ -103,4 +103,7 @@ class ThothdComSpider(scrapy.Spider):
 
             img_url = response.xpath('.//a[@rel="screenshots"]/@href').getall()
             for url in img_url:
-                yield {"image": url, "video": []}
+                yield {
+                    "page_url": response.url,
+                    "image": url
+                }

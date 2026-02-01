@@ -119,7 +119,10 @@ class FapelloComSpider(scrapy.Spider):
             #     if full not in self.url_list:
             #         self.url_list.append(full)
             if not redirect_flag:
-                yield {"image": image_url, "video": []}
+                yield {
+                    "page_url": response.url,
+                    "image": image_url
+                }
 
         next_page = response.xpath('.//div[@id="next_page"]/a/@href').get()
 

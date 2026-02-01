@@ -46,17 +46,27 @@ class NsfwXxxSpider(scrapy.Spider):
                 continue
 
             _type = content.get("type")
+            page_id = content.get("id")
+            page_url = f"https://nsfw.xxx/post/{page_id}"
             post_info = post.get("data") or {}
 
             if _type == "image":
                 image_url = post_info.get("url")
                 if image_url:
-                    yield {"image": image_url}
+                    
+                    yield {
+                        "page_url": page_url,
+                        "image": image_url
+                    }
 
             elif _type == "video":
-                image_urls = post_info.get("thumbnails")
+                image_urls = post_info.get("url")
                 video_url = post_info.get("videos", {}).get("mp4")
-                yield {"image": image_urls, "video": video_url}
+                yield {
+                    "page_url": page_url,
+                    "image": image_urls,
+                    "video": video_url
+                }
 
         next_page = js_data.get("meta", {}).get("nextPage")
         if next_page:

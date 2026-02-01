@@ -65,8 +65,8 @@ class Ebony8ComSpider(scrapy.Spider):
 
     def parse_video(self, response):
         image_url = response.xpath('.//meta[@property="og:image"]/@content').get()
-        yield {"video": response.url, "image": image_url}
+        yield {"page_url": response.url, "image": image_url}
 
     def parse_album(self, response):
         images = response.xpath('.//div[@class="images"]/a/@href').getall()
-        yield {"video": response.url, "image": images}
+        yield {"page_url": response.url, "image": images}

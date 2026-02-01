@@ -89,10 +89,17 @@ class TopfapgirlspicsComSpider(scrapy.Spider):
         if name:
             slug = self._slugify(name)
             if self.slug in slug:
-                images = response.xpath(
-                    '//div[@class="grid_item thumb"]//a/img/@itemprop'
-                ).getall()
-                yield {"images": images}
+                data = response.xpath(
+                    '//div[@class="grid_item thumb"]//a'
+                )
+                for i in data:
+                    image = i.xpath(".//img/@itemprop").get()
+                    page_url = i.xpath(".//@href").get()
+
+                    yield {
+                        "page_url": response.urljoin(page_url),
+                        "images": image
+                    }
 
         next_page = response.xpath('//a[@class="next button-text"]/@href').get()
         if next_page:

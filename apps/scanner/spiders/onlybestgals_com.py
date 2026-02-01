@@ -52,10 +52,18 @@ class OnlybestgalsComSpider(scrapy.Spider):
         if name:
             _name = self._slugify(name)
             if self.slug in _name:
-                images = response.xpath(
-                    '//div[@class="grid_element thumbnail"]//a/img/@itemprop'
-                ).getall()
-                yield {"image": images}
+                data = response.xpath(
+                    '//div[@class="grid_element thumbnail"]//a'
+                )
+                for i in data:
+                    image_url = i.xpath(".//img/@itemprop").get()
+                    images = re.sub(r"/thumbnails/(\d+)x(\d+)", "", image_url)
+                    page_url = i.xpath(".//@href").get()
+                    
+                yield {
+                    "page_url": response.urljoin(page_url),
+                    "image": images
+                }
 
         next_page = response.xpath('//a[@class="forward button-text"]/@href').get()
         if next_page:

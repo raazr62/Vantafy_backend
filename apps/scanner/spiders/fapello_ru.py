@@ -51,21 +51,26 @@ class FapelloRuSpider(scrapy.Spider):
             )
 
     def parse_video_galleries(self, response):
-
+        post_urls = response.xpath('.//div[@id="videos-content"]//a/@href').getall()
         video_urls = response.xpath('.//div[@id="videos-content"]//a/@href').getall()
         imges = response.xpath('.//div[@id="videos-content"]//a/img/@src').getall()
 
         # yield {"image": response.urljoin(imges), "video": response.urljoin(video_urls)}
         for video_url, img in zip(video_urls, imges):
             yield {
+                "page_url": post_urls,
                 "image": response.urljoin(img),
                 "video": response.urljoin(video_url),
             }
 
     def parse_photo_galleries(self, response):
+        page_urls = response.xpath('.//div[@id="gallery-container"]//a/@href').getall() 
         name = response.meta["name_query"].replace("+", " ").title()
         img_urls = response.xpath('.//img[@itemprop="thumbnail"]/@src').getall()
-        yield {"image": img_urls, "video": []}
+        yield {
+            "page_url": page_urls,
+            "image": img_urls
+        }
 
         next_page = response.xpath('.//a[@rel="next"]/@href').get()
         if next_page:

@@ -111,4 +111,7 @@ class FapexyComSpider(scrapy.Spider):
 
     def parse_image(self, response):
         image = response.xpath(".//a[@title]/img/@src").get()
-        yield {"image": image, "video": []}
+        yield {
+            "page_url": response.url,
+            "image": image
+            }

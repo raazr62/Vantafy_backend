@@ -76,8 +76,15 @@ class EromeFanSpider(scrapy.Spider):
                 if i.xpath('.//div[@class="video"]'):
                     image = i.xpath('.//div[@class="video"]//video/@src').get()
                     video = i.xpath('.//div[@class="video"]//video/source/@src').get()
-                    yield {"video": video, "image": image}
+                    yield {
+                        "page_url": response.url,
+                        "image": image,
+                        "video": video
+                    }
                 # For image posts
                 elif i.xpath('.//div[@class="img"]'):
                     image = i.xpath('.//div[@class="img"]/@data-src').get()
-                    yield {"image": image, "video": []}
+                    yield {
+                        "page_url": response.url, 
+                        "image": image
+                    }

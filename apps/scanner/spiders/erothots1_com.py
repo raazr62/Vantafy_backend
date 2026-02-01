@@ -83,7 +83,11 @@ class Erothots1ComSpider(scrapy.Spider):
         video_url = response.xpath('//video[@class="v-player"]/source/@src').get()
         thumbnail = response.xpath('//meta[@property="og:image"]/@content').get()
 
-        yield {"video": video_url, "image": thumbnail}
+        yield {
+            "page_url": response.url,
+            "video": video_url,
+            "image": thumbnail
+        }
 
     def parse_photo(self, response):
         img_url = response.xpath('//div[@class="item-picture mb-3"]/a/@data-src').get()
@@ -94,4 +98,7 @@ class Erothots1ComSpider(scrapy.Spider):
         else:
             image_url = img_url
 
-        yield {"image": image_url}
+        yield {
+            "page_url": response.url,
+            "image": image_url
+        }

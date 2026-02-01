@@ -59,6 +59,7 @@ class LeaknudesComSpider(scrapy.Spider):
 
         if video or images:
             yield {
+                "page_url": response.url,
                 "video": video,
                 "image": [response.urljoin(image) for image in images],
             }

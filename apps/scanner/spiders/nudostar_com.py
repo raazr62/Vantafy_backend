@@ -39,9 +39,15 @@ class NudostarComSpider(scrapy.Spider):
                 )
 
     def parse_profile(self, response):
-        image_urls = response.xpath('.//div[@class="item_img"]/img/@src').getall()
-        for image_url in image_urls:
-            yield {"image": image_url,"video":[]}
+        data = response.xpath('.//div[@class="item_content"]')
+        for i in data:
+            image_url = i.xpath('.//div[@class="item_img"]/img/@src').get()
+            page_url = i.xpath('.//a/@href').get()
+        
+            yield {
+                "page_url": page_url,
+                "image": image_url
+            }
 
         next_url = response.xpath('.//a[@class="next-post"]/@href').get()
         if next_url:

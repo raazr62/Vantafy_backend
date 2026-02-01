@@ -53,4 +53,8 @@ class GifhqComSpider(scrapy.Spider):
 
         video = response.xpath('.//a[@referrerpolicy="origin"]/@href').get()
         img = response.xpath('.//video[@class="card-img-top"]/@poster').get()
-        yield {"image": img, "video": video}
+        yield {
+            "page_url": response.url,
+            "image": img,
+            "video": video
+        }

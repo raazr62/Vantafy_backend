@@ -126,7 +126,6 @@ class FapelloToSpider(scrapy.Spider):
                 meta={"model_id": model_id, "page": page, "headers": headers},
                 dont_filter=True,
             )
-            
 
     def parse_media(self, response):
         model_id = response.meta["model_id"]
@@ -146,11 +145,20 @@ class FapelloToSpider(scrapy.Spider):
             media_type = item.get("type")
             media_url = item.get("newUrl")
             video_img_url = item.get("newUrlThumb")
+            page_id = item.get("id")
+            page_url = f"https://fapello.to/post/{page_id}"
 
             if media_type == "1":  # image
-                yield {"image": media_url, "video": []}
+                yield {
+                    "page_url": page_url, 
+                    "image": media_url or video_img_url
+                }
             elif media_type == "2":  # video
-                yield {"image": video_img_url, "video": media_url}
+                yield {
+                    "page_url": page_url,
+                    "image": video_img_url,
+                    "video": media_url
+                }
 
         # Request next page
         next_page = page + 1

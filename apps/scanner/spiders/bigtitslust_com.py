@@ -66,7 +66,7 @@ class BigtitslustComSpider(scrapy.Spider):
     def parse_video(self,response):
         image_url = response.xpath('.//meta[@property="og:image"]/@content').get()
         yield{
-            'video': response.url,
+            'page_url': response.url,
             'image': image_url
         }
 
@@ -74,4 +74,4 @@ class BigtitslustComSpider(scrapy.Spider):
         images = response.xpath(
             './/div[@class="images"]/a/@href'
         ).getall()
-        yield {"video": response.url, "image": images}
+        yield {"page_url": response.url, "image": images}

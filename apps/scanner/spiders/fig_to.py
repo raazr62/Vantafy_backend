@@ -80,6 +80,6 @@ class FigToSpider(scrapy.Spider):
             )
             urls = list(set(urls))
             all_images = urls + [image]
-            yield {"video": response.url, "image": all_images}
+            yield {"page_url": response.url, "image": all_images}
         else:
-            yield {"video": response.url, "image": image}
+            yield {"page_url": response.url, "image": image}

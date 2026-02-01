@@ -58,13 +58,20 @@ class FapomaniaComSpider(scrapy.Spider):
         if self._slugify(title_text) != self.slug:
             return
 
-        images = response.xpath(
-            '//div[@class="leftocontar"]//div[@class="previzakoimag"]/img/@src'
-        ).getall()
-        for img in images:
+        post = response.xpath('//div[@class="leftocontar"]//div[@class="previzako"]')
+        for i in post:
+            page_url = i.xpath(".//a/@href").get()
+            img = i.xpath(
+                './/div[@class="previzakoimag"]/img/@src'
+            ).get()
+
             if "_300px" in img:
-                clean_img = re.sub(r"_300px(?=\.\w+$)", "", img)
-                yield {"image": clean_img}
+                img = re.sub(r"_300px(?=\.\w+$)", "", img)
+                
+                yield {
+                    "page_url": page_url,
+                    "image": img
+                }
 
         next_page = response.xpath('//a[contains(text(), "Next")]/@href').get()
         if next_page:

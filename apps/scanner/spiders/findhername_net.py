@@ -71,4 +71,4 @@ class FindhernameNetSpider(scrapy.Spider):
             images = response.xpath(
                 './/div[@class="album-inner images"]/a/@href'
             ).getall()
-        yield {"video": response.url, "image": images}
+        yield {"page_url": response.url, "image": images}

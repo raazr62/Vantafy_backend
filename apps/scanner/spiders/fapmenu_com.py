@@ -81,8 +81,8 @@ class FapmenuComSpider(scrapy.Spider):
     def parse_image(self,response):
         image = response.xpath('.//img[contains(@class,"media-img")]/@src').get()
         yield{
-            'image': response.urljoin(image),
-            'video': []
+            'page_url': response.url,
+            'image': response.urljoin(image)
         }
 
     def match_name_words(self, name1, name2):

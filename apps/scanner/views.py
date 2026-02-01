@@ -5,7 +5,12 @@ from rest_framework.permissions import IsAuthenticated
 from apps.user.authentication import CookieJWTAuthentication
 from apps.user.models import AgencyMemberList 
 
-from .models import AgencyMemberScanProcessing, CustomerScanProcessing, CustomerScanResult, AgencyMemberScanResult, CustomerScanResultImage, CustomerScanResultVideo, CustomerScanResultPageUrl
+from .models import (
+    AgencyMemberScanProcessing, CustomerScanProcessing, 
+    CustomerScanResult, AgencyMemberScanResult, 
+    CustomerScanResultImage, CustomerScanResultVideo, CustomerScanResultPageUrl,
+    AgencyMemberScanResultImage, AgencyMemberScanResultVideo, AgencyMemberScanResultPageUrl
+)
 from .services import get_available_spiders, run_all_spiders_async
 from apps.utils.helpers import success,error
 from .serializers import CustomerScanResultSerializer, AgencyMemberScanResultSerializer
@@ -34,10 +39,10 @@ class ScanNowView(APIView):
         # Create a new CustomerScanProcessing job
         if role == 'customer':
             full_name = user.full_name
+            print("Full Name:", full_name)
 
             scan_job = CustomerScanProcessing.objects.create(
                 customer=user,
-                creator_name=full_name
             )
 
             # Run all spiders asynchronously
@@ -70,7 +75,7 @@ class ScanNowView(APIView):
                 name_query='',
                 job_id=scan_job.id,
                 app_label='scanner',
-                model_name='CustomerScanProcessing'
+                model_name='AgencyMemberScanProcessing'
             )
 
         return success(data={
@@ -108,23 +113,32 @@ class ScanResultDetailsView(APIView):
         user = request.user
         role = user.role
 
+        serializer = None
+        images = []
+        videos = []
+        page_urls = []
+
         if role == 'customer':
             try:
                 scan_result = CustomerScanResult.objects.get(id=scan_result_id, customer=user)
             except CustomerScanResult.DoesNotExist:
                 return error(message='Scan result not found.', status_code=status.HTTP_404_NOT_FOUND)
+            
+            images = CustomerScanResultImage.objects.filter(customer_scan_result=scan_result)
+            videos = CustomerScanResultVideo.objects.filter(customer_scan_result=scan_result)
+            page_urls = CustomerScanResultPageUrl.objects.filter(customer_scan_result=scan_result)
+            serializer = CustomerScanResultSerializer(scan_result)
+
         elif role == 'agency':
             try:
                 scan_result = AgencyMemberScanResult.objects.get(id=scan_result_id, agency=user)
             except AgencyMemberScanResult.DoesNotExist:
                 return error(message='Scan result not found.', status_code=status.HTTP_404_NOT_FOUND)
-
-        # Fetch associated images, videos, and page URLs
-        images = CustomerScanResultImage.objects.filter(scan_result=scan_result)
-        videos = CustomerScanResultVideo.objects.filter(scan_result=scan_result)
-        page_urls = CustomerScanResultPageUrl.objects.filter(scan_result=scan_result)
-
-        serializer = CustomerScanResultSerializer(scan_result)
+            
+            images = AgencyMemberScanResultImage.objects.filter(agency_member_scan_result=scan_result)
+            videos = AgencyMemberScanResultVideo.objects.filter(agency_member_scan_result=scan_result)
+            page_urls = AgencyMemberScanResultPageUrl.objects.filter(agency_member_scan_result=scan_result)
+            serializer = AgencyMemberScanResultSerializer(scan_result)
 
         return success(data={
             'scan_result': serializer.data,

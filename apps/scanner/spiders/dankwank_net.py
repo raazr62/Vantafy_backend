@@ -94,19 +94,23 @@ class DankwankNetSpider(scrapy.Spider):
         else:
             data = {}
             self.logger.warning("JSON data not found")
-        # print(data)
+        
         video_text = data.get("name", "")
         description = data.get("description", "")
-        # print(description)
+        
 
-        teg = response.xpath('.//div[@class="content-links -tags"]/a/text()').getall()
-        teg = " ".join(teg)
+        tag = response.xpath('.//div[@class="content-links -tags"]/a/text()').getall()
+        tag = " ".join(tag)
         if (
             self.clean(name_query) in self.clean(video_text)
-            or self.clean(name_query) in self.clean(teg)
+            or self.clean(name_query) in self.clean(tag)
             or self.clean(name_query) in self.clean(description)
         ):
             video = data.get("embedUrl")
             img = data.get("thumbnailUrl")
 
-            yield {"image": img, "video": video}
+            yield {
+                "page_url" : response.url,
+                "image": img,
+                "video": video
+            }

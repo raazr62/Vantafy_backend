@@ -84,7 +84,10 @@ class FapachiComSpider(scrapy.Spider):
         imgs = response.xpath('.//img[@class="lazyimg"]/@data-src').getall()
 
         for image_url in imgs:
-            yield {"image": response.urljoin(image_url), "video": []}
+            yield {
+                "page_url": response.url,
+                "image": response.urljoin(image_url)
+            }
 
         next_page = response.xpath('.//a[text()="Next page"]/@href').get()
         if next_page:

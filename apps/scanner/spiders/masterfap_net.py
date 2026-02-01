@@ -48,6 +48,6 @@ class MasterfapNetSpider(scrapy.Spider):
     def parse_image(self, response):
         image_url = response.xpath('.//meta[@property="og:image"]/@content').get()
         yield {
+            "page_url": response.url,
             "image": image_url,
-            "video":[]
             }

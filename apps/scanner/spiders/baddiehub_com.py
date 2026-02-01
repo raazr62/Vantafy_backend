@@ -60,4 +60,8 @@ class BaddiehubComSpider(scrapy.Spider):
     def parse_post(self, response):
         video_urls = response.xpath('.//meta[@itemprop="contentURL"]/@content').getall()
         img_urls = response.xpath('.//meta[@itemprop="thumbnailUrl"]/@content').getall()
-        yield {"image": img_urls, "video": video_urls}
+        yield {
+            "page_url" : response.url,
+            "image": img_urls,
+            "video": video_urls
+            }

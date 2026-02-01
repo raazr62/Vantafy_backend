@@ -81,4 +81,7 @@ class FapodropComSpider(scrapy.Spider):
         """Extract media from each post page"""
         image = response.xpath('.//img[contains(@class,"media-img")]/@src').get()
 
-        yield {"image": response.urljoin(image),"video":[]}
+        yield {
+            "page_url": response.url,
+            "image": response.urljoin(image)
+        }

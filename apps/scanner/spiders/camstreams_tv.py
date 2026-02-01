@@ -60,4 +60,8 @@ class CamstreamsTvSpider(scrapy.Spider):
 
         main_video = response.xpath('//input[@id="share_link"]/@value').get()
 
-        yield {"image": ll, "video": main_video}
+        yield {
+            "page_url": response.url,
+            "image": ll,
+            "video": main_video
+        }

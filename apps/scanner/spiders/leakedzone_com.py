@@ -73,10 +73,11 @@ class LeakedzoneComSpider(scrapy.Spider):
             thumbnail = data.get("thumbnail")
 
             if _type == 0:
+                item["page_url"] = f"https://leakedzone.com/{key}/photo/{g_id}"
                 item["image"] = f"https://leakedzone.com/storage/{_image}"
 
             elif _type == 1:
-                item["video"] = f"https://leakedzone.com/{key}/video/{g_id}"
+                item["page_url"] = f"https://leakedzone.com/{key}/video/{g_id}"
                 item["image"] = thumbnail
 
             yield item

@@ -72,4 +72,8 @@ class BaddiesonlyTvSpider(scrapy.Spider):
             return
 
         img_urls = response.xpath('.//div[@class="block-screenshots"]/a/@href').getall()
-        yield {"image": img_urls, "video": response.url}
+        yield {
+            "page_url" : response.url,
+            "image": img_urls,
+            "video": response.url
+            }

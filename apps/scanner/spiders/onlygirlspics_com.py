@@ -50,10 +50,15 @@ class OnlygirlspicsComSpider(scrapy.Spider):
         if name:
             _name = self._slugify(name)
             if self.slug in _name:
-                images = response.xpath(
-                    '//div[@class="deck-item deck-thumb"]//a/img/@itemprop'
-                ).getall()
-                yield {"image": images}
+                data = response.xpath('//div[@class="deck-item deck-thumb"]//a')
+                for i in data:
+                    image = i.xpath(".//img/@itemprop").get()
+                    page_url = i.xpath(".//@href").get()
+
+                    yield {
+                        "page_url": response.urljoin(page_url),
+                        "image": image
+                    }
 
         next_page = response.xpath('//a[@class="page-next button-text"]/@href').get()
         if next_page:

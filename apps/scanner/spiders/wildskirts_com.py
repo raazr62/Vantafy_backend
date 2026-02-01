@@ -84,6 +84,7 @@ class WildskirtsComSpider(scrapy.Spider):
 
     def parse_api(self, response):
         json_data = response.json()
+        print(json_data)
 
         data = jmespath.search("media.items", json_data)
 
@@ -91,10 +92,18 @@ class WildskirtsComSpider(scrapy.Spider):
 
             media_type = json_data.get("media").get("items").get(f"{idx}").get("t")
             media_url = json_data.get("media").get("items").get(f"{idx}").get("u")
+            page_url = json_data.get("media").get("items").get(f"{idx}").get("l")
             # print("media_url:", media_url)
 
             if media_type == "photo":  # image
-                yield {"image": media_url, "video": []}
+                yield {
+                    "page_url": page_url,
+                    "image": media_url
+                }
             elif media_type == "video":
                 thumbnail = json_data.get("media").get("items").get(f"{idx}").get("p")
-                yield {"image": thumbnail, "video": media_url}
+                yield {
+                    "page_url": page_url,
+                    "image": thumbnail,
+                    "video": media_url
+                }

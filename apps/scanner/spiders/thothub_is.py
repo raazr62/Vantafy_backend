@@ -96,4 +96,5 @@ class ThothubIsSpider(scrapy.Spider):
         images = response.xpath(
             './/div[@class="album-holder"]/div[@class="images"]/a/@href'
         ).getall()
-        yield {"video": response.url, "image": images}
+        
+        yield {"page_url": response.url, "image": images}

@@ -79,6 +79,13 @@ def run_all_spiders_async(name_query, job_id, app_label, model_name, spider_name
         scan_job.total_spiders = len(spiders_to_run)
         scan_job.status = 'running'
         scan_job.save()
+
+        # Determine name to query if not provided
+        target_name = name_query
+        if not target_name:
+            target_name = getattr(scan_job, 'search_name', '')
+            # If search_name was somehow missing or empty, maybe log or handle? 
+            # Assuming models now have it as property.
         
         # Run each spider and collect results
         for spider_module_name in spiders_to_run:
@@ -158,7 +165,13 @@ if spider_cls:
         "ROBOTSTXT_OBEY": False,
         "ITEM_PIPELINES": {{Collector: 300}},
     }})
-    process.crawl(spider_cls, name_query="{name_query}")
+    process = CrawlerProcess({{
+        "LOG_ENABLED": False,
+        "LOG_LEVEL": "ERROR",
+        "ROBOTSTXT_OBEY": False,
+        "ITEM_PIPELINES": {{Collector: 300}},
+    }})
+    process.crawl(spider_cls, name_query="{target_name}")
     process.start()
     print("RESULT:" + json.dumps(collected))
 else:
@@ -184,46 +197,47 @@ else:
                                 pass
                             break
                 
-                # Process results with S3 upload
-                from .utils import download_file, upload_to_s3
+                # Create or Get Scan Result
+                defaults_data = {
+                    'profile_url': collected_items.get('page_urls', [None])[0] if collected_items.get('page_urls') else None,
+                    'contact_emails': collected_items.get('emails', []),
+                    'status': 'pending'
+                }
                 
-                final_images = []
-                final_videos = collected_items.get('videos', [])
+                # Add specific fields based on job type/model
+                if getattr(scan_job, 'customer', None):
+                     defaults_data['customer'] = scan_job.customer
+                if getattr(scan_job, 'agency', None):
+                     defaults_data['agency'] = scan_job.agency
+                if getattr(scan_job, 'agency_member', None):
+                     defaults_data['agency_member'] = scan_job.agency_member
+
+                scan_result, created = ScanResultModel.objects.update_or_create(
+                    scan_job=scan_job, # Link to the job
+                    website=website_name,
+                    defaults=defaults_data
+                )
+
+                # Process results with Helper Methods
+                from .utils import download_file
                 
                 original_images = collected_items.get('images', [])
+                video_urls = collected_items.get('videos', [])
                 page_urls = collected_items.get('page_urls', [])
-                profile_url = page_urls[0] if page_urls else None
                 
+                # Save Images
                 for img_url in original_images:
-                    # Download and upload to S3
                     content, content_type = download_file(img_url)
-                    s3_url = None
-                    if content:
-                        filename = img_url.split('/')[-1]
-                        if len(filename) > 50: filename = filename[-50:]
-                        if not filename: filename = "image.jpg"
-                        
-                        s3_url = upload_to_s3(content, filename, content_type)
+                    scan_result.add_image(img_url, content)
+
+                # Save Videos
+                for vid_url in video_urls:
+                    scan_result.add_video(vid_url)
                     
-                    final_images.append({
-                        'original': img_url,
-                        's3': s3_url
-                    })
-                
-                
-                ScanResultModel.objects.update_or_create(
-                    scan_job=scan_job,
-                    website=website_name,
-                    defaults={
-                        'images': final_images,
-                        'videos': final_videos,
-                        'page_urls': page_urls,
-                        'profile_url': profile_url,
-                        'contact_emails': collected_items.get('emails', []),
-                        'status': 'pending'
-                    }
-                )
-                
+                # Save Page URLs
+                for p_url in page_urls:
+                    scan_result.add_page_url(p_url)
+
             except subprocess.TimeoutExpired:
                 print(f"Spider {spider_module_name} timed out")
             except Exception as e:

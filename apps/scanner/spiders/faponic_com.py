@@ -35,7 +35,13 @@ class FaponicComSpider(scrapy.Spider):
 
     def parse_model(self, response):
         images = response.xpath('//div[@id="content"]//img/@src').getall()
-        yield {"image": images}
+        page_url = response.xpath(
+            './/div[@id="content"]/div/a[@class="full-block"]/@href'
+        ).getall()
+        yield {
+            "page_url": page_url,
+            "image": images
+            }
 
         next_page = response.xpath('//div[@id="next_page"]/a/@href').get()
         if next_page:

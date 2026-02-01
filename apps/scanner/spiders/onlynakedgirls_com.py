@@ -52,10 +52,12 @@ class OnlynakedgirlsComSpider(scrapy.Spider):
         if name:
             _name = self._slugify(name)
             if self.slug in _name:
-                images = response.xpath(
-                    '//div[@class="preview-item thumb-node"]//a/img/@itemprop'
-                ).getall()
-                yield {"image": images}
+                data = response.xpath('.//div[@class="preview-item thumb-node"]//a')
+                for i in data:
+                    image = i.xpath(".//img/@itemprop").get()
+                    page_url = i.xpath(".//@href").get()
+
+                    yield {"page_url": response.urljoin(page_url), "image": image}
 
         next_page = response.xpath(
             '//a[@class="continue-next button-text"]/@href'

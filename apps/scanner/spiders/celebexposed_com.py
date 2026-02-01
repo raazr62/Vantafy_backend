@@ -70,4 +70,7 @@ class CelebexposedComSpider(scrapy.Spider):
             '//img[@class="w-full h-full absolute object-cover inset-0"]/@src'
         ).getall()
 
-        yield {"image": images,"video":[]}
+        yield {
+            "page_url": response.url,
+            "image": images
+        }

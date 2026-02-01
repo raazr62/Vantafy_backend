@@ -99,6 +99,7 @@ class UkdevilzComSpider(scrapy.Spider):
 
         image = data.get("image")
         yield {
+            "page_url": response.url,
             "image": image,
             "video": data.get("sources")[0].get("file") if data.get("sources") else None
         }

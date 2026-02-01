@@ -41,9 +41,12 @@ class FapopediaNetSpider(scrapy.Spider):
         imgs = response.xpath(
             './/img[@alt=" Nude"]/@src | .//img[@itemprop="thumbnail"]/@src'
         ).getall()
-
-        for image_url in imgs:
-            yield {"image": image_url, "video": []}
+        page_urls = response.xpath('(.//div[@class="shrt-blk"])[1]/div/a/@href').getall()
+        
+        yield{
+            'page_url': page_urls,
+            'image': imgs
+        }
 
         next_page = response.xpath('.//a[text()="Next "]/@href').get()
         if next_page:

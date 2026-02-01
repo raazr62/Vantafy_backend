@@ -133,11 +133,18 @@ class XxbritsComSpider(scrapy.Spider):
                 node = graph[0]
                 video = node.get("contentUrl")
                 image = node.get("thumbnailUrl")
-                yield {"image": image, "video": video}
+                yield {
+                    "page_url": response.url,
+                    "image": image,
+                    "video": video
+                }
 
     def parse_albums(self, response):
         img_urls = response.xpath(
             './/a[@class="item-album item link-post"]/@href'
         ).getall()
 
-        yield {"image": img_urls, "video": response.url}
+        yield {
+            "page_url": response.url,
+            "image": img_urls
+        }

@@ -55,7 +55,16 @@ class LeaksphotosComSpider(scrapy.Spider):
                 images = response.xpath(
                     '//div[@class="grid-item thumb"]//span/img/@itemprop'
                 ).getall()
-                yield {"image": images}
+                page_url = response.xpath(
+                    '//div[@class="grid-item thumb"]//span/@ data-mtid'
+                ).getall()
+                yield {
+                    "page_url": [
+                        f"https://www.leaksphotos.com/image-gallery/?slug={i}"
+                        for i in page_url
+                    ],
+                    "image": images,
+                }
 
         next_page = response.xpath('//a[@class="pager-next button-text"]/@href').get()
         if next_page:

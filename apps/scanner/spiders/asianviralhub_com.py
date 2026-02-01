@@ -125,6 +125,7 @@ class AsianviralhubComSpider(scrapy.Spider):
             image = response.xpath('.//div[@class="block-screenshots"]/a/@href').getall()
 
             yield {
+                "page_url" : response.url,
                 "image": image,
                 "video": video
             }

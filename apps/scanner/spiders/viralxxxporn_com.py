@@ -58,6 +58,10 @@ class ViralxxxpornComSpider(scrapy.Spider):
         urls = response.xpath('.//div[@class="content-section"]/div//a/@href').getall()
         if not urls:
             urls = response.xpath('.//div[@class="thumbs"]//a/@href').getall()
+        if not urls:
+            urls = response.xpath(
+                './/div[@id="list_videos_common_videos_list_items"]//div[@class="main-card"]/a/@href'
+            ).getall()
         for i in urls:
             yield scrapy.Request(url=response.urljoin(i), callback=self.parse_ss)
 
@@ -73,4 +77,4 @@ class ViralxxxpornComSpider(scrapy.Spider):
             images = response.xpath(
                 './/div[@class="album-inner images"]/a/@href'
             ).getall()
-        yield {"video": response.url, "image": images}
+        yield {"page_url": response.url, "image": images}

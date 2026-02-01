@@ -98,8 +98,14 @@ class LeakedFansSpider(scrapy.Spider):
 
     def parse_album(self, response):
         image = response.xpath('.//div[@class="images"]/a/@href').getall()
-        yield {"image": image, "video": []}
+        yield {     
+            "page_url": response.url,
+            "image": image
+            }
 
     def parse_video(self, response):
         image = response.xpath('.//meta[@property="og:image"]/@content').get()
-        yield {"image": image, "video": response.url}
+        yield {
+            "page_url": response.url,
+            "image": image
+        }

@@ -61,29 +61,37 @@ class CoomerStSpider(scrapy.Spider):
 
         for post in posts:
             images = []
-            video = None
-            all_files = []
+            videos = []
 
-            if post.get("file"):
-                all_files.append(post["file"])
-            if post.get("attachments"):
-                all_files.extend(post["attachments"])
+            file = post.get("file").get("path")
+            if file:
+                file = response.urljoin(file)
+                if file.endswith((".jpg", ".jpeg", ".png", ".gif")):
+                    images.append(file)
+                elif file.endswith((".mp4", ".m4v", ".wmv", ".avi", ".mkv")):
+                    videos.append(file)
 
-            for f in all_files:
-                path = f.get("path")
-                if not path:
-                    continue
+            attachments = post.get("attachments")
+            for attatch in attachments:
+                data = attatch.get("path")
+                if data:
+                    data = response.urljoin(data)
+                    if data.endswith((".jpg", ".jpeg", ".png", ".gif")):
+                        images.append(data)
+                    elif data.endswith((".mp4", ".m4v", ".wmv", ".avi", ".mkv")):
+                        videos.append(data)
 
-                url = f"https://img.coomer.st/thumbnail/data{path}"
+            id = post.get("id")
+            user = post.get("user")
+            service = post.get("service")
 
-                if url.endswith((".m4v", ".mp4")) and not video:
-                    video = (
-                        f"https://coomer.st/onlyfans/user/{match_id}/post/{post['id']}"
-                    )
-                elif url.endswith(".jpg"):
-                    images.append(url)
+            page_url = f"https://coomer.st/{service}/user/{user}/post/{id}"
 
-            yield {"image": images, "video": [video] if video else []}
+            yield {
+                "page_url": page_url,
+                "image": images,
+                "video": videos
+            }
 
         next_offset = offset + 50
         next_url = (

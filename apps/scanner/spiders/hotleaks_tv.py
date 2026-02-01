@@ -37,10 +37,11 @@ class HotleaksTvSpider(scrapy.Spider):
 
     def parse(self, response):
         js_data = json.loads(response.text)
-        data_list = js_data.get("models", {}).get("data", [])
-        if data_list:
-            key = data_list[0].get("key")
-            name = self._slugify(data_list[0].get("name"))
+        profile_list = js_data.get("models", {}).get("data", [])
+        if profile_list:
+            for data_list in profile_list:
+                key = data_list.get("key")
+                name = self._slugify(data_list.get("name"))
 
         if self.slug in name or self.slug in key :
             model_url = f"https://hotleaks.tv/{key}?page=1&type=all&order=0"
@@ -69,15 +70,14 @@ class HotleaksTvSpider(scrapy.Spider):
 
             if _type == 0:
                 image_list.append(player)
-                image_list.append(thumbnail)
                 yield {
-                    "video": [],
+                    "page_url": f"https://hotleaks.tv/{key}/photo/{g_id}",
                     "image": image_list
                 }
 
             elif _type == 1:
                 yield {
-                    "video": f"https://hotleaks.tv/{key}/video/{g_id}",
+                    "page_url": f"https://hotleaks.tv/{key}/video/{g_id}",
                     "image" : thumbnail
                     }
 

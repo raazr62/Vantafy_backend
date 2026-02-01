@@ -35,8 +35,12 @@ class LeakedmodelsComSpider(scrapy.Spider):
 
     def parse_model(self, response):
         images = response.xpath('//div[@class="entry-content"]//img/@src').getall()
+        page_url = response.xpath('//div[@class="entry-content"]/p/a/@href').getall()
         cleaned_images = [re.sub(r"_thb(?=\.\w+$)", "", img) for img in images]
-        yield {"image": cleaned_images}
+        yield {
+            "page_url":page_url,
+            "image": cleaned_images
+        }
 
         next_page = response.xpath('//a[@class="next page-numbers"]/@href').get()
         if next_page:

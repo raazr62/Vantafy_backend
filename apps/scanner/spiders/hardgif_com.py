@@ -60,6 +60,10 @@ class HardgifComSpider(scrapy.Spider):
                 name
             ) in self.clean(username):
 
+                page_url_id = video.xpath(".//@data-post-id").get()
+
+                page_url = f"https://hardgif.com/gif/{page_url_id}"
+
                 thumbnel = video.xpath(
                     './/video[@referrepolicy="noreferrer"]/@data-poster'
                 ).get()
@@ -82,14 +86,19 @@ class HardgifComSpider(scrapy.Spider):
 
                         # Append full URLs
                         yield {
+                            "page_url": page_url,
                             "image": [f"https://hardgif.com{u}" for u in urls],
-                            "video": [],
+                            
                         }
                 video = video.xpath(
                     './/video[@referrepolicy="noreferrer"]/source/@data-src'
                 ).get()
 
-                yield {"image": thumbnel, "video": video}
+                yield {
+                    "page_url": page_url,
+                    "image": thumbnel,
+                    "video": video
+                }
 
                 next_page = page + 1
                 url = f"https://hardgif.com/backend.php?&p={next_page}&search={name}"

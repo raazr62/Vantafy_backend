@@ -31,18 +31,23 @@ class FapezaComSpider(scrapy.Spider):
                 yield scrapy.Request(ac_url, callback=self.parse_account)
 
     def parse_account(self, response):
-        all_images = response.xpath('//img[@class="thumb_img"]/@src').getall()
-        for img in all_images:
-            if img:
-                image_url = re.sub(r"_400px(?=\.\w+$)", "", img)
-                yield {"image": image_url}
+        all_post = response.xpath('.//div[@id="media"]//a/@href').getall()
+        for post in all_post:
+            yield scrapy.Request(post, callback=self.parse_post)
 
         next_page = response.xpath('//div[@id="load_more"]/@data-page').get()
         max_page = response.xpath('//div[@id="load_more"]/@data-max').get()
-        
+
         if next_page and int(next_page) <= int(max_page):
             next_url = response.xpath(
                 '//div[@id="load_more"]//a[@class="load-more-button"]/@href'
             ).get()
             if next_url:
                 yield response.follow(next_url, callback=self.parse_account)
+
+    def parse_post(self, response):
+        image = response.xpath('.//div[@class="image-grid"]//img/@src').get()
+        yield{
+            'page_url': response.url,
+            'image': image
+        }

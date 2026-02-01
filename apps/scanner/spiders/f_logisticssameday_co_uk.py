@@ -57,7 +57,10 @@ class FLogisticssamedayCoUkSpider(scrapy.Spider):
 
     def parse_model(self, response):
         images = response.xpath('//div[@id="content"]//img/@src').getall()
-        yield {"image": images}
+        yield {
+            "page_url": response.url,
+            "image": images
+        }
 
         next_page = response.xpath('//div[@id="next_page"]/a/@href').get()
         if next_page:

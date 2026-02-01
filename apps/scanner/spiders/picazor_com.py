@@ -100,17 +100,20 @@ class PicazorComSpider(scrapy.Spider):
         for item in data:
             media_type = item.get("mime")
             media_url = item.get("path")
+            page_id = item.get("order")
+            uri = item.get("subject").get("uri")
+
+            page_url = f"https://picazor.com/en/{uri}/{page_id}"
 
             if media_type == "photo":  # image
                 yield {
-                    "name": name_query,
-                    "image": response.urljoin(media_url),
-                    "video": [],
+                    "page_url": page_url,
+                    "image": response.urljoin(media_url)
                 }
             elif media_type == "video":  # video
                 yield {
-                    "name": name_query,
-                    "image": [],
+                    "page_url": page_url,
+                    "image": f"{response.urljoin(media_url)}.jpg",
                     "video": response.urljoin(media_url),
                 }
 

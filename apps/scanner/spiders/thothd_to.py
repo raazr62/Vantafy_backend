@@ -65,7 +65,6 @@ class ThothdToSpider(scrapy.Spider):
         post_urls = response.xpath('.//div[@class="item  "]//@href').getall()
 
         for post_url in post_urls:
-            yield {"image": [], "video": post_url}
             yield scrapy.Request(
                 url=post_url,
                 headers=headers,
@@ -102,5 +101,12 @@ class ThothdToSpider(scrapy.Spider):
         ) in self.clean(tegs):
 
             img_url = response.xpath('.//a[@rel="screenshots"]/@href').getall()
-            for url in img_url:
-                yield {"image": url, "video": []}
+            thumnail = response.xpath('.//img[@class="lcp-poster"]/@src').get()
+            video_url = response.xpath('.//video[@class="fp-engine"]/@src').get()
+            if thumnail:
+                img_url.append(thumnail)
+            yield {
+                "page_url": response.url,
+                "img_url": img_url,
+                "video_url": video_url,
+            }
