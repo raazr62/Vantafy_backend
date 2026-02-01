@@ -1,6 +1,6 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
-from .models import CustomerScanProcessing, CustomerScanResult, CustomerScanResultImage, CustomerScanResultVideo, CustomerScanResultPageUrl
+from .models import CustomerScanProcessing, CustomerScanResult, CustomerScanResultImage, CustomerScanResultVideo, CustomerScanResultPageUrl, UnauthorizedWebsiteAndEmail
 
 
 # -------------------------
@@ -117,3 +117,9 @@ CustomerScanResultAdmin.inlines = [
     CustomerScanResultVideoInline,
     CustomerScanResultPageUrlInline
 ]
+
+
+@admin.register(UnauthorizedWebsiteAndEmail)
+class UnauthorizedWebsiteAndEmailAdmin(ModelAdmin):
+    list_display = ('website', 'email')
+    search_fields = ('website', 'email')

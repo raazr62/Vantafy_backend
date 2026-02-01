@@ -5,7 +5,9 @@ from django.utils.translation import gettext_lazy as _
 
 def get_about_system():
     from apps.system_setting.models import AboutSystem
+
     return AboutSystem.objects.first()
+
 
 def get_unfold_settings():
     return {
@@ -20,21 +22,22 @@ def get_unfold_settings():
         "SITE_SYMBOL": "speed",  # symbol from icon set
         "SITE_FAVICONS": [
             {
-            "rel": "icon",
-            "sizes": "32x32",
-            "type": "image/svg+xml",
-            "href": lambda request: get_about_system().favicon.url,
+                "rel": "icon",
+                "sizes": "32x32",
+                "type": "image/svg+xml",
+                "href": lambda request: get_about_system().favicon.url,
             },
         ],
         "DASHBOARD_CALLBACK": "apps.dashboard.views.dashboard_callback",
-
         "SHOW_HISTORY": True,  # show/hide "History" button, default: True
         "SHOW_VIEW_ON_SITE": True,  # show/hide "View on site" button, default: True
         "SHOW_BACK_BUTTON": True,  # show/hide "Back" button on changeform in header, default: False
         # "THEME": "light",
         "LOGIN": {
             "image": lambda request: static("sample/login-bg.jpg"),
-            "redirect_after": lambda request: reverse_lazy("admin:APP_MODEL_changelist"),
+            "redirect_after": lambda request: reverse_lazy(
+                "admin:APP_MODEL_changelist"
+            ),
         },
         "BORDER_RADIUS": "6px",
         "SIDEBAR": {
@@ -51,10 +54,10 @@ def get_unfold_settings():
                         },
                     ],
                 },
-               {
+                {
                     "title": _("User Management"),
-                    "separator": True, 
-                    "collapsible": True,  
+                    "separator": True,
+                    "collapsible": True,
                     "items": [
                         {
                             "title": _("Admin Users"),
@@ -77,13 +80,35 @@ def get_unfold_settings():
                         {
                             "title": _("Agency Members"),
                             "icon": "groups",  # or "people"
-                            "link": reverse_lazy("admin:user_agencymemberlist_changelist"),
+                            "link": reverse_lazy(
+                                "admin:user_agencymemberlist_changelist"
+                            ),
                             "description": _("Members belonging to agencies"),
-                        }
+                        },
                     ],
                 },
-                
-               
+                {
+                    "title": _("Scan Management"),
+                    "separator": True,
+                    "collapsible": True,
+                    "items": [
+                        {
+                            "title": _("Customer Scan Processes"),
+                            "icon": "play_circle",
+                            "link": reverse_lazy(
+                                "admin:scanner_customerscanprocessing_changelist"
+                            ),
+                        },
+                        {
+                            "title": _("Customer Scan Results"),
+                            "icon": "check_circle",
+                            "link": reverse_lazy(
+                                "admin:scanner_customerscanresult_changelist"
+                            ),
+                        },
+                        
+                    ],
+                },
                 {
                     "title": _("Customer Support"),
                     "separator": True,
@@ -92,55 +117,59 @@ def get_unfold_settings():
                         {
                             "title": _("Support Tickets"),
                             "icon": "support_agent",
-                            "link": reverse_lazy("admin:customer_support_message_changelist"),
+                            "link": reverse_lazy(
+                                "admin:customer_support_message_changelist"
+                            ),
                         },
-                        
-                       
                     ],
                 },
                 {
                     "title": _("Subscription Management"),
-                    "separator": True, 
-                    "collapsible": True, 
+                    "separator": True,
+                    "collapsible": True,
                     "items": [
                         {
                             "title": _("Features"),
                             "icon": "star",
-                            "link": reverse_lazy("admin:subscriptions_feature_changelist"),
+                            "link": reverse_lazy(
+                                "admin:subscriptions_feature_changelist"
+                            ),
                         },
                         {
                             "title": _("Packages"),
                             "icon": "package",
-                            "link": reverse_lazy("admin:subscriptions_package_changelist"),
+                            "link": reverse_lazy(
+                                "admin:subscriptions_package_changelist"
+                            ),
                         },
                         {
                             "title": _("Subscriptions"),
                             "icon": "subscriptions",
-                            "link": reverse_lazy("admin:subscriptions_subscription_changelist"),
+                            "link": reverse_lazy(
+                                "admin:subscriptions_subscription_changelist"
+                            ),
                         },
                     ],
                 },
-              
-                # {
-                #     "title": _("Unauthorized Websites & Emails"),
-                #     "separator": True,
-                #     "collapsible": True,
-                #     "items": [
-                #         {
-                #             "title": _("Unauthorized Websites & Emails"),
-                #             "icon": "support_agent",
-                #             "link": reverse_lazy("admin:scanner_unauthorizedwebsiteandemail_changelist"),
-                #         },
-                        
-                       
-                #     ],
-                # },
+                {
+                    "title": _("Unauthorized Websites & Emails"),
+                    "separator": True,
+                    "collapsible": True,
+                    "items": [
+                        {
+                            "title": _("Unauthorized Websites & Emails"),
+                            "icon": "support_agent",
+                            "link": reverse_lazy(
+                                "admin:scanner_unauthorizedwebsiteandemail_changelist"
+                            ),
+                        },
+                    ],
+                },
                 {
                     "title": _("System Setting"),
                     "separator": True,
                     "collapsible": True,
                     "items": [
-                       
                         {
                             "title": _("About System"),
                             "icon": "info",
@@ -168,7 +197,7 @@ def get_unfold_settings():
                             "link": reverse_lazy(
                                 "admin:system_setting_systemcolor_changelist"
                             ),
-                        }
+                        },
                     ],
                 },
                 {
@@ -188,7 +217,6 @@ def get_unfold_settings():
                     "separator": True,
                     "collapsible": True,
                     "items": [
-
                         {
                             "title": _("Hero Section"),
                             "icon": "home",
@@ -202,12 +230,16 @@ def get_unfold_settings():
                         {
                             "title": _("Represent Platforms"),
                             "icon": "apps",
-                            "link": reverse_lazy("admin:cms_representplatform_changelist"),
+                            "link": reverse_lazy(
+                                "admin:cms_representplatform_changelist"
+                            ),
                         },
                         {
                             "title": _("Our Customers"),
                             "icon": "group",
-                            "link": reverse_lazy("admin:cms_amongourcustomer_changelist"),
+                            "link": reverse_lazy(
+                                "admin:cms_amongourcustomer_changelist"
+                            ),
                         },
                         {
                             "title": _("Testimonials"),
@@ -222,9 +254,10 @@ def get_unfold_settings():
                         {
                             "title": _("Identity Tracking"),
                             "icon": "fingerprint",
-                            "link": reverse_lazy("admin:cms_identitytracking_changelist"),
+                            "link": reverse_lazy(
+                                "admin:cms_identitytracking_changelist"
+                            ),
                         },
-                      
                     ],
                 },
                 {
@@ -237,9 +270,8 @@ def get_unfold_settings():
                             "icon": "help",
                             "link": reverse_lazy("admin:cms_faq_changelist"),
                         },
-                       
                     ],
-                }
+                },
             ],
         },
     }
