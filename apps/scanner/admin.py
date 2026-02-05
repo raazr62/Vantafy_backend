@@ -1,5 +1,5 @@
 from django.contrib import admin
-from unfold.admin import ModelAdmin
+from unfold.admin import ModelAdmin, TabularInline
 from .models import (
     CustomerScanProcessing, 
     CustomerScanResult, 
@@ -80,17 +80,17 @@ class CustomerScanResultAdmin(ModelAdmin):
 # -------------------------
 # Inlines for Scan Result Images/Videos/URLs
 # -------------------------
-class CustomerScanResultImageInline(admin.TabularInline):
+class CustomerScanResultImageInline(TabularInline):
     model = CustomerScanResultImage
     extra = 0
     readonly_fields = ('image_url', 'image')
 
-class CustomerScanResultVideoInline(admin.TabularInline):
+class CustomerScanResultVideoInline(TabularInline):
     model = CustomerScanResultVideo
     extra = 0
     readonly_fields = ('video_url',)
 
-class CustomerScanResultPageUrlInline(admin.TabularInline):
+class CustomerScanResultPageUrlInline(TabularInline):
     model = CustomerScanResultPageUrl
     extra = 0
     readonly_fields = ('page_url',)
@@ -151,17 +151,17 @@ class AgencyMemberScanResultAdmin(ModelAdmin):
     def total_page_urls_display(self, obj):
         return obj.total_page_urls
 
-class AgencyMemberScanResultImageInline(admin.TabularInline):
+class AgencyMemberScanResultImageInline(TabularInline):
     model = AgencyMemberScanResultImage
     extra = 0
     readonly_fields = ('image_url', 'image')
 
-class AgencyMemberScanResultVideoInline(admin.TabularInline):
+class AgencyMemberScanResultVideoInline(TabularInline):
     model = AgencyMemberScanResultVideo
     extra = 0
     readonly_fields = ('video_url',)
 
-class AgencyMemberScanResultPageUrlInline(admin.TabularInline):
+class AgencyMemberScanResultPageUrlInline(TabularInline):
     model = AgencyMemberScanResultPageUrl
     extra = 0
     readonly_fields = ('page_url',)
