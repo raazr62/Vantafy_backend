@@ -88,22 +88,45 @@ def get_unfold_settings():
                     ],
                 },
                 {
-                    "title": _("Scan Management"),
+                    "title": _("Individual User Scan Management"),
                     "separator": True,
                     "collapsible": True,
                     "items": [
                         {
-                            "title": _("Customer Scan Processes"),
+                            "title": _("Scan Processes"),
                             "icon": "play_circle",
                             "link": reverse_lazy(
                                 "admin:scanner_customerscanprocessing_changelist"
                             ),
                         },
                         {
-                            "title": _("Customer Scan Results"),
+                            "title": _("Scan Results"),
                             "icon": "check_circle",
                             "link": reverse_lazy(
                                 "admin:scanner_customerscanresult_changelist"
+                            ),
+                        },
+                        
+                    ],
+                },
+            
+                            {
+                    "title": _("Agency Scan Management"),
+                    "separator": True,
+                    "collapsible": True,
+                    "items": [
+                        {
+                            "title": _("Scan Processes"),
+                            "icon": "play_circle",
+                            "link": reverse_lazy(
+                                "admin:scanner_agencymemberscanprocessing_changelist"
+                            ),
+                        },
+                        {
+                            "title": _("Scan Results"),
+                            "icon": "check_circle",
+                            "link": reverse_lazy(
+                                "admin:scanner_agencymemberscanresult_changelist"
                             ),
                         },
                         
