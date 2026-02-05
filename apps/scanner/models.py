@@ -2,7 +2,6 @@ import uuid
 from django.db import models
 from apps.user.models import AgencyMemberList,User
 
-
 class CustomerScanProcessing(models.Model):
     
     STATUS_CHOICES = [
@@ -274,7 +273,7 @@ class AgencyMemberScanResult(models.Model):
 
 class AgencyMemberScanResultImage(models.Model):
     agency_member_scan_result = models.ForeignKey(AgencyMemberScanResult, on_delete=models.CASCADE, related_name='image_entries')
-    image_url = models.URLField(max_length=500)
+    image_url = models.URLField(max_length=500, default="")
     image = models.ImageField(upload_to='agency_member_scan_images/', blank=True, null=True)
 
     def __str__(self):
@@ -282,7 +281,7 @@ class AgencyMemberScanResultImage(models.Model):
     
 class AgencyMemberScanResultVideo(models.Model):
     agency_member_scan_result = models.ForeignKey(AgencyMemberScanResult, on_delete=models.CASCADE, related_name='video_entries')
-    video_url = models.URLField(max_length=500)
+    video_url = models.URLField(max_length=500, default="")
 
     def __str__(self):
         return self.video_url
@@ -290,7 +289,7 @@ class AgencyMemberScanResultVideo(models.Model):
 
 class AgencyMemberScanResultPageUrl(models.Model):
     agency_member_scan_result = models.ForeignKey(AgencyMemberScanResult, on_delete=models.CASCADE, related_name='page_url_entries')
-    page_url = models.URLField(max_length=500)
+    page_url = models.URLField(max_length=500, default="")
 
     def __str__(self):
         return self.page_url
