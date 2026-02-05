@@ -45,15 +45,15 @@ class CustomerScanProcessing(models.Model):
     
     @property
     def total_images(self):
-        return sum(len(result.images or []) for result in self.results.all())
+        return sum(result.total_images for result in self.results.all())
     
     @property
     def total_videos(self):
-        return sum(len(result.videos or []) for result in self.results.all())
+        return sum(result.total_videos for result in self.results.all())
     
     @property
     def total_page_urls(self):
-        return sum(len(result.page_urls or []) for result in self.results.all())
+        return sum(result.total_page_urls for result in self.results.all())
 
 
 
@@ -193,15 +193,15 @@ class AgencyMemberScanProcessing(models.Model):
     
     @property
     def total_images(self):
-        return sum(len(result.images or []) for result in self.results.all())
+        return sum(result.total_images for result in self.results.all())
     
     @property
     def total_videos(self):
-        return sum(len(result.videos or []) for result in self.results.all())
+        return sum(result.total_videos for result in self.results.all())
 
     @property
     def total_page_urls(self):
-        return sum(len(result.page_urls or []) for result in self.results.all())
+        return sum(result.total_page_urls for result in self.results.all())
     
 
 
