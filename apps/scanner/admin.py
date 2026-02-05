@@ -8,29 +8,11 @@ from .models import CustomerScanProcessing, CustomerScanResult, CustomerScanResu
 # -------------------------
 @admin.register(CustomerScanProcessing)
 class CustomerScanProcessingAdmin(ModelAdmin):
-    list_display = (
-        'id', 
-        'customer', 
-        'status', 
-        'progress_percentage_display', 
-        'total_images_display', 
-        'total_videos_display', 
-        'total_page_urls_display', 
-        'created_at', 
-        'updated_at', 
-        'completed_at'
-    )
+    list_display = ('id', 'customer', 'status', 'progress_percentage_display', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'created_at', 'updated_at', 'completed_at')
     list_filter = ('status', 'created_at', 'updated_at')
+    list_display_links =('id', 'customer', 'status', 'progress_percentage_display', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'created_at', 'updated_at', 'completed_at')
     search_fields = ('customer__username', 'customer__email', 'error_message')
-    readonly_fields = (
-        'created_at', 
-        'updated_at', 
-        'completed_at', 
-        'progress_percentage_display', 
-        'total_images_display', 
-        'total_videos_display', 
-        'total_page_urls_display'
-    )
+    readonly_fields = ('created_at', 'updated_at', 'completed_at', 'progress_percentage_display', 'total_images_display', 'total_videos_display', 'total_page_urls_display')
 
     # Display methods for readonly fields
     @admin.display(description='Progress %')
@@ -55,26 +37,11 @@ class CustomerScanProcessingAdmin(ModelAdmin):
 # -------------------------
 @admin.register(CustomerScanResult)
 class CustomerScanResultAdmin(ModelAdmin):
-    list_display = (
-        'id', 
-        'customer', 
-        'website', 
-        'status', 
-        'total_images_display', 
-        'total_videos_display', 
-        'total_page_urls_display', 
-        'created_at', 
-        'updated_at'
-    )
+    list_display = ('id', 'customer', 'website', 'status', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'created_at', 'updated_at')
     list_filter = ('status', 'website', 'created_at', 'updated_at')
+    list_display_links =('id', 'customer', 'website', 'status', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'created_at', 'updated_at')
     search_fields = ('customer__username', 'customer__email', 'website')
-    readonly_fields = (
-        'created_at', 
-        'updated_at', 
-        'total_images_display', 
-        'total_videos_display', 
-        'total_page_urls_display'
-    )
+    readonly_fields = ('created_at', 'updated_at', 'total_images_display', 'total_videos_display', 'total_page_urls_display')
 
     # Display methods to show related totals
     @admin.display(description='Total Images')
