@@ -108,7 +108,7 @@ else:
 
 INSTALLED_APPS = [
 
-    "daphne",
+    # "daphne",
 
     # unfold packages
     "unfold",
@@ -134,7 +134,7 @@ INSTALLED_APPS = [
     "debug_toolbar",
     "import_export",
     "corsheaders",
-    "channels",
+    # "channels",
 
     # internal apps
     "apps.seeders",
