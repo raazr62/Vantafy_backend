@@ -101,7 +101,7 @@ class ScanRunTimeResultView(APIView):
  
                 
         elif role == 'agency':
-            agency_member_id  = request.data.get('agency_member_id')
+            agency_member_id  = request.query_params.get('agency_member_id')
 
             if not agency_member_id:
                 return error(message='agency_member_id is required')
@@ -154,7 +154,8 @@ class ScanResultListView(APIView):
             scan_results = CustomerScanResult.objects.filter(customer=user)
             serializer = CustomerScanResultSerializer(scan_results, many=True)
         elif role == 'agency':
-            agency_member_id = request.data.get('agency_member_id')
+            agency_member_id  = request.query_params.get('agency_member_id')
+
 
             if not agency_member_id:
                 return error(message='agency_member_id is required')
@@ -229,3 +230,35 @@ class LinkRemovalRequestAPIView(APIView):
         LinkRemovalRequest.objects.bulk_create(objects)
 
         return success(data=[], message='Links submitted successfully.')
+
+
+# class DashboardDataAPIView(APIView):
+#     permission_classes = [IsAuthenticated]
+#     authentication_classes = [CookieJWTAuthentication]
+
+#     def get(self, request):
+#         user = request.user
+#         role = user.role
+
+#         if role == 'customer':
+#             total_photo  = 
+#             photo_parcentage = 
+#             total_video = 
+#             video_parcentage = 
+#             int_total = 
+
+#         elif role == 'agency':
+#             agency_member_id = request.query_params.get('agency_member_id')
+
+#             if not agency_member_id:
+#                 return error(message='agency_member_id is required')
+
+#             try:
+#                 agency_member = AgencyMemberList.objects.get(agency=user, id=agency_member_id)
+#             except AgencyMemberList.DoesNotExist:
+#                 return error(message='Agency member not found')
+
+#         else:
+#             return error(message='Invalid user role')
+
+#         return success(data=[], message='Dashboard data fetched successfully.')
