@@ -10,11 +10,17 @@ from .models import (
     CustomerScanResult, AgencyMemberScanResult, 
     CustomerScanResultImage, CustomerScanResultVideo, CustomerScanResultPageUrl,
     AgencyMemberScanResultImage, AgencyMemberScanResultVideo, AgencyMemberScanResultPageUrl,
-    LinkRemovalRequest
+    LinkRemovalRequestFromCustomer, LinkRemovalRequestFromAgencyMember
 )
 from .services import get_available_spiders, run_all_spiders_async
 from apps.utils.helpers import success,error
-from .serializers import CustomerScanResultSerializer, AgencyMemberScanResultSerializer, LinkRemovalRequestSerializer
+from .serializers import (
+    CustomerScanResultSerializer, 
+    AgencyMemberScanResultSerializer, 
+    LinkRemovalRequestFromCustomerSerializer, 
+    LinkRemovalRequestFromAgencyMemberSerializer,
+    LinkRemovalRequestSerializer
+)
 
 class SpiderListView(APIView):
 
@@ -220,14 +226,38 @@ class LinkRemovalRequestAPIView(APIView):
         links = serializer.validated_data['links']
         user = request.user
 
-        # create objects
-        objects = [
-            LinkRemovalRequest(customer=user, link=link)
-            for link in links
-        ]
+        role = user.role
 
-        # bulk save
-        LinkRemovalRequest.objects.bulk_create(objects)
+        if role == 'agency':
+            agency_member_id = request.query_params.get('agency_member_id')
+
+            if not agency_member_id:
+                return error(message='agency_member_id is required')
+
+            try:
+                agency_member = AgencyMemberList.objects.get(agency=user, id=agency_member_id)
+            except AgencyMemberList.DoesNotExist:
+                return error(message='Agency member not found')
+
+        if role == 'customer':
+            # create objects
+            objects = [
+                LinkRemovalRequestFromCustomer(customer=user, link=link)
+                for link in links
+            ]
+
+            # bulk save
+            LinkRemovalRequestFromCustomer.objects.bulk_create(objects)
+
+        elif role == 'agency':
+            # create objects
+            objects = [
+                LinkRemovalRequestFromAgencyMember(agency=user, agency_member=agency_member, link=link)
+                for link in links
+            ]
+
+            # bulk save
+            LinkRemovalRequestFromAgencyMember.objects.bulk_create(objects)
 
         return success(data=[], message='Links submitted successfully.')
 

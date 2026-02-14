@@ -138,10 +138,17 @@ def get_unfold_settings():
                     "collapsible": True,
                     "items": [
                         {
-                            "title": _("Link Removal Requests"),
+                            "title": _("From Customer"),
                             "icon": "support_agent",
                             "link": reverse_lazy(
-                                "admin:scanner_linkremovalrequest_changelist"
+                                "admin:scanner_linkremovalrequestfromcustomer_changelist"
+                            ),
+                        },
+                        {
+                            "title": _("From Agency Member"),
+                            "icon": "support_agent",
+                            "link": reverse_lazy(
+                                "admin:scanner_linkremovalrequestfromagencymember_changelist"
                             ),
                         },
                     ],

@@ -13,7 +13,8 @@ from .models import (
     AgencyMemberScanResultVideo,
     AgencyMemberScanResultVideo,
     AgencyMemberScanResultPageUrl,
-    LinkRemovalRequest
+    LinkRemovalRequestFromCustomer,
+    LinkRemovalRequestFromAgencyMember
 )
 
 from django.utils.html import format_html
@@ -176,12 +177,37 @@ AgencyMemberScanResultAdmin.inlines = [
 ]
 
 
-@admin.register(LinkRemovalRequest)
-class LinkRemovalRequestAdmin(admin.ModelAdmin):
+@admin.register(LinkRemovalRequestFromCustomer)
+class LinkRemovalRequestFromCustomerAdmin(admin.ModelAdmin):
     list_display = ('id', 'customer', 'clickable_link')
     search_fields = ('customer__email', 'link')
     list_filter = ('customer',)
     list_display_links = ('id', 'customer', 'clickable_link')
+
+    def clickable_link(self, obj):
+        return format_html(
+            '<div style="display: flex; align-items: center; gap: 8px;">'
+            '<a href="{}" target="_blank">{}</a>'
+            '<button type="button" onclick="var btn=this; navigator.clipboard.writeText(this.dataset.link).then(function(){{var msg=btn.nextElementSibling; msg.style.display=\'inline\'; setTimeout(function(){{msg.style.display=\'none\';}}, 2000);}})" data-link="{}" style="background: none; border: none; cursor: pointer; padding: 0; color: #555;" title="Copy to clipboard">'
+            '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="pointer-events: none;">'
+            '<path fill-rule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V2Zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H6ZM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1H2Z"/>'
+            '</svg>'
+            '</button>'
+            '<span style="display: none; font-size: 12px; color: green; margin-left: 4px;">Copied!</span>'
+            '</div>',
+            obj.link,
+            obj.link,
+            obj.link
+        )
+
+    clickable_link.short_description = "Link"
+
+@admin.register(LinkRemovalRequestFromAgencyMember)
+class LinkRemovalRequestFromAgencyMemberAdmin(admin.ModelAdmin):
+    list_display = ('id', 'agency', 'agency_member', 'clickable_link')
+    search_fields = ('agency__email', 'agency_member__name', 'link')
+    list_filter = ('agency', 'agency_member')
+    list_display_links = ('id', 'agency', 'agency_member', 'clickable_link')
 
     def clickable_link(self, obj):
         return format_html(

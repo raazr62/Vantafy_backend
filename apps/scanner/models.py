@@ -295,12 +295,20 @@ class AgencyMemberScanResultPageUrl(models.Model):
         return self.page_url
 
 
-class LinkRemovalRequest(models.Model):
-    customer = models.ForeignKey(User,on_delete=models.CASCADE,related_name='link_requested_for_removal',)
+class LinkRemovalRequestFromCustomer(models.Model):
+    customer = models.ForeignKey(User,on_delete=models.CASCADE,related_name='link_requested_for_removal_by_customer',)
     link = models.URLField(max_length=500)
     
     def __str__(self):
         return self.customer.email
+
+class LinkRemovalRequestFromAgencyMember(models.Model):
+    agency = models.ForeignKey(User,on_delete=models.CASCADE,related_name='link_requested_for_removal',)
+    agency_member = models.ForeignKey(AgencyMemberList,on_delete=models.CASCADE,related_name='link_requested_for_removal_by_agency',)
+    link = models.URLField(max_length=500)
+    
+    def __str__(self):
+        return self.agency_member.name
 
 
 
