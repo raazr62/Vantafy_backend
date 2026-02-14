@@ -12,6 +12,9 @@ from django.utils import timezone
 # Spiders are now in the scanner app directory
 SPIDERS_DIR = Path(__file__).resolve().parent / 'spiders'
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 def get_available_spiders():
 
@@ -163,12 +166,7 @@ if spider_cls:
         "LOG_ENABLED": False,
         "LOG_LEVEL": "ERROR",
         "ROBOTSTXT_OBEY": False,
-        "ITEM_PIPELINES": {{Collector: 300}},
-    }})
-    process = CrawlerProcess({{
-        "LOG_ENABLED": False,
-        "LOG_LEVEL": "ERROR",
-        "ROBOTSTXT_OBEY": False,
+        "USER_AGENT": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
         "ITEM_PIPELINES": {{Collector: 300}},
     }})
     process.crawl(spider_cls, name_query="{target_name}")
@@ -188,6 +186,11 @@ else:
                 
                 # Parse results
                 collected_items = {'images': [], 'videos': []}
+                if result.returncode != 0:
+                    logger.error(f"Spider {spider_module_name} failed with error: {result.stderr}")
+                    # Continue to next spider if this one failed
+                    # allow partial success?
+                
                 if result.stdout:
                     for line in result.stdout.strip().split('\n'):
                         if line.startswith('RESULT:'):

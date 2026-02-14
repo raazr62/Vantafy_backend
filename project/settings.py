@@ -66,6 +66,8 @@ if DEBUG:
         "https://c5895f67f55f.ngrok-free.app",
         "https://c5895f67f55f.ngrok-free.app",
         "https://mediamixer.softvencealpha.com",
+        "https://dashboard.vantafy.com",
+        "https://www.dashboard.vantafy.com",
         
     ]
 
@@ -100,6 +102,8 @@ else:
         "https://c5895f67f55f.ngrok-free.app",
         "https://c5895f67f55f.ngrok-free.app",
         "https://mediamixer.softvencealpha.com",
+        "https://dashboard.vantafy.com",
+        "https://www.dashboard.vantafy.com",
 
     ]
 
