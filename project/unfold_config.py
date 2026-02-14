@@ -133,6 +133,20 @@ def get_unfold_settings():
                     ],
                 },
                 {
+                    "title": _("Link Removal Requests"),
+                    "separator": True,
+                    "collapsible": True,
+                    "items": [
+                        {
+                            "title": _("Link Removal Requests"),
+                            "icon": "support_agent",
+                            "link": reverse_lazy(
+                                "admin:scanner_linkremovalrequest_changelist"
+                            ),
+                        },
+                    ],
+                },
+                {
                     "title": _("Customer Support"),
                     "separator": True,
                     "collapsible": True,
