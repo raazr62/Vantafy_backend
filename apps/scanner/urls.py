@@ -5,7 +5,7 @@ from .views import (
     ScanNowView,
     ScanRunTimeResultView,
     ScanResultListView,
-    ScanResultDetailsView,
+    LinkRemovalRequestAPIView,
   
 )
 
@@ -17,5 +17,7 @@ urlpatterns = [
     path("scan-now/", ScanNowView.as_view(), name="scan_now"),
     path("scan-run-time-result/", ScanRunTimeResultView.as_view(), name="scan_run_time_result"),
     path("scan-results/", ScanResultListView.as_view(), name="scan_result_list"),
-    path('scan-result-details/<int:scan_result_id>/', ScanResultDetailsView.as_view(), name='scan_result_details'),
+
+    # link request for removal
+    path("link-removal-request/", LinkRemovalRequestAPIView.as_view(), name="link_removal_request"),
 ]

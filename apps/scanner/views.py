@@ -9,11 +9,12 @@ from .models import (
     AgencyMemberScanProcessing, CustomerScanProcessing, 
     CustomerScanResult, AgencyMemberScanResult, 
     CustomerScanResultImage, CustomerScanResultVideo, CustomerScanResultPageUrl,
-    AgencyMemberScanResultImage, AgencyMemberScanResultVideo, AgencyMemberScanResultPageUrl
+    AgencyMemberScanResultImage, AgencyMemberScanResultVideo, AgencyMemberScanResultPageUrl,
+    LinkRemovalRequest
 )
 from .services import get_available_spiders, run_all_spiders_async
 from apps.utils.helpers import success,error
-from .serializers import CustomerScanResultSerializer, AgencyMemberScanResultSerializer
+from .serializers import CustomerScanResultSerializer, AgencyMemberScanResultSerializer, LinkRemovalRequestSerializer
 
 class SpiderListView(APIView):
 
@@ -207,44 +208,24 @@ class ScanResultListView(APIView):
 
        
 
-class ScanResultDetailsView(APIView):
+
+class LinkRemovalRequestAPIView(APIView):
     permission_classes = [IsAuthenticated]
-    authentication_classes = [CookieJWTAuthentication]    
-    
-    def get(self, request, scan_result_id):
+
+    def post(self, request):
+        serializer = LinkRemovalRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        links = serializer.validated_data['links']
         user = request.user
-        role = user.role
 
-        serializer = None
-        images = []
-        videos = []
-        page_urls = []
+        # create objects
+        objects = [
+            LinkRemovalRequest(customer=user, link=link)
+            for link in links
+        ]
 
-        if role == 'customer':
-            try:
-                scan_result = CustomerScanResult.objects.get(id=scan_result_id, customer=user)
-            except CustomerScanResult.DoesNotExist:
-                return error(message='Scan result not found.', status_code=status.HTTP_404_NOT_FOUND)
-            
-            images = CustomerScanResultImage.objects.filter(customer_scan_result=scan_result)
-            videos = CustomerScanResultVideo.objects.filter(customer_scan_result=scan_result)
-            page_urls = CustomerScanResultPageUrl.objects.filter(customer_scan_result=scan_result)
-            serializer = CustomerScanResultSerializer(scan_result)
+        # bulk save
+        LinkRemovalRequest.objects.bulk_create(objects)
 
-        elif role == 'agency':
-            try:
-                scan_result = AgencyMemberScanResult.objects.get(id=scan_result_id, agency=user)
-            except AgencyMemberScanResult.DoesNotExist:
-                return error(message='Scan result not found.', status_code=status.HTTP_404_NOT_FOUND)
-            
-            images = AgencyMemberScanResultImage.objects.filter(agency_member_scan_result=scan_result)
-            videos = AgencyMemberScanResultVideo.objects.filter(agency_member_scan_result=scan_result)
-            page_urls = AgencyMemberScanResultPageUrl.objects.filter(agency_member_scan_result=scan_result)
-            serializer = AgencyMemberScanResultSerializer(scan_result)
-
-        return success(data={
-            'scan_result': serializer.data,
-            'images': [img.image_url for img in images],
-            'videos': [vid.video_url for vid in videos],
-            'page_urls': [url.page_url for url in page_urls],
-        }, message='Scan result details fetched successfully.')
+        return success(data=[], message='Links submitted successfully.')

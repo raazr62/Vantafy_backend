@@ -10,3 +10,9 @@ class AgencyMemberScanResultSerializer(serializers.ModelSerializer):
     class Meta:
         model = AgencyMemberScanResult
         fields = '__all__'
+
+
+class LinkRemovalRequestSerializer(serializers.Serializer):
+    links = serializers.ListField(
+        child=serializers.URLField()
+    )
