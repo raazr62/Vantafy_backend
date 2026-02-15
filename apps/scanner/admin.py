@@ -179,10 +179,27 @@ AgencyMemberScanResultAdmin.inlines = [
 
 @admin.register(LinkRemovalRequestFromCustomer)
 class LinkRemovalRequestFromCustomerAdmin(admin.ModelAdmin):
-    list_display = ('id', 'customer', 'clickable_link')
+    list_display = ('id', 'customer', 'clickable_link', 'status')
     search_fields = ('customer__email', 'link')
-    list_filter = ('customer',)
+    list_filter = ('customer', 'status')
     list_display_links = ('id', 'customer', 'clickable_link')
+    list_editable = ('status',)
+    actions = ['make_pending', 'make_removed', 'make_failed']
+
+    @admin.action(description='Mark selected requests as Pending')
+    def make_pending(self, request, queryset):
+        updated = queryset.update(status='pending')
+        self.message_user(request, f'{updated} requests were successfully marked as Pending.')
+
+    @admin.action(description='Mark selected requests as Removed')
+    def make_removed(self, request, queryset):
+        updated = queryset.update(status='removed')
+        self.message_user(request, f'{updated} requests were successfully marked as Removed.')
+
+    @admin.action(description='Mark selected requests as Failed')
+    def make_failed(self, request, queryset):
+        updated = queryset.update(status='failed')
+        self.message_user(request, f'{updated} requests were successfully marked as Failed.')
 
     def clickable_link(self, obj):
         return format_html(
@@ -204,10 +221,27 @@ class LinkRemovalRequestFromCustomerAdmin(admin.ModelAdmin):
 
 @admin.register(LinkRemovalRequestFromAgencyMember)
 class LinkRemovalRequestFromAgencyMemberAdmin(admin.ModelAdmin):
-    list_display = ('id', 'agency', 'agency_member', 'clickable_link')
+    list_display = ('id', 'agency', 'agency_member', 'clickable_link', 'status')
     search_fields = ('agency__email', 'agency_member__name', 'link')
-    list_filter = ('agency', 'agency_member')
+    list_filter = ('agency', 'agency_member', 'status')
     list_display_links = ('id', 'agency', 'agency_member', 'clickable_link')
+    list_editable = ('status',)
+    actions = ['make_pending', 'make_removed', 'make_failed']
+
+    @admin.action(description='Mark selected requests as Pending')
+    def make_pending(self, request, queryset):
+        updated = queryset.update(status='pending')
+        self.message_user(request, f'{updated} requests were successfully marked as Pending.')
+
+    @admin.action(description='Mark selected requests as Removed')
+    def make_removed(self, request, queryset):
+        updated = queryset.update(status='removed')
+        self.message_user(request, f'{updated} requests were successfully marked as Removed.')
+
+    @admin.action(description='Mark selected requests as Failed')
+    def make_failed(self, request, queryset):
+        updated = queryset.update(status='failed')
+        self.message_user(request, f'{updated} requests were successfully marked as Failed.')
 
     def clickable_link(self, obj):
         return format_html(
