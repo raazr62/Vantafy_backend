@@ -19,7 +19,9 @@ from .serializers import (
     AgencyMemberScanResultSerializer, 
     LinkRemovalRequestFromCustomerSerializer, 
     LinkRemovalRequestFromAgencyMemberSerializer,
-    LinkRemovalRequestSerializer
+    LinkRemovalRequestSerializer,
+    GetLinkRemovalRequestFromCustomerSerializer,
+    GetLinkRemovalRequestFromAgencyMemberSerializer
 )
 
 class SpiderListView(APIView):
@@ -260,6 +262,38 @@ class LinkRemovalRequestAPIView(APIView):
             LinkRemovalRequestFromAgencyMember.objects.bulk_create(objects)
 
         return success(data=[], message='Links submitted successfully.')
+
+class LinkRemovalRequestListAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+
+    def get(self, request):
+        user = request.user
+        role = user.role
+
+        if role == 'customer':
+            link_removal_requests = LinkRemovalRequestFromCustomer.objects.filter(customer=user)
+            serializer = GetLinkRemovalRequestFromCustomerSerializer(link_removal_requests, many=True)
+        elif role == 'agency':
+            agency_member_id = request.query_params.get('agency_member_id')
+
+            if not agency_member_id:
+                return error(message='agency_member_id is required')
+
+            try:
+                agency_member = AgencyMemberList.objects.get(agency=user, id=agency_member_id)
+            except AgencyMemberList.DoesNotExist:
+                return error(message='Agency member not found')
+            
+            link_removal_requests = LinkRemovalRequestFromAgencyMember.objects.filter(agency=user, agency_member=agency_member)
+            serializer = GetLinkRemovalRequestFromAgencyMemberSerializer(link_removal_requests, many=True)
+        else:
+            return error(message='Invalid user role')
+
+        return success(data=serializer.data, message='Link removal requests fetched successfully.')
+
+
+
 
 
 class DashboardDataAPIView(APIView):

@@ -32,3 +32,14 @@ class LinkRemovalRequestSerializer(serializers.Serializer):
         child=serializers.URLField(),
         allow_empty=False
     )
+
+
+class GetLinkRemovalRequestFromCustomerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LinkRemovalRequestFromCustomer
+        fields = ['link']
+
+class GetLinkRemovalRequestFromAgencyMemberSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LinkRemovalRequestFromAgencyMember
+        fields = ['link']
