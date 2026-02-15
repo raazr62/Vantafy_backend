@@ -307,6 +307,8 @@ class DashboardDataAPIView(APIView):
         if role == 'customer':
             # --- Customer Logic ---
             # 1. Total Photos & Videos
+            name = user.full_name
+            avatar = user.avatar.url if user.avatar else None
             scan_results = CustomerScanResult.objects.filter(customer=user)
             
             total_photo = 0
@@ -373,7 +375,9 @@ class DashboardDataAPIView(APIView):
                 'number_of_full_deleted_site': number_of_full_deleted_site,
                 'deleted_sites_links': number_of_full_deleted_site, # Using count as per variable name implication in context of numbers
                 'monthly_limit_reach': monthly_limit_reach,
-                'remaining_links_to_removal': remaining_links_to_removal
+                'remaining_links_to_removal': remaining_links_to_removal,
+                'name': name,
+                'avatar': avatar
             }
             return success(data=data, message='Dashboard data fetched successfully.')
 
@@ -387,6 +391,9 @@ class DashboardDataAPIView(APIView):
 
             try:
                 agency_member = AgencyMemberList.objects.get(agency=user, id=agency_member_id)
+                
+                name = agency_member.name
+                avatar = agency_member.profile_image.url if agency_member.profile_image else None
                 
                 # 1. Total Photos & Videos
                 scan_results = AgencyMemberScanResult.objects.filter(agency=user, agency_member=agency_member)
@@ -476,7 +483,9 @@ class DashboardDataAPIView(APIView):
                     'number_of_full_deleted_site': number_of_full_deleted_site,
                     'deleted_sites_links': number_of_full_deleted_site,
                     'monthly_limit_reach': monthly_limit_reach_global, # Agency wide limit status
-                    'remaining_links_to_removal': remaining_links_to_removal # Shared pool remaining
+                    'remaining_links_to_removal': remaining_links_to_removal, # Shared pool remaining
+                    'name': name,
+                    'avatar': avatar
                 }
                 
                 return success(data=items, message='Dashboard data fetched successfully.')
