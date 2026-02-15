@@ -55,18 +55,18 @@ if DEBUG:
         'http://127.0.0.1:5173',
         'http://127.0.0.1:5173',
         'http://localhost:5173',
-        'https://localhost:5173',
         'https://*.ngrok-free.app',
-        'https://*.ngrok-free.dev',  # ngrok domains
-        'https://geraldine-noncommunistical-starr.ngrok-free.dev',  # Current ngrok URL
         "https://vantafy.vercel.app",
         "http://172.16.200.94:8000",
         "http://172.16.200.94:9000",
+        "http://54.227.112.126:8000",
         "https://c5895f67f55f.ngrok-free.app/google-auth/",
         "https://c5895f67f55f.ngrok-free.app",
         "https://c5895f67f55f.ngrok-free.app",
         "https://mediamixer.softvencealpha.com",
         "https://dashboard.vantafy.com",
+        "https://vantafy.com",
+        "https://www.vantafy.com",
         "https://www.dashboard.vantafy.com",
         
     ]
@@ -98,11 +98,14 @@ else:
         "https://vantafy.vercel.app",
         "http://172.16.200.94:8000",
         "http://172.16.200.94:9000",
+        "http://54.227.112.126:8000",
         "https://c5895f67f55f.ngrok-free.app/google-auth/",
         "https://c5895f67f55f.ngrok-free.app",
         "https://c5895f67f55f.ngrok-free.app",
         "https://mediamixer.softvencealpha.com",
         "https://dashboard.vantafy.com",
+        "https://vantafy.com",
+        "https://www.vantafy.com",
         "https://www.dashboard.vantafy.com",
 
     ]
