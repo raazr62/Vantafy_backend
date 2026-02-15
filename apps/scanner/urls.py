@@ -6,7 +6,7 @@ from .views import (
     ScanRunTimeResultView,
     ScanResultListView,
     LinkRemovalRequestAPIView,
-    # DashboardDataAPIView,
+    DashboardDataAPIView,
   
 )
 
@@ -23,6 +23,6 @@ urlpatterns = [
     path("link-removal-request/", LinkRemovalRequestAPIView.as_view(), name="link_removal_request"),
 
     # Dashboard data
-    # path("dashboard-data/", DashboardDataAPIView.as_view(), name="user_dashboard_data")
+    path("dashboard-data/", DashboardDataAPIView.as_view(), name="user_dashboard_data")
 
     ]

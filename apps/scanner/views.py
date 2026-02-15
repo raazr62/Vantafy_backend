@@ -262,33 +262,193 @@ class LinkRemovalRequestAPIView(APIView):
         return success(data=[], message='Links submitted successfully.')
 
 
-# class DashboardDataAPIView(APIView):
-#     permission_classes = [IsAuthenticated]
-#     authentication_classes = [CookieJWTAuthentication]
+class DashboardDataAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
 
-#     def get(self, request):
-#         user = request.user
-#         role = user.role
+    def get(self, request):
+        user = request.user
+        role = user.role
 
-#         if role == 'customer':
-#             total_photo  = 
-#             photo_parcentage = 
-#             total_video = 
-#             video_parcentage = 
-#             int_total = 
+        if role == 'customer':
+            # --- Customer Logic ---
+            # 1. Total Photos & Videos
+            scan_results = CustomerScanResult.objects.filter(customer=user)
+            
+            total_photo = 0
+            total_video = 0
+            infringing_sites_count = scan_results.count() # Each result is one website/spider
 
-#         elif role == 'agency':
-#             agency_member_id = request.query_params.get('agency_member_id')
+            for res in scan_results:
+                total_photo += res.total_images
+                total_video += res.total_videos
+            
+            total_media = total_photo + total_video
 
-#             if not agency_member_id:
-#                 return error(message='agency_member_id is required')
+            # Avoid division by zero
+            if total_media > 0:
+                photo_percentage = round((total_photo / total_media) * 100, 2)
+                video_percentage = round((total_video / total_media) * 100, 2)
+            else:
+                photo_percentage = 0
+                video_percentage = 0
+            
+            # 2. Potential Revenue
+            # Formula: (total_photo + total_video) * 2.5
+            potential_revenue = total_media * 2.5
+            
+            # 3. Link Removal Requests
+            removal_requests = LinkRemovalRequestFromCustomer.objects.filter(customer=user)
+            number_of_delivered_site = removal_requests.count()
+            number_of_full_deleted_site = removal_requests.filter(status='removed').count()
+            
+            # 4. Monthly Limits
+            # Get current subscription package limits
+            try:
+                subscription = user.subscriptions.filter(status='active').first()
+                if subscription and subscription.package:
+                    monthly_limit = subscription.package.link_removal_limit_per_month
+                else:
+                    monthly_limit = 0 # Or some default for free tier?
+            except Exception:
+                monthly_limit = 0
 
-#             try:
-#                 agency_member = AgencyMemberList.objects.get(agency=user, id=agency_member_id)
-#             except AgencyMemberList.DoesNotExist:
-#                 return error(message='Agency member not found')
+            # Count requests created THIS MONTH
+            from django.utils import timezone
+            now = timezone.now()
+            start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            
+            requests_this_month = removal_requests.filter(created_at__gte=start_of_month).count()
+            
+            remaining_links_to_removal = max(0, monthly_limit - requests_this_month)
+            
+            monthly_limit_reach = 0
+            if monthly_limit > 0:
+                monthly_limit_reach = round((requests_this_month / monthly_limit) * 100, 2)
 
-#         else:
-#             return error(message='Invalid user role')
 
-#         return success(data=[], message='Dashboard data fetched successfully.')
+            data = {
+                'total_photo': total_photo,
+                'photo_percentage': photo_percentage,
+                'total_video': total_video,
+                'video_percentage': video_percentage,
+                'total_media': total_media,
+                'potential_revenue': potential_revenue,
+                'infringing_sites': infringing_sites_count,
+                'number_of_delivered_site': number_of_delivered_site,
+                'number_of_full_deleted_site': number_of_full_deleted_site,
+                'deleted_sites_links': number_of_full_deleted_site, # Using count as per variable name implication in context of numbers
+                'monthly_limit_reach': monthly_limit_reach,
+                'remaining_links_to_removal': remaining_links_to_removal
+            }
+            return success(data=data, message='Dashboard data fetched successfully.')
+
+
+        elif role == 'agency':
+            # --- Agency Logic ---
+            agency_member_id = request.query_params.get('agency_member_id')
+
+            if not agency_member_id:
+                return error(message='agency_member_id is required')
+
+            try:
+                agency_member = AgencyMemberList.objects.get(agency=user, id=agency_member_id)
+                
+                # 1. Total Photos & Videos
+                scan_results = AgencyMemberScanResult.objects.filter(agency=user, agency_member=agency_member)
+
+                total_photo = 0
+                total_video = 0
+                infringing_sites_count = scan_results.count()
+
+                for res in scan_results:
+                    total_photo += res.total_images
+                    total_video += res.total_videos
+                
+                total_media = total_photo + total_video
+                
+                if total_media > 0:
+                    photo_percentage = round((total_photo / total_media) * 100, 2)
+                    video_percentage = round((total_video / total_media) * 100, 2)
+                else:
+                    photo_percentage = 0
+                    video_percentage = 0
+                
+                # 2. Potential Revenue
+                potential_revenue = total_media * 2.5
+
+                # 3. Link Removal Requests
+                # Agency requests are linked to agency AND agency_member
+                removal_requests = LinkRemovalRequestFromAgencyMember.objects.filter(agency=user, agency_member=agency_member)
+                number_of_delivered_site = removal_requests.count()
+                number_of_full_deleted_site = removal_requests.filter(status='removed').count()
+
+                # 4. Monthly Limits (Likely based on AGENCY subscription, not member?)
+                # If limits are per-member or shared, that needs clarification. 
+                # Assuming limits are per AGENT (user), but shared across members? 
+                # OR maybe agency has a huge limit.
+                # Let's assume we check the AGENCY's subscription.
+                
+                try:
+                    subscription = user.subscriptions.filter(status='active').first()
+                    if subscription and subscription.package:
+                        monthly_limit = subscription.package.link_removal_limit_per_month
+                    else:
+                        monthly_limit = 0
+                except Exception:
+                    monthly_limit = 0
+
+                # Count requests created THIS MONTH by THIS AGENCY (all members? or just this one?)
+                # User prompt implies dashboard for this member. 
+                # But limits usually apply to the subscriber (Agency).
+                # Logic: Show limits usage for this MEMBER specifically? Or Agency total?
+                # Variable context: 'monthly_limit_reach' usually implies the constraint on the account.
+                # However, if I filter by member, I show member's usage. 
+                # Let's show THIS MEMBER'S usage against the AGENCY'S total limit? Or just usage?
+                
+                # Implementation: Show usage for this member, but limit is likely global. 
+                # To be safe/simple: Show stats for this member. Limit calculation might be tricky if shared.
+                # Let's count *Agency's total usage* for the limit percentage, but *Member's usage* for the raw numbers?
+                # Actually, `remaining_links_to_removal` is critical.
+                
+                from django.utils import timezone
+                now = timezone.now()
+                start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+                # Total agency usage this month (all members)
+                total_agency_requests_this_month = LinkRemovalRequestFromAgencyMember.objects.filter(
+                    agency=user, 
+                    created_at__gte=start_of_month
+                ).count()
+
+                requests_this_month_member = removal_requests.filter(created_at__gte=start_of_month).count()
+
+                # Remaining is global for the agency
+                remaining_links_to_removal = max(0, monthly_limit - total_agency_requests_this_month)
+                
+                monthly_limit_reach_global = 0
+                if monthly_limit > 0:
+                    monthly_limit_reach_global = round((total_agency_requests_this_month / monthly_limit) * 100, 2)
+                
+                items = {
+                    'total_photo': total_photo,
+                    'photo_percentage': photo_percentage,
+                    'total_video': total_video,
+                    'video_percentage': video_percentage,
+                    'total_media': total_media,
+                    'potential_revenue': potential_revenue,
+                    'infringing_sites': infringing_sites_count,
+                    'number_of_delivered_site': number_of_delivered_site,
+                    'number_of_full_deleted_site': number_of_full_deleted_site,
+                    'deleted_sites_links': number_of_full_deleted_site,
+                    'monthly_limit_reach': monthly_limit_reach_global, # Agency wide limit status
+                    'remaining_links_to_removal': remaining_links_to_removal # Shared pool remaining
+                }
+                
+                return success(data=items, message='Dashboard data fetched successfully.')
+
+            except AgencyMemberList.DoesNotExist:
+                return error(message='Agency member not found')
+
+        else:
+            return error(message='Invalid user role')
