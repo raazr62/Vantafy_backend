@@ -386,15 +386,16 @@ else:
 
 
 
+
 # email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.hostinger.com'
+EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587  # Or 465 if using SSL
 EMAIL_USE_TLS = True  # If you use port 587
 
-EMAIL_HOST_USER = 'hello@clever-cv.de'
-EMAIL_HOST_PASSWORD = 'Poseidon2301!'
-DEFAULT_FROM_EMAIL = 'hello@clever-cv.de'
+EMAIL_HOST_USER = 'rafi.cse.ahmed@gmail.com'
+EMAIL_HOST_PASSWORD = 'rjib rhun elor goiu'
+DEFAULT_FROM_EMAIL = 'rafi.cse.ahmed@gmail.com'
 
 
 
