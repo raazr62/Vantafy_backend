@@ -200,6 +200,25 @@ CHANNEL_LAYERS = {
     },
 }
 
+# ============================================
+# Redis Cache Configuration
+# ============================================
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"redis://{os.environ.get('REDIS_HOST', '127.0.0.1')}:{os.environ.get('REDIS_PORT', 6379)}/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "SOCKET_CONNECT_TIMEOUT": 5,
+            "SOCKET_TIMEOUT": 5,
+            "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
+            "IGNORE_EXCEPTIONS": True,  # Cache failures won't crash the app
+        },
+        "KEY_PREFIX": "cms",
+        "TIMEOUT": 3600,  # Default cache timeout: 1 hour
+    }
+}
+
 #master user
 
 AUTHENTICATION_BACKENDS = [
@@ -389,13 +408,13 @@ else:
 
 # email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST = 'smtp.hostinger.com'
 EMAIL_PORT = 587  # Or 465 if using SSL
 EMAIL_USE_TLS = True  # If you use port 587
 
-EMAIL_HOST_USER = 'rafi.cse.ahmed@gmail.com'
-EMAIL_HOST_PASSWORD = 'rjib rhun elor goiu'
-DEFAULT_FROM_EMAIL = 'rafi.cse.ahmed@gmail.com'
+EMAIL_HOST_USER = 'hello@clever-cv.de'
+EMAIL_HOST_PASSWORD = 'Poseidon2301!'
+DEFAULT_FROM_EMAIL = 'hello@clever-cv.de'
 
 
 

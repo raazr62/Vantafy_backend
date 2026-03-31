@@ -75,15 +75,15 @@ class SignUpSerializer(serializers.ModelSerializer):
 
         OTP.objects.update_or_create(user=user, defaults={'otp': otp_hashed, 'is_verify': False, 'purpose': purpose, 'created_at': timezone.now(), 'expires_at': expires_at})
         
-        system_info = AboutSystem.objects.first()
-        html_content = render_to_string('email/otp_verification_template.html', {'otp_code': otp_code, 'system_info': system_info})
-        send_email(
-            subject='Verification OTP',
-            body=f'Your OTP is {otp_code}. Expire in 3 minutes.',
-            to_emails=[user.email,],
-            from_email=settings.EMAIL_HOST_USER,
-            html_body=html_content
-            )
+        # system_info = AboutSystem.objects.first()
+        # html_content = render_to_string('email/otp_verification_template.html', {'otp_code': otp_code, 'system_info': system_info})
+        # send_email(
+        #     subject='Verification OTP',
+        #     body=f'Your OTP is {otp_code}. Expire in 3 minutes.',
+        #     to_emails=[user.email,],
+        #     from_email=settings.EMAIL_HOST_USER,
+        #     html_body=html_content
+        #     )
     
         return user
     
