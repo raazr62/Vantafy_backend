@@ -97,6 +97,10 @@ class CustomerScanResult(models.Model):
         from django.core.files.base import ContentFile
         import os
         
+        # Skip if this image URL already exists for this scan result
+        if self.image_entries.filter(image_url=original_url).exists():
+            return self.image_entries.filter(image_url=original_url).first()
+        
         img_entry = CustomerScanResultImage(
             customer_scan_result=self,
             image_url=original_url
@@ -110,16 +114,21 @@ class CustomerScanResult(models.Model):
         return img_entry
 
     def add_video(self, video_url):
-        return CustomerScanResultVideo.objects.create(
+        obj, created = CustomerScanResultVideo.objects.get_or_create(
             customer_scan_result=self,
             video_url=video_url
         )
+        return obj
         
     def add_page_url(self, page_url):
-        return CustomerScanResultPageUrl.objects.create(
+        obj, created = CustomerScanResultPageUrl.objects.get_or_create(
             customer_scan_result=self,
             page_url=page_url
         )
+        return obj
+
+    class Meta:
+        unique_together = ('customer', 'website')
 
     def __str__(self):
         return self.website
@@ -130,12 +139,18 @@ class CustomerScanResultImage(models.Model):
     image_url = models.URLField(max_length=500)
     image = models.ImageField(upload_to='customer_scan_images/', blank=True, null=True)
 
+    class Meta:
+        unique_together = ('customer_scan_result', 'image_url')
+
     def __str__(self):
         return self.image_url
     
 class CustomerScanResultVideo(models.Model):
     customer_scan_result = models.ForeignKey(CustomerScanResult, on_delete=models.CASCADE, related_name='video_entries')
     video_url = models.URLField(max_length=500)
+
+    class Meta:
+        unique_together = ('customer_scan_result', 'video_url')
 
     def __str__(self):
         return self.video_url
@@ -144,6 +159,9 @@ class CustomerScanResultVideo(models.Model):
 class CustomerScanResultPageUrl(models.Model):
     customer_scan_result = models.ForeignKey(CustomerScanResult, on_delete=models.CASCADE, related_name='page_url_entries')
     page_url = models.URLField(max_length=500)
+
+    class Meta:
+        unique_together = ('customer_scan_result', 'page_url')
 
     def __str__(self):
         return self.page_url
@@ -246,6 +264,10 @@ class AgencyMemberScanResult(models.Model):
         from django.core.files.base import ContentFile
         import os
         
+        # Skip if this image URL already exists for this scan result
+        if self.image_entries.filter(image_url=original_url).exists():
+            return self.image_entries.filter(image_url=original_url).first()
+        
         img_entry = AgencyMemberScanResultImage(
             agency_member_scan_result=self,
             image_url=original_url
@@ -259,22 +281,30 @@ class AgencyMemberScanResult(models.Model):
         return img_entry
 
     def add_video(self, video_url):
-        return AgencyMemberScanResultVideo.objects.create(
+        obj, created = AgencyMemberScanResultVideo.objects.get_or_create(
             agency_member_scan_result=self,
             video_url=video_url
         )
+        return obj
         
     def add_page_url(self, page_url):
-        return AgencyMemberScanResultPageUrl.objects.create(
+        obj, created = AgencyMemberScanResultPageUrl.objects.get_or_create(
             agency_member_scan_result=self,
             page_url=page_url
         )
+        return obj
+
+    class Meta:
+        unique_together = ('agency_member', 'website')
 
 
 class AgencyMemberScanResultImage(models.Model):
     agency_member_scan_result = models.ForeignKey(AgencyMemberScanResult, on_delete=models.CASCADE, related_name='image_entries')
     image_url = models.URLField(max_length=500, default="")
     image = models.ImageField(upload_to='agency_member_scan_images/', blank=True, null=True)
+
+    class Meta:
+        unique_together = ('agency_member_scan_result', 'image_url')
 
     def __str__(self):
         return self.image_url
@@ -283,6 +313,9 @@ class AgencyMemberScanResultVideo(models.Model):
     agency_member_scan_result = models.ForeignKey(AgencyMemberScanResult, on_delete=models.CASCADE, related_name='video_entries')
     video_url = models.URLField(max_length=500, default="")
 
+    class Meta:
+        unique_together = ('agency_member_scan_result', 'video_url')
+
     def __str__(self):
         return self.video_url
     
@@ -290,6 +323,9 @@ class AgencyMemberScanResultVideo(models.Model):
 class AgencyMemberScanResultPageUrl(models.Model):
     agency_member_scan_result = models.ForeignKey(AgencyMemberScanResult, on_delete=models.CASCADE, related_name='page_url_entries')
     page_url = models.URLField(max_length=500, default="")
+
+    class Meta:
+        unique_together = ('agency_member_scan_result', 'page_url')
 
     def __str__(self):
         return self.page_url
