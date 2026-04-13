@@ -78,6 +78,8 @@ def cleanup_duplicates(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
+    atomic = False
+
 
     dependencies = [
         ('scanner', '0001_initial'),
@@ -87,36 +89,4 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(cleanup_duplicates, reverse_code=migrations.RunPython.noop),
-        migrations.AlterUniqueTogether(
-            name='agencymemberscanresult',
-            unique_together={('agency_member', 'website')},
-        ),
-        migrations.AlterUniqueTogether(
-            name='agencymemberscanresultimage',
-            unique_together={('agency_member_scan_result', 'image_url')},
-        ),
-        migrations.AlterUniqueTogether(
-            name='agencymemberscanresultpageurl',
-            unique_together={('agency_member_scan_result', 'page_url')},
-        ),
-        migrations.AlterUniqueTogether(
-            name='agencymemberscanresultvideo',
-            unique_together={('agency_member_scan_result', 'video_url')},
-        ),
-        migrations.AlterUniqueTogether(
-            name='customerscanresult',
-            unique_together={('customer', 'website')},
-        ),
-        migrations.AlterUniqueTogether(
-            name='customerscanresultimage',
-            unique_together={('customer_scan_result', 'image_url')},
-        ),
-        migrations.AlterUniqueTogether(
-            name='customerscanresultpageurl',
-            unique_together={('customer_scan_result', 'page_url')},
-        ),
-        migrations.AlterUniqueTogether(
-            name='customerscanresultvideo',
-            unique_together={('customer_scan_result', 'video_url')},
-        ),
     ]
