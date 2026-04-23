@@ -170,6 +170,10 @@ MIDDLEWARE = [
     "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
+# Security adjustments for production/proxy
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 ROOT_URLCONF = "project.urls"
 
 TEMPLATES = [
@@ -390,15 +394,12 @@ if CROSS_ORIGIN_DEVELOPMENT and DEBUG:
     CSRF_COOKIE_SECURE = True
 
 else:
-    # SESSION_COOKIE_SAMESITE = 'Lax'   
-    # CSRF_COOKIE_SAMESITE = 'Lax'
-    # SESSION_COOKIE_SECURE = True      
-    # CSRF_COOKIE_SECURE = True
-
-    SESSION_COOKIE_SAMESITE = 'None'  
-    CSRF_COOKIE_SAMESITE = 'None'
-    SESSION_COOKIE_SECURE = True    
-    CSRF_COOKIE_SECURE = True
+    # Production settings
+    SESSION_COOKIE_SAMESITE = 'Lax'   
+    CSRF_COOKIE_SAMESITE = 'Lax'
+    # Only use Secure cookies if we are in production and presumably on HTTPS
+    SESSION_COOKIE_SECURE = not DEBUG      
+    CSRF_COOKIE_SECURE = not DEBUG
 
 
 

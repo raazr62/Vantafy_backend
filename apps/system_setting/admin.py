@@ -29,20 +29,54 @@ class DynamicPagesAdmin(ModelAdmin):
     search_fields = ("id", "title", "content",)
     list_display_links = ("id", "title", "status",)
 
+
+from django.urls import path, reverse
+from django.shortcuts import redirect, get_object_or_404
+from django.utils.html import format_html
+
 @admin.register(SMTPSetting)
 class SMTPSettingAdmin(ModelAdmin):
-  
+    list_display = (
+        "id",
+        "host",
+        "port",
+        "username",
+        "encryption",
+        "sender_name",
+        "sender_email",
+        "is_active_switch",
+    )
 
-    list_display = ("id", "host", "port", "username", "encryption", "sender_name", "sender_email", "is_active",)
-    search_fields = ("id", "host", "username", "sender_name", "sender_email",)
-    list_display_links = ("id", "host", "username", "sender_name", "sender_email",)
+    def is_active_switch(self, obj):
+        url = reverse("admin:smtp_toggle_active", args=[obj.pk])
 
-    def has_add_permission(self, request):
-        return False
-    
-    def has_delete_permission(self, request, obj=None):
-        return False
+        return format_html(
+            '<a class="button" href="{}" '
+            'style="background:{};color:white;padding:5px 10px;'
+            'border-radius:20px;text-decoration:none;">{}</a>',
+            url,
+            "green" if obj.is_active else "gray",
+            "ON" if obj.is_active else "OFF",
+        )
 
+    is_active_switch.short_description = "Active"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "toggle-active/<int:pk>/",
+                self.admin_site.admin_view(self.toggle_active),
+                name="smtp_toggle_active",
+            ),
+        ]
+        return custom_urls + urls
+
+    def toggle_active(self, request, pk):
+        obj = get_object_or_404(SMTPSetting, pk=pk)
+        obj.is_active = not obj.is_active
+        obj.save()
+        return redirect(request.META.get("HTTP_REFERER", "/admin/"))
 
 @admin.register(SocialMedia)
 class SocialMediaAdmin(ModelAdmin):

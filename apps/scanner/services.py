@@ -202,22 +202,26 @@ else:
                 
                 # Create or Get Scan Result
                 defaults_data = {
+                    'scan_job': scan_job,  # Always link to the latest job
                     'profile_url': collected_items.get('page_urls', [None])[0] if collected_items.get('page_urls') else None,
                     'contact_emails': collected_items.get('emails', []),
                     'status': 'pending'
                 }
                 
-                # Add specific fields based on job type/model
+                # Build the unique lookup fields based on job type
+                lookup = {'website': website_name}
+                
                 if getattr(scan_job, 'customer', None):
                      defaults_data['customer'] = scan_job.customer
+                     lookup['customer'] = scan_job.customer
                 if getattr(scan_job, 'agency', None):
                      defaults_data['agency'] = scan_job.agency
                 if getattr(scan_job, 'agency_member', None):
                      defaults_data['agency_member'] = scan_job.agency_member
+                     lookup['agency_member'] = scan_job.agency_member
 
                 scan_result, created = ScanResultModel.objects.update_or_create(
-                    scan_job=scan_job, # Link to the job
-                    website=website_name,
+                    **lookup,
                     defaults=defaults_data
                 )
 
