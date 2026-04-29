@@ -9,7 +9,7 @@ from .models import User, Niche, StageName, ConnectedSocialAccount, OTP, AgencyM
 
 @admin.register(User)
 class UserAdmin(ModelAdmin):
-    list_display = ['email', 'full_name', 'role', 'is_active', 'created_at']
+    list_display = ['id', 'email', 'full_name', 'role', 'is_active', 'created_at']
     list_filter = ['role', 'is_active', 'country', 'is_verified_for_earning']
     search_fields = ['email', 'full_name', 'referral_code']
     readonly_fields = ['created_at', 'updated_at', 'referral_count']

@@ -31,6 +31,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     referral_code = models.CharField(max_length=10,  null=True, blank=True)
     referred_by = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='referrals')
     referral_count = models.IntegerField(default=0)
+    has_used_referral_discount = models.BooleanField(default=False)  # Track if referred user has used their 15% discount on first purchase
 
     # earning fields
     total_earning_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
