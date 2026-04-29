@@ -1094,6 +1094,7 @@ class AffiliateProgramView(APIView):
                     "id": person.id,
                     "email": person.email,
                     "full_name": person.full_name,
+                    "joined_date": person.created_at, 
                 })
                 
                 
