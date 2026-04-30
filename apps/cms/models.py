@@ -66,6 +66,7 @@ class FAQ(models.Model):
         return self.question
     
 class HeroSection(models.Model):
+    brand_logo = models.ImageField(upload_to='hero_section/', blank=True, null=True)
     title = models.CharField(max_length=255)
     subtitle = models.TextField()
     status = models.BooleanField(default=True)
