@@ -153,6 +153,8 @@ INSTALLED_APPS = [
     "apps.chat",
     "apps.customer_support",
 
+    "storages",
+
 ]
 
 MIDDLEWARE = [
@@ -303,8 +305,6 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
-MEDIA_URL = "/media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 
 # Default primary key field type
@@ -448,10 +448,51 @@ STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET')
 STRIPE_REFERRAL_COUPON_ID = config('STRIPE_REFERRAL_COUPON_ID', default=None)  # 15% off coupon for referred users
 
 
-# ============================================
 # AWS S3 Settings
-# ============================================
-AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default=None)
-AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default=None)
 AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default=None)
-AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME', default='us-east-1')
+
+# Enable S3 only when explicitly requested (or when a bucket is configured)
+USE_S3 = config('USE_S3', default=False, cast=bool)
+
+if USE_S3:
+    # These should be present when running locally.
+    # (On AWS infra, credentials can also come from the instance/task role.)
+    AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default=None)
+    AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default=None)
+
+    AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME', default='us-east-2')
+    AWS_S3_ENDPOINT_URL = config('AWS_S3_ENDPOINT_URL', default=None)
+    AWS_S3_CUSTOM_DOMAIN = config('AWS_S3_CUSTOM_DOMAIN', default=None)
+
+    AWS_S3_FILE_OVERWRITE = False
+    AWS_DEFAULT_ACL = None
+
+    # If False, generated URLs won't be signed (works only if objects are publicly readable)
+    AWS_QUERYSTRING_AUTH = config('AWS_QUERYSTRING_AUTH', default=False, cast=bool)
+
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+
+    if not AWS_S3_CUSTOM_DOMAIN and AWS_STORAGE_BUCKET_NAME:
+        AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
+
+    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/" if AWS_S3_CUSTOM_DOMAIN else "/media/"
+
+else:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+
+    MEDIA_URL = "/media/"
+    MEDIA_ROOT = os.path.join(BASE_DIR, "media")
