@@ -65,19 +65,26 @@ class StripeCheckoutAPIView(APIView):
             return error(message="Missing required parameters", errors="price_id, success_url, and cancel_url are required")
 
         try:
-
-            checkout_session = stripe.checkout.Session.create(
-                payment_method_types=['card'],
-                customer_email=request.user.email if request.user.is_authenticated else None,
-                
-                line_items=[{
+            user = request.user
+            checkout_params = {
+                'payment_method_types': ['card'],
+                'customer_email': user.email if user.is_authenticated else None,
+                'line_items': [{
                     'price': price_id,
                     'quantity': 1,
                 }],
-                mode='subscription',
-                success_url=success_url,
-                cancel_url=cancel_url,
-            )
+                'mode': 'subscription',
+                'success_url': success_url,
+                'cancel_url': cancel_url,
+            }
+            
+            # Apply 15% referral discount coupon if user is referred and hasn't used discount yet
+            if user.is_authenticated and user.referred_by and not user.has_used_referral_discount:
+                referral_coupon_id = settings.STRIPE_REFERRAL_COUPON_ID  # Make sure this is set in settings
+                if referral_coupon_id:
+                    checkout_params['discounts'] = [{'coupon': referral_coupon_id}]
+
+            checkout_session = stripe.checkout.Session.create(**checkout_params)
 
             return success(checkout_session.url, message="Stripe checkout initiated successfully")
         except Exception as e:
@@ -165,9 +172,14 @@ class StripeWebhookAPIView(APIView):
                 income_report.total_income += package.price
                 income_report.save()
 
-                referral_code = user.referral_code
-                if referral_code:
-                    referrer = User.objects.filter(referral_code=referral_code).first()
+                # Mark referred user's discount as used if they had a referral discount applied
+                if user.referred_by and not user.has_used_referral_discount:
+                    user.has_used_referral_discount = True
+                    user.save()
+
+                # Update referrer's earning info
+                referrer = user.referred_by
+                if referrer:
                     if referrer.is_verified_for_earning:
                         referrer.total_earning_amount += package.referral_bonus_percentage
                         referrer.save()

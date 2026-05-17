@@ -1,5 +1,11 @@
 from django.db import models
 from django.utils.text import slugify
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+from django.core.cache import cache
+
+# Cache key constant
+LANDING_PAGE_CACHE_KEY = 'landing_page_sections'
 
 class Page(models.Model):
     class Type(models.TextChoices):
@@ -118,4 +124,29 @@ class IdentityTracking(models.Model):
     
     def __str__(self):
         return self.title
-    
+
+
+# Cache Invalidation Signals
+
+@receiver(post_save, sender=FAQ)
+@receiver(post_save, sender=HeroSection)
+@receiver(post_save, sender=HeroRadarIcon)
+@receiver(post_save, sender=RepresentPlatform)
+@receiver(post_save, sender=AmongOurCustomer)
+@receiver(post_save, sender=Testimonial)
+@receiver(post_save, sender=HowItWorks)
+@receiver(post_save, sender=IdentityTracking)
+def invalidate_landing_page_cache(sender, **kwargs):
+    cache.delete(LANDING_PAGE_CACHE_KEY)
+
+@receiver(post_delete, sender=FAQ)
+@receiver(post_delete, sender=HeroSection)
+@receiver(post_delete, sender=HeroRadarIcon)
+@receiver(post_delete, sender=RepresentPlatform)
+@receiver(post_delete, sender=AmongOurCustomer)
+@receiver(post_delete, sender=Testimonial)
+@receiver(post_delete, sender=HowItWorks)
+@receiver(post_delete, sender=IdentityTracking)
+def invalidate_landing_page_cache_on_delete(sender, **kwargs):
+    cache.delete(LANDING_PAGE_CACHE_KEY)
+

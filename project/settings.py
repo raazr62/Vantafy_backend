@@ -204,6 +204,25 @@ CHANNEL_LAYERS = {
     },
 }
 
+# ============================================
+# Redis Cache Configuration
+# ============================================
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"redis://{os.environ.get('REDIS_HOST', '127.0.0.1')}:{os.environ.get('REDIS_PORT', 6379)}/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "SOCKET_CONNECT_TIMEOUT": 5,
+            "SOCKET_TIMEOUT": 5,
+            "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
+            "IGNORE_EXCEPTIONS": True,  # Cache failures won't crash the app
+        },
+        "KEY_PREFIX": "cms",
+        "TIMEOUT": 3600,  # Default cache timeout: 1 hour
+    }
+}
+
 #master user
 
 AUTHENTICATION_BACKENDS = [
@@ -218,8 +237,9 @@ MASTER_USER_EMAIL = "rafi.cse.ahmed@gmail.com"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Database configuration based on DEBUG mode
-if DEBUG:
-    # Development: Use SQLite
+USE_SQLITE = config('USE_SQLITE', default=False, cast=bool)
+
+if USE_SQLITE:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -227,14 +247,13 @@ if DEBUG:
         }
     }
 else:
-    # Production: Use PostgreSQL with environment variables
     DATABASES = {
         "default": {
             "ENGINE": config('DATABASE_ENGINE', default='django.db.backends.postgresql'),
-            "NAME": config('DATABASE_NAME', default='django_db'),
-            "USER": config('DATABASE_USER', default='django_user'),
-            "PASSWORD": config('DATABASE_PASSWORD', default='django_password'),
-            "HOST": config('DATABASE_HOST', default='db'),
+            "NAME": config('DATABASE_NAME'),
+            "USER": config('DATABASE_USER'),
+            "PASSWORD": config('DATABASE_PASSWORD'),
+            "HOST": config('DATABASE_HOST'),
             "PORT": config('DATABASE_PORT', default='5432'),
         }
     }
@@ -394,9 +413,9 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587  # Or 465 if using SSL
 EMAIL_USE_TLS = True  # If you use port 587
 
-EMAIL_HOST_USER = 'rafi.cse.ahmed@gmail.com'
-EMAIL_HOST_PASSWORD = 'rjib rhun elor goiu'
-DEFAULT_FROM_EMAIL = 'rafi.cse.ahmed@gmail.com'
+EMAIL_HOST_USER = 'sakhawatdev5@gmail.com'
+EMAIL_HOST_PASSWORD = 'qnlogyzjlkqkcffn'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 
 
@@ -426,6 +445,7 @@ UNFOLD = unfold_config.get_unfold_settings()
 STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
 STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY')
 STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET')
+STRIPE_REFERRAL_COUPON_ID = config('STRIPE_REFERRAL_COUPON_ID', default=None)  # 15% off coupon for referred users
 
 
 # ============================================

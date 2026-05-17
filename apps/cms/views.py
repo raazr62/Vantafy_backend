@@ -1,5 +1,8 @@
 from rest_framework.views import APIView
 from rest_framework import status
+from django.core.cache import cache
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
 
 from apps.utils.helpers import success
 from .models import (
@@ -31,7 +34,17 @@ class LandingPageAllSectionOneByOneView(APIView):
     permission_classes = []
 
     def get(self, request):
-        # Retrieve all active sections
+        # Generate cache key
+        cache_key = 'landing_page_sections'
+        
+        # Try to get data from cache first
+        cached_data = cache.get(cache_key)
+        
+        if cached_data:
+            # Return cached data
+            return success(data=cached_data, message="Landing page sections retrieved successfully (from cache).", status_code=status.HTTP_200_OK)
+        
+        # If cache miss, fetch from database
         hero_section = HeroSection.objects.filter(status=True).first()
         hero_radar_icons = HeroRadarIcon.objects.all()
         faqs = FAQ.objects.filter(status=True)
@@ -52,5 +65,8 @@ class LandingPageAllSectionOneByOneView(APIView):
             'how_it_works': HowItWorksSerializer(how_it_works, many=True).data,
             'identity_tracking': IdentityTrackingSerializer(identity_tracking, many=True).data,
         }
+        
+        # Store in cache for 1 hour (3600 seconds)
+        cache.set(cache_key, data, 3600)
         
         return success(data=data, message="Landing page sections retrieved successfully.", status_code=status.HTTP_200_OK)

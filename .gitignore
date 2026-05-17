@@ -225,3 +225,4 @@ staticfiles/
 **/staticfiles/
 ~.bashrc
 **/~.bashrc
+CACHING_SETUP.md
