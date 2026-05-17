@@ -178,7 +178,7 @@ AgencyMemberScanResultAdmin.inlines = [
 
 
 @admin.register(LinkRemovalRequestFromCustomer)
-class LinkRemovalRequestFromCustomerAdmin(admin.ModelAdmin):
+class LinkRemovalRequestFromCustomerAdmin(ModelAdmin):
     list_display = ('id', 'customer', 'clickable_link', 'status')
     search_fields = ('customer__email', 'link')
     list_filter = ('customer', 'status')
@@ -220,7 +220,7 @@ class LinkRemovalRequestFromCustomerAdmin(admin.ModelAdmin):
     clickable_link.short_description = "Link"
 
 @admin.register(LinkRemovalRequestFromAgencyMember)
-class LinkRemovalRequestFromAgencyMemberAdmin(admin.ModelAdmin):
+class LinkRemovalRequestFromAgencyMemberAdmin(ModelAdmin):
     list_display = ('id', 'agency', 'agency_member', 'clickable_link', 'status')
     search_fields = ('agency__email', 'agency_member__name', 'link')
     list_filter = ('agency', 'agency_member', 'status')

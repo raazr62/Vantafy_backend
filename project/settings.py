@@ -237,8 +237,9 @@ MASTER_USER_EMAIL = "rafi.cse.ahmed@gmail.com"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Database configuration based on DEBUG mode
-if DEBUG:
-    # Development: Use SQLite
+USE_SQLITE = config('USE_SQLITE', default=False, cast=bool)
+
+if USE_SQLITE:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -246,14 +247,13 @@ if DEBUG:
         }
     }
 else:
-    # Production: Use PostgreSQL with environment variables
     DATABASES = {
         "default": {
             "ENGINE": config('DATABASE_ENGINE', default='django.db.backends.postgresql'),
-            "NAME": config('DATABASE_NAME', default='django_db'),
-            "USER": config('DATABASE_USER', default='django_user'),
-            "PASSWORD": config('DATABASE_PASSWORD', default='django_password'),
-            "HOST": config('DATABASE_HOST', default='db'),
+            "NAME": config('DATABASE_NAME'),
+            "USER": config('DATABASE_USER'),
+            "PASSWORD": config('DATABASE_PASSWORD'),
+            "HOST": config('DATABASE_HOST'),
             "PORT": config('DATABASE_PORT', default='5432'),
         }
     }
