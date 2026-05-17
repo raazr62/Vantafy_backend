@@ -472,7 +472,7 @@ if USE_S3:
 
     STORAGES = {
         "default": {
-            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+            "BACKEND": "project.storage_backends.HybridMediaStorage",
         },
         "staticfiles": {
             "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
@@ -482,7 +482,10 @@ if USE_S3:
     if not AWS_S3_CUSTOM_DOMAIN and AWS_STORAGE_BUCKET_NAME:
         AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
 
-    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/" if AWS_S3_CUSTOM_DOMAIN else "/media/"
+    # Keep MEDIA_URL as a local URL prefix so old local files can still be served
+    # via `urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)` in DEBUG.
+    MEDIA_URL = "/media/"
+    MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 else:
     STORAGES = {
