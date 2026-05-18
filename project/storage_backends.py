@@ -11,16 +11,8 @@ except Exception as exc:  # pragma: no cover
     ) from exc
 
 
+# Media Storage
 class HybridMediaStorage(S3Boto3Storage):
-    """S3-first storage with a local filesystem fallback.
-
-    Goal:
-    - New uploads go to S3 (when configured).
-    - Old files that still exist under MEDIA_ROOT continue to resolve.
-
-    This is useful during migrations where existing DB file paths still point
-    to local files while new ones should go to S3.
-    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
