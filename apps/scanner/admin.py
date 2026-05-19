@@ -87,7 +87,17 @@ class CustomerScanResultAdmin(ModelAdmin):
 class CustomerScanResultImageInline(TabularInline):
     model = CustomerScanResultImage
     extra = 0
-    readonly_fields = ('image_url', 'image')
+    readonly_fields = ('image_preview', 'image_url', 'image')
+    fields = ('image_preview', 'image_url', 'image')
+
+    @admin.display(description='Preview')
+    def image_preview(self, obj):
+        if obj.image:
+            return format_html(
+                '<img src="{}" style="max-width: 200px; max-height: 200px;" />',
+                obj.image.url,
+            )
+        return "No Image"
 
 class CustomerScanResultVideoInline(TabularInline):
     model = CustomerScanResultVideo
@@ -158,7 +168,14 @@ class AgencyMemberScanResultAdmin(ModelAdmin):
 class AgencyMemberScanResultImageInline(TabularInline):
     model = AgencyMemberScanResultImage
     extra = 0
-    readonly_fields = ('image_url', 'image')
+    readonly_fields = ('image_preview', 'image_url', 'image')
+    fields = ('image_preview', 'image_url', 'image')
+
+    @admin.display(description='Preview')
+    def image_preview(self, obj):
+        if obj.image:
+            return format_html('<img src="{}" style="max-width: 200px; max-height: 200px;" />', obj.image.url)
+        return "No Image"
 
 class AgencyMemberScanResultVideoInline(TabularInline):
     model = AgencyMemberScanResultVideo
