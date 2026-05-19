@@ -1,18 +1,5 @@
-"""
-Hybrid Authentication Middleware
-Detects client type (Web/Mobile) and adds context to the request
-"""
-
-
+# Client Type Detection Middleware
 class ClientTypeMiddleware:
-    """
-    Middleware to detect client type based on custom header.
-    
-    Web clients: Send 'X-Client-Type: web' header
-    Mobile clients: Send 'X-Client-Type: mobile' header
-    
-    If no header is provided, defaults to 'web' for backward compatibility.
-    """
     
     def __init__(self, get_response):
         self.get_response = get_response
