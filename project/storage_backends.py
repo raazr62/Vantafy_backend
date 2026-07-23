@@ -44,3 +44,16 @@ class HybridMediaStorage(S3Boto3Storage):
                 http_method=http_method,
             )
         return self._local_storage.url(name)
+
+    def delete(self, name: str) -> None:
+        if self._exists_in_s3(name):
+            try:
+                super().delete(name)
+            except Exception:
+                pass
+        if self._local_storage.exists(name):
+            try:
+                self._local_storage.delete(name)
+            except Exception:
+                pass
+

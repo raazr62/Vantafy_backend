@@ -154,7 +154,7 @@ INSTALLED_APPS = [
     "apps.customer_support",
 
     "storages",
-
+    "django_cleanup.apps.CleanupConfig",
 ]
 
 MIDDLEWARE = [
