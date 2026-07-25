@@ -62,31 +62,49 @@ class HybridJWTAuthentication(JWTAuthentication):
         raw_token = raw_token.strip('"')
 
         # Validate the token
-        validated_token = self.get_validated_token(raw_token)
-        
+        try:
+            validated_token = self.get_validated_token(raw_token)
+        except Exception:
+            return None
+
         # SECURITY: User-Agent binding validation
         # Configurable - set ENABLE_USER_AGENT_BINDING in settings
         if getattr(settings, 'ENABLE_USER_AGENT_BINDING', True):
-            self._validate_user_agent(request, validated_token)
-        
+            try:
+                self._validate_user_agent(request, validated_token)
+            except exceptions.AuthenticationFailed:
+                return None
+
         # SECURITY: CSRF protection for cookie-based auth
         # Only enforce for web clients using cookies
         if not is_mobile and 'access_token' in request.COOKIES:
             if getattr(settings, 'ENABLE_CSRF_FOR_COOKIES', False):
                 enforce_csrf(request)
-        
-        return self.get_user(validated_token), validated_token
-    
+
+        try:
+            user = self.get_user(validated_token)
+            if user is None:
+                return None
+            return user, validated_token
+        except exceptions.AuthenticationFailed:
+            return None
+
+    def get_user(self, validated_token):
+        try:
+            return super().get_user(validated_token)
+        except exceptions.AuthenticationFailed:
+            return None
+
     def _validate_user_agent(self, request, validated_token):
         """
         Validate User-Agent binding to prevent token theft.
         Tokens are bound to the User-Agent that created them.
         """
         from .utils import get_user_agent_hash
-        
+
         token_ua_hash = validated_token.get('user_agent')
         current_ua_hash = get_user_agent_hash(request)
-        
+
         if token_ua_hash and token_ua_hash != current_ua_hash:
             # Log for security monitoring
             print(f"SECURITY WARNING: User-Agent Mismatch! Token UA: {token_ua_hash}, Request UA: {current_ua_hash}")
