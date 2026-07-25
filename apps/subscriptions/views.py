@@ -1,8 +1,10 @@
-from asyncio.log import logger
+import logging
 from datetime import timedelta
 import os
 from rest_framework.views import APIView
 import stripe
+
+logger = logging.getLogger(__name__)
 
 from apps.user.authentication import CookieJWTAuthentication
 from apps.user.models import User
@@ -52,6 +54,7 @@ class StripeCheckoutAPIView(APIView):
     authentication_classes = [CookieJWTAuthentication]
 
     def post(self, request):
+        stripe.api_key = settings.STRIPE_SECRET_KEY
         price_id = request.data.get('price_id')
         success_url = request.data.get('success_url')
         cancel_url = request.data.get('cancel_url')
@@ -80,9 +83,28 @@ class StripeCheckoutAPIView(APIView):
             
             # Apply 15% referral discount coupon if user is referred and hasn't used discount yet
             if user.is_authenticated and user.referred_by and not user.has_used_referral_discount:
-                referral_coupon_id = settings.STRIPE_REFERRAL_COUPON_ID  # Make sure this is set in settings
+                referral_coupon_id = getattr(settings, 'STRIPE_REFERRAL_COUPON_ID', 'REFERRAL15')
                 if referral_coupon_id:
-                    checkout_params['discounts'] = [{'coupon': referral_coupon_id}]
+                    # Check if coupon exists in active Stripe account, create if missing
+                    try:
+                        stripe.Coupon.retrieve(referral_coupon_id)
+                    except stripe.error.InvalidRequestError:
+                        try:
+                            stripe.Coupon.create(
+                                id=referral_coupon_id,
+                                percent_off=15,
+                                duration='once',
+                                name='Referral Discount (15%)'
+                            )
+                        except stripe.error.StripeError as e:
+                            logger.warning("Could not auto-create Stripe referral coupon '%s': %s", referral_coupon_id, e)
+                            referral_coupon_id = None
+                    except stripe.error.StripeError as e:
+                        logger.warning("Stripe error retrieving referral coupon '%s': %s", referral_coupon_id, e)
+                        referral_coupon_id = None
+
+                    if referral_coupon_id:
+                        checkout_params['discounts'] = [{'coupon': referral_coupon_id}]
 
             checkout_session = stripe.checkout.Session.create(**checkout_params)
 
@@ -95,6 +117,7 @@ class StripeWebhookAPIView(APIView):
     permission_classes = [] 
 
     def post(self, request):
+        stripe.api_key = settings.STRIPE_SECRET_KEY
         payload = request.body
         sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
         endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
