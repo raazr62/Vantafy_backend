@@ -92,10 +92,13 @@ class CustomerScanResultImageInline(TabularInline):
 
     @admin.display(description='Preview')
     def image_preview(self, obj):
-        if obj.image:
+        if not obj:
+            return "No Image"
+        url = obj.image.url if obj.image else obj.image_url
+        if url:
             return format_html(
-                '<img src="{}" style="max-width: 200px; max-height: 200px;" />',
-                obj.image.url,
+                '<img src="{}" style="max-width: 150px; max-height: 150px; object-fit: contain; border-radius: 4px;" />',
+                url,
             )
         return "No Image"
 
@@ -114,6 +117,24 @@ CustomerScanResultAdmin.inlines = [
     CustomerScanResultVideoInline,
     CustomerScanResultPageUrlInline
 ]
+
+@admin.register(CustomerScanResultImage)
+class CustomerScanResultImageAdmin(ModelAdmin):
+    list_display = ('id', 'customer_scan_result', 'image_preview', 'image_url')
+    search_fields = ('image_url', 'customer_scan_result__website', 'customer_scan_result__customer__email')
+    readonly_fields = ('image_preview',)
+
+    @admin.display(description='Preview')
+    def image_preview(self, obj):
+        if not obj:
+            return "No Image"
+        url = obj.image.url if obj.image else obj.image_url
+        if url:
+            return format_html(
+                '<img src="{}" style="max-width: 150px; max-height: 150px; object-fit: contain; border-radius: 4px;" />',
+                url,
+            )
+        return "No Image"
 
 # -------------------------
 # Agency Scan Processing
@@ -173,8 +194,14 @@ class AgencyMemberScanResultImageInline(TabularInline):
 
     @admin.display(description='Preview')
     def image_preview(self, obj):
-        if obj.image:
-            return format_html('<img src="{}" style="max-width: 200px; max-height: 200px;" />', obj.image.url)
+        if not obj:
+            return "No Image"
+        url = obj.image.url if obj.image else obj.image_url
+        if url:
+            return format_html(
+                '<img src="{}" style="max-width: 150px; max-height: 150px; object-fit: contain; border-radius: 4px;" />',
+                url,
+            )
         return "No Image"
 
 class AgencyMemberScanResultVideoInline(TabularInline):
@@ -192,6 +219,24 @@ AgencyMemberScanResultAdmin.inlines = [
     AgencyMemberScanResultVideoInline,
     AgencyMemberScanResultPageUrlInline
 ]
+
+@admin.register(AgencyMemberScanResultImage)
+class AgencyMemberScanResultImageAdmin(ModelAdmin):
+    list_display = ('id', 'agency_member_scan_result', 'image_preview', 'image_url')
+    search_fields = ('image_url', 'agency_member_scan_result__website')
+    readonly_fields = ('image_preview',)
+
+    @admin.display(description='Preview')
+    def image_preview(self, obj):
+        if not obj:
+            return "No Image"
+        url = obj.image.url if obj.image else obj.image_url
+        if url:
+            return format_html(
+                '<img src="{}" style="max-width: 150px; max-height: 150px; object-fit: contain; border-radius: 4px;" />',
+                url,
+            )
+        return "No Image"
 
 
 @admin.register(LinkRemovalRequestFromCustomer)
