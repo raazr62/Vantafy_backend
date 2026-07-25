@@ -7,6 +7,8 @@ from .models import Package
 
 logger = logging.getLogger(__name__)
 
+stripe.api_key = getattr(settings, 'STRIPE_SECRET_KEY', None)
+
 
 def get_stripe_interval(package_type):
     if package_type == Package.PackageType.YEARLY:
