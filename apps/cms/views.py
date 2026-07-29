@@ -4,7 +4,7 @@ from django.core.cache import cache
 from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
 
-from apps.utils.helpers import success
+from apps.utils.helpers import success, error
 from .models import (
 
     FAQ,
@@ -15,6 +15,7 @@ from .models import (
     Testimonial,
     HowItWorks,
     IdentityTracking,
+    Page,
     
     
 )
@@ -26,6 +27,7 @@ from .serializers import (
     TestimonialSerializer,
     HowItWorksSerializer,
     IdentityTrackingSerializer,
+    PageSerializer
     
 )
 
@@ -70,3 +72,16 @@ class LandingPageAllSectionOneByOneView(APIView):
         cache.set(cache_key, data, 3600)
         
         return success(data=data, message="Landing page sections retrieved successfully.", status_code=status.HTTP_200_OK)
+
+# Term and conditions
+class PageView(APIView):
+    permission_classes = []
+
+    def get(self, request):
+
+        try:
+            page = Page.objects.all()
+            serializer = PageSerializer(page, many=True).data
+            return success(data=serializer, message="Pages retrieved successfully.", status_code=status.HTTP_200_OK)
+        except Exception as e:
+            return error(data={}, message=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
