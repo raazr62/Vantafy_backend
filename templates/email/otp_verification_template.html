@@ -36,31 +36,19 @@
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
         }
 
-        .top-gradient-bar {
-            height: 5px;
-            background: linear-gradient(90deg, #FF1BE4 0%, #971DFE 50%, #3F80FF 100%);
-            width: 100%;
-        }
-
         .header-content {
-            padding: 36px 40px 20px 40px;
+            padding: 40px 40px 10px 40px;
             text-align: center;
         }
 
         .brand-name {
-            font-size: 24px;
+            font-size: 28px;
             font-weight: 800;
             letter-spacing: -0.5px;
             background: linear-gradient(90deg, #971DFE 0%, #FF1BE4 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin: 0;
-            display: inline-block;
-        }
-
-        .logo-img {
-            max-height: 44px;
-            width: auto;
             display: inline-block;
         }
 
@@ -159,17 +147,10 @@
 <body>
     <div class="email-wrapper">
         <div class="email-container">
-            <!-- Sleek Top Gradient Bar -->
-            <div class="top-gradient-bar"></div>
-
             <!-- Header Section -->
             <div class="header-content">
-                {% if system_info.logo %}
-                <img src="{{ system_info.get_absolute_logo_url|default:system_info.logo.url }}" alt="{{ system_info.name }}" class="logo-img">
-                {% else %}
                 <h1 class="brand-name">{{ system_info.name|default:"VantaFy" }}</h1>
-                {% endif %}
-            </div>
+            </div>  
 
             <!-- Main Content -->
             <div class="body-content">
@@ -197,8 +178,14 @@
 
             <!-- Footer -->
             <div class="footer">
-                <p>&copy; {{ system_info.copyright }} {{ system_info.name|default:"VantaFy" }}. All rights reserved.</p>
+                {% if system_info.copyright %}
+                <p>{{ system_info.copyright }}. All rights reserved.</p>
+                {% else %}
+                <p>&copy; 2026 {{ system_info.name|default:"VantaFy" }}. All rights reserved.</p>
+                {% endif %}
+                {% if system_info.email %}
                 <p>Need help? Contact <a href="mailto:{{ system_info.email }}">{{ system_info.email }}</a></p>
+                {% endif %}
             </div>
         </div>
     </div>
