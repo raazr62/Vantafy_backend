@@ -11,6 +11,15 @@ class AboutSystem(models.Model):
     favicon = models.ImageField(upload_to='about_system/favicon/', blank=True, null=True)
     description = models.TextField()
 
+    def get_absolute_logo_url(self):
+        if self.logo:
+            from django.conf import settings
+            domain = getattr(settings, 'SITE_DOMAIN', None) or getattr(settings, 'BACKEND_URL', None) or 'http://127.0.0.1:8000'
+            if not domain.startswith('http'):
+                domain = f'http://{domain}'
+            return f"{domain.rstrip('/')}{self.logo.url}"
+        return None
+
     def __str__(self):
         return self.title
 
