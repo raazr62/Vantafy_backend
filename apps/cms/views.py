@@ -78,10 +78,12 @@ class PageView(APIView):
     permission_classes = []
 
     def get(self, request):
-
         try:
-            page = Page.objects.all()
-            serializer = PageSerializer(page, many=True).data
+            page_type = request.query_params.get('type')
+            pages = Page.objects.filter(status=True)
+            if page_type:
+                pages = pages.filter(type=page_type)
+            serializer = PageSerializer(pages, many=True).data
             return success(data=serializer, message="Pages retrieved successfully.", status_code=status.HTTP_200_OK)
         except Exception as e:
             return error(data={}, message=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
