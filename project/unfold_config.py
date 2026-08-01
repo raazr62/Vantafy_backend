@@ -14,7 +14,7 @@ def get_unfold_settings():
         "SITE_TITLE": lambda request: get_about_system().title,
         "SITE_HEADER": lambda request: get_about_system().title,
         "SITE_SUBHEADER": lambda request: get_about_system().title,
-        "SITE_URL": "/",
+        "SITE_URL": "https://vantafy.com",
         "SITE_ICON": {
             "light": lambda request: get_about_system().logo.url,  # light mode
             "dark": lambda request: get_about_system().logo.url,  # dark mode
@@ -32,7 +32,7 @@ def get_unfold_settings():
         "SHOW_HISTORY": True,  # show/hide "History" button, default: True
         "SHOW_VIEW_ON_SITE": True,  # show/hide "View on site" button, default: True
         "SHOW_BACK_BUTTON": True,  # show/hide "Back" button on changeform in header, default: False
-        "THEME": "dark",
+        "THEME": "auto",
         "LOGIN": {
             "image": lambda request: static("sample/login-bg.jpg"),
             "redirect_after": lambda request: reverse_lazy(
@@ -92,6 +92,13 @@ def get_unfold_settings():
                     "separator": True,
                     "collapsible": True,
                     "items": [
+                        {
+                            "title": _("Start Scan by Name"),
+                            "icon": "search",
+                            "link": reverse_lazy(
+                                "admin:scanner_customerscanprocessing_scannow"
+                            ),
+                        },
                         {
                             "title": _("Scan Processes"),
                             "icon": "play_circle",
