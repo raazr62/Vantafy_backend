@@ -1,5 +1,10 @@
-from django.contrib import admin
+from django.contrib import admin, messages as django_messages
+from django.urls import path
+from django.shortcuts import render, redirect
 from unfold.admin import ModelAdmin, TabularInline
+from unfold.decorators import action
+from apps.user.models import User
+from .services import run_all_spiders_async
 from .models import (
     CustomerScanProcessing, 
     CustomerScanResult, 
@@ -10,7 +15,6 @@ from .models import (
     AgencyMemberScanProcessing, 
     AgencyMemberScanResult,
     AgencyMemberScanResultImage,
-    AgencyMemberScanResultVideo,
     AgencyMemberScanResultVideo,
     AgencyMemberScanResultPageUrl,
     LinkRemovalRequestFromCustomer,
@@ -31,11 +35,74 @@ class UnauthorizedWebsiteAndEmailAdmin(ModelAdmin):
 # -------------------------
 @admin.register(CustomerScanProcessing)
 class CustomerScanProcessingAdmin(ModelAdmin):
-    list_display = ('id', 'customer', 'status', 'progress_percentage_display', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'created_at', 'updated_at', 'completed_at')
+    list_display = ('id', 'scanned_name_display', 'customer', 'status', 'progress_percentage_display', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'created_at', 'updated_at', 'completed_at')
     list_filter = ('status', 'created_at', 'updated_at')
-    list_display_links =('id', 'customer', 'status', 'progress_percentage_display', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'created_at', 'updated_at', 'completed_at')
-    search_fields = ('customer__username', 'customer__email', 'error_message')
-    readonly_fields = ('created_at', 'updated_at', 'completed_at', 'progress_percentage_display', 'total_images_display', 'total_videos_display', 'total_page_urls_display')
+    list_display_links =('id', 'scanned_name_display', 'customer', 'status', 'progress_percentage_display', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'created_at', 'updated_at', 'completed_at')
+    search_fields = ('customer__username', 'customer__email', 'custom_search_name', 'error_message')
+    readonly_fields = ('created_at', 'updated_at', 'completed_at', 'progress_percentage_display', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'scanned_name_display')
+    actions_list = ["start_new_scan_action"]
+
+    @action(description="Start New Scan by Name", icon="play_circle")
+    def start_new_scan_action(self, request):
+        return redirect("admin:scanner_customerscanprocessing_scannow")
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "scan-now/",
+                self.admin_site.admin_view(self.admin_scan_now_view),
+                name="scanner_customerscanprocessing_scannow",
+            ),
+        ]
+        return custom_urls + urls
+
+    def admin_scan_now_view(self, request):
+        if request.method == "POST":
+            name_to_scan = request.POST.get("name", "").strip()
+            customer_id = request.POST.get("customer_id")
+
+            if not name_to_scan:
+                django_messages.error(request, "Please enter a name to scan.")
+                return redirect("admin:scanner_customerscanprocessing_scannow")
+
+            target_user = None
+            if customer_id:
+                try:
+                    target_user = User.objects.get(id=customer_id)
+                except User.DoesNotExist:
+                    pass
+
+            scan_job = CustomerScanProcessing.objects.create(
+                customer=target_user,
+                custom_search_name=name_to_scan
+            )
+
+            run_all_spiders_async(
+                name_query=name_to_scan,
+                job_id=scan_job.id,
+                app_label="scanner",
+                model_name="CustomerScanProcessing"
+            )
+
+            django_messages.success(
+                request,
+                f"Scan initiated successfully for name '{name_to_scan}' (Scan Job ID: {scan_job.id})."
+            )
+            return redirect("admin:scanner_customerscanprocessing_changelist")
+
+        customers = User.objects.all().order_by("email")
+        context = {
+            **self.admin_site.each_context(request),
+            "title": "Start New Scan by Name",
+            "customers": customers,
+            "opts": self.model._meta,
+        }
+        return render(request, "admin/scanner/scan_now.html", context)
+
+    @admin.display(description='Scanned Name')
+    def scanned_name_display(self, obj):
+        return obj.search_name
 
     # Display methods for readonly fields
     @admin.display(description='Progress %')
@@ -141,11 +208,15 @@ class CustomerScanResultImageAdmin(ModelAdmin):
 # -------------------------
 @admin.register(AgencyMemberScanProcessing)
 class AgencyMemberScanProcessingAdmin(ModelAdmin):
-    list_display = ('id', 'agency', 'agency_member', 'status', 'progress_percentage_display', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'created_at', 'updated_at', 'completed_at')
+    list_display = ('id', 'scanned_name_display', 'agency', 'agency_member', 'status', 'progress_percentage_display', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'created_at', 'updated_at', 'completed_at')
     list_filter = ('status', 'created_at', 'updated_at')
-    list_display_links = ('id', 'agency', 'agency_member', 'status', 'progress_percentage_display', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'created_at', 'updated_at', 'completed_at')
-    search_fields = ('agency__username', 'agency__email', 'agency_member__name', 'error_message')
-    readonly_fields = ('created_at', 'updated_at', 'completed_at', 'progress_percentage_display', 'total_images_display', 'total_videos_display', 'total_page_urls_display')
+    list_display_links = ('id', 'scanned_name_display', 'agency', 'agency_member', 'status', 'progress_percentage_display', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'created_at', 'updated_at', 'completed_at')
+    search_fields = ('agency__username', 'agency__email', 'agency_member__name', 'custom_search_name', 'error_message')
+    readonly_fields = ('created_at', 'updated_at', 'completed_at', 'progress_percentage_display', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'scanned_name_display')
+
+    @admin.display(description='Scanned Name')
+    def scanned_name_display(self, obj):
+        return obj.search_name
 
     @admin.display(description='Progress %')
     def progress_percentage_display(self, obj):

@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from apps.user.authentication import CookieJWTAuthentication
-from apps.user.models import AgencyMemberList 
+from apps.user.models import AgencyMemberList, User
 
 from .models import (
     AgencyMemberScanProcessing, CustomerScanProcessing, 
@@ -43,27 +43,73 @@ class ScanNowView(APIView):
     
     def post(self, request):
         user = request.user
-        role = user.role
+        role = getattr(user, 'role', '')
 
-        # Create a new CustomerScanProcessing job
-        if role == 'customer':
-            full_name = user.full_name
-            print("Full Name:", full_name)
+        custom_name = request.data.get('name') or request.data.get('name_query') or request.data.get('search_name')
+        if custom_name:
+            custom_name = str(custom_name).strip()
+
+        # Handle Admin / Staff users
+        if user.is_staff or user.is_superuser or role == 'admin':
+            customer_id = request.data.get('customer_id') or request.data.get('user_id')
+            target_user = None
+            if customer_id:
+                try:
+                    target_user = User.objects.get(id=customer_id)
+                except User.DoesNotExist:
+                    return error(message='Selected customer user not found')
+
+            name_to_scan = custom_name
+            if not name_to_scan and target_user:
+                name_to_scan = getattr(target_user, 'full_name', '') or getattr(target_user, 'username', '')
+
+            if not name_to_scan:
+                return error(message='Name is required to run scan')
 
             scan_job = CustomerScanProcessing.objects.create(
-                customer=user,
+                customer=target_user,
+                custom_search_name=name_to_scan
             )
 
-            # Run all spiders asynchronously
             run_all_spiders_async(
-                name_query='',
+                name_query=name_to_scan,
                 job_id=scan_job.id,
                 app_label='scanner',
                 model_name='CustomerScanProcessing'
             )
 
+            return success(data={
+                'scan_job_id': str(scan_job.id),
+                'status': scan_job.status,
+                'scanned_name': name_to_scan,
+                'is_member': target_user is not None,
+            }, message='Admin scan job initiated successfully.')
+
+        # Handle Customer role
+        if role == 'customer':
+            name_to_scan = custom_name or getattr(user, 'full_name', '')
+
+            scan_job = CustomerScanProcessing.objects.create(
+                customer=user,
+                custom_search_name=custom_name if custom_name else None
+            )
+
+            run_all_spiders_async(
+                name_query=name_to_scan,
+                job_id=scan_job.id,
+                app_label='scanner',
+                model_name='CustomerScanProcessing'
+            )
+
+            return success(data={
+                'scan_job_id': str(scan_job.id),
+                'status': scan_job.status,
+                'scanned_name': name_to_scan,
+            }, message='Scan job initiated successfully.')
+
+        # Handle Agency role
         if role == 'agency':
-            agency_member_id  = request.data.get('agency_member_id')
+            agency_member_id = request.data.get('agency_member_id')
 
             if not agency_member_id:
                 return error(message='agency_member_id is required')
@@ -73,24 +119,28 @@ class ScanNowView(APIView):
             except AgencyMemberList.DoesNotExist:
                 return error(message='Agency member not found')
 
+            name_to_scan = custom_name or getattr(agency_member, 'name', '')
+
             scan_job = AgencyMemberScanProcessing.objects.create(
                 agency=user,
                 agency_member=agency_member,
+                custom_search_name=custom_name if custom_name else None
             )
 
-
-            # Run all spiders asynchronously
             run_all_spiders_async(
-                name_query='',
+                name_query=name_to_scan,
                 job_id=scan_job.id,
                 app_label='scanner',
                 model_name='AgencyMemberScanProcessing'
             )
 
-        return success(data={
-            'scan_job_id': str(scan_job.id),
-            'status': scan_job.status,
-        }, message='Scan job initiated successfully.')
+            return success(data={
+                'scan_job_id': str(scan_job.id),
+                'status': scan_job.status,
+                'scanned_name': name_to_scan,
+            }, message='Scan job initiated successfully.')
+
+        return error(message='Invalid user role for scanning')
 
 class ScanRunTimeResultView(APIView):
     permission_classes = [IsAuthenticated]
