@@ -11,7 +11,8 @@ class CustomerScanProcessing(models.Model):
         ('failed', 'Failed'),
         ('cancelled', 'Cancelled'),
     ]
-    customer = models.ForeignKey(User,on_delete=models.CASCADE,related_name='customer_scan_processes',)
+    customer = models.ForeignKey(User,on_delete=models.CASCADE,related_name='customer_scan_processes', null=True, blank=True)
+    custom_search_name = models.CharField(max_length=255, blank=True, null=True, help_text="Custom name queried for this scan job")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     
     # Progress tracking
@@ -32,7 +33,11 @@ class CustomerScanProcessing(models.Model):
     
     @property
     def search_name(self):
-        return self.customer.full_name or "Unknown"
+        if self.custom_search_name:
+            return self.custom_search_name
+        if self.customer and self.customer.full_name:
+            return self.customer.full_name
+        return "Unknown"
 
     def __str__(self):
         return f"{self.search_name} - {self.status}"
@@ -67,7 +72,7 @@ class CustomerScanResult(models.Model):
         ('ignored', 'Ignored'),
     ]
 
-    customer = models.ForeignKey(User,on_delete=models.CASCADE,related_name='customer_scan_results',)
+    customer = models.ForeignKey(User,on_delete=models.CASCADE,related_name='customer_scan_results', null=True, blank=True)
     # Link back to the processing job
     scan_job = models.ForeignKey(CustomerScanProcessing, on_delete=models.CASCADE, related_name='results', null=True, blank=True)
     
@@ -179,6 +184,7 @@ class AgencyMemberScanProcessing(models.Model):
     ]
     agency = models.ForeignKey(User,on_delete=models.CASCADE,related_name='agency_scan_processes',)
     agency_member = models.ForeignKey(AgencyMemberList,on_delete=models.CASCADE,related_name='agency_member_scan_processes',)
+    custom_search_name = models.CharField(max_length=255, blank=True, null=True, help_text="Custom name queried for this scan job")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     
     # Progress tracking
@@ -198,7 +204,11 @@ class AgencyMemberScanProcessing(models.Model):
     
     @property
     def search_name(self):
-        return self.agency_member.name
+        if self.custom_search_name:
+            return self.custom_search_name
+        if self.agency_member and self.agency_member.name:
+            return self.agency_member.name
+        return "Unknown"
 
     def __str__(self):
         return f"{self.search_name} - {self.status}"

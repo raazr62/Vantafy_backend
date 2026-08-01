@@ -1,0 +1,209 @@
+{% extends 'admin/base.html' %}
+{% load i18n %}
+
+{% block title %}
+Initiate New Scan | {{ site_title|default:_('Django site admin') }}
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* High-contrast explicit styles to fix dark/light mode visibility */
+    .scan-card-container {
+        background-color: #1e293b !important;
+        border: 1px solid #334155 !important;
+        color: #f8fafc !important;
+    }
+    .scan-card-container * {
+        box-sizing: border-box;
+    }
+    .scan-text-title {
+        color: #ffffff !important;
+    }
+    .scan-text-subtitle {
+        color: #94a3b8 !important;
+    }
+    .scan-form-label {
+        color: #f1f5f9 !important;
+        font-weight: 600 !important;
+        display: block !important;
+        margin-bottom: 0.5rem !important;
+        font-size: 0.875rem !important;
+    }
+    .scan-form-input, .scan-form-select {
+        background-color: #0f172a !important;
+        color: #ffffff !important;
+        border: 1px solid #475569 !important;
+        border-radius: 0.75rem !important;
+        padding: 0.75rem 1rem !important;
+        width: 100% !important;
+        font-size: 0.875rem !important;
+    }
+    .scan-form-input::placeholder {
+        color: #64748b !important;
+    }
+    .scan-form-input:focus, .scan-form-select:focus {
+        border-color: #a855f7 !important;
+        outline: 2px solid #a855f7 !important;
+    }
+    .scan-form-select option {
+        background-color: #0f172a !important;
+        color: #ffffff !important;
+    }
+    .scan-form-help {
+        color: #94a3b8 !important;
+        font-size: 0.75rem !important;
+        margin-top: 0.375rem !important;
+    }
+    .scan-btn-primary {
+        background-color: #9333ea !important;
+        color: #ffffff !important;
+        font-weight: 600 !important;
+        padding: 0.75rem 1.5rem !important;
+        border-radius: 0.75rem !important;
+        border: none !important;
+        cursor: pointer !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+    }
+    .scan-btn-primary:hover {
+        background-color: #7e22ce !important;
+    }
+    .scan-btn-secondary {
+        background-color: #334155 !important;
+        color: #f8fafc !important;
+        font-weight: 600 !important;
+        padding: 0.75rem 1.5rem !important;
+        border-radius: 0.75rem !important;
+        border: 1px solid #475569 !important;
+        text-decoration: none !important;
+        display: inline-block !important;
+    }
+    .scan-btn-secondary:hover {
+        background-color: #475569 !important;
+        color: #ffffff !important;
+    }
+
+    /* Light Mode Overrides */
+    html:not(.dark) .scan-card-container {
+        background-color: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        color: #0f172a !important;
+    }
+    html:not(.dark) .scan-text-title {
+        color: #0f172a !important;
+    }
+    html:not(.dark) .scan-text-subtitle {
+        color: #64748b !important;
+    }
+    html:not(.dark) .scan-form-label {
+        color: #1e293b !important;
+    }
+    html:not(.dark) .scan-form-input, html:not(.dark) .scan-form-select {
+        background-color: #f8fafc !important;
+        color: #0f172a !important;
+        border: 1px solid #cbd5e1 !important;
+    }
+    html:not(.dark) .scan-form-input::placeholder {
+        color: #94a3b8 !important;
+    }
+    html:not(.dark) .scan-form-select option {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+    }
+    html:not(.dark) .scan-form-help {
+        color: #64748b !important;
+    }
+    html:not(.dark) .scan-btn-secondary {
+        background-color: #f1f5f9 !important;
+        color: #334155 !important;
+        border: 1px solid #cbd5e1 !important;
+    }
+    html:not(.dark) .scan-btn-secondary:hover {
+        background-color: #e2e8f0 !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="flex-1 p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto w-full">
+    <div class="scan-card-container p-6 sm:p-8 rounded-2xl shadow-xl mt-4">
+        
+        <!-- Header -->
+        <div class="flex items-center gap-4 mb-6 pb-5 border-b border-slate-700/60">
+            <div class="p-3 bg-purple-600/20 rounded-xl text-purple-400 shrink-0">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold scan-text-title">Initiate New Scan</h1>
+                <p class="text-sm scan-text-subtitle mt-0.5">Run search spiders across internet platforms for a specific name</p>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <form method="POST" action="" class="space-y-6">
+            {% csrf_token %}
+
+            <div>
+                <label for="name" class="scan-form-label">
+                    Name to Scan <span style="color: #ef4444;">*</span>
+                </label>
+                <input 
+                    type="text" 
+                    id="name" 
+                    name="name" 
+                    required 
+                    placeholder="Enter target name (e.g. John Doe)" 
+                    class="scan-form-input"
+                >
+            </div>
+
+            <div>
+                <label for="customer_id" class="scan-form-label">
+                    Target User / Customer (Optional)
+                </label>
+                <select 
+                    id="customer_id" 
+                    name="customer_id" 
+                    class="scan-form-select"
+                >
+                    <option value="">
+                        -- None (Non-member / Independent scan) --
+                    </option>
+                    {% for customer in customers %}
+                        <option value="{{ customer.id }}">
+                            {{ customer.full_name|default:customer.email }} ({{ customer.email }})
+                        </option>
+                    {% endfor %}
+                </select>
+                <p class="scan-form-help">
+                    Leave empty to run an independent scan for a non-member person/entity.
+                </p>
+            </div>
+
+            <div class="pt-5 flex items-center gap-4 border-t border-slate-700/60">
+                <button 
+                    type="submit" 
+                    class="scan-btn-primary"
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Start Scan Now
+                </button>
+
+                <a 
+                    href="{% url 'admin:scanner_customerscanprocessing_changelist' %}" 
+                    class="scan-btn-secondary"
+                >
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
