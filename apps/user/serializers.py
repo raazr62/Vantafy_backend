@@ -423,9 +423,6 @@ class UpdataProfileAvatarSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['avatar']
-        extra_kwargs = {
-            'avatar': { 'write_only': True },
-        }
 
 
 
