@@ -14,7 +14,8 @@ class ScanRunTimeResultViewTests(TestCase):
             email='customer@example.com',
             password='password123',
             full_name='Customer User',
-            role='customer'
+            role='customer',
+            term_and_condition_accepted=True
         )
         
         # Create an agency user
@@ -22,13 +23,13 @@ class ScanRunTimeResultViewTests(TestCase):
             email='agency@example.com',
             password='password123',
             full_name='Agency User',
-            role='agency'
+            role='agency',
+            term_and_condition_accepted=True
         )
         # Create agency member
         self.agency_member = AgencyMemberList.objects.create(
             agency=self.agency_user,
-            name="Test Member",
-            email="member@test.com"
+            name="Test Member"
         )
         
         self.scan_url = reverse('scan_run_time_result')
