@@ -386,4 +386,50 @@ class UnauthorizedWebsiteAndEmail(models.Model):
         return self.website
 
 
+class LinkRemovalVerification(models.Model):
+    VERIFICATION_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('available', 'Available'),
+        ('removed', 'Removed'),
+        ('redirected', 'Redirected'),
+        ('temporarily_unavailable', 'Temporarily Unavailable'),
+        ('blocked', 'Blocked'),
+        ('unverified', 'Unverified'),
+    ]
+
+    customer_request = models.ForeignKey(
+        LinkRemovalRequestFromCustomer,
+        on_delete=models.CASCADE,
+        related_name='verifications',
+        null=True,
+        blank=True
+    )
+    agency_request = models.ForeignKey(
+        LinkRemovalRequestFromAgencyMember,
+        on_delete=models.CASCADE,
+        related_name='verifications',
+        null=True,
+        blank=True
+    )
+    url = models.URLField(max_length=500)
+    http_status_code = models.IntegerField(null=True, blank=True)
+    final_url = models.URLField(max_length=500, null=True, blank=True)
+    content_type = models.CharField(max_length=100, null=True, blank=True)
+    verification_status = models.CharField(
+        max_length=30,
+        choices=VERIFICATION_STATUS_CHOICES,
+        default='pending'
+    )
+    retry_count = models.IntegerField(default=0)
+    checked_at = models.DateTimeField(auto_now_add=True)
+    error_message = models.TextField(blank=True, default='')
+
+    class Meta:
+        ordering = ['-checked_at']
+
+    def __str__(self):
+        return f"{self.url} -> {self.verification_status} ({self.http_status_code})"
+
+
+
 
