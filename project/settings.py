@@ -499,3 +499,28 @@ else:
 
     MEDIA_URL = "/media/"
     MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+
+# ============================================
+# Celery Configuration
+# ============================================
+REDIS_HOST = os.environ.get("REDIS_HOST", "127.0.0.1")
+REDIS_PORT = os.environ.get("REDIS_PORT", "6379")
+
+CELERY_BROKER_URL = config("CELERY_BROKER_URL", default=f"redis://{REDIS_HOST}:{REDIS_PORT}/0")
+CELERY_RESULT_BACKEND = config("CELERY_RESULT_BACKEND", default=CELERY_BROKER_URL)
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_ALWAYS_EAGER = config("CELERY_TASK_ALWAYS_EAGER", default=False, cast=bool)
+
+# Automated Link Removal Verification Settings
+LINK_VERIFICATION_USER_AGENT = config(
+    "LINK_VERIFICATION_USER_AGENT",
+    default="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+)
+LINK_VERIFICATION_REQUEST_TIMEOUT = config("LINK_VERIFICATION_REQUEST_TIMEOUT", default=15, cast=int)
+LINK_VERIFICATION_MAX_RETRIES = config("LINK_VERIFICATION_MAX_RETRIES", default=3, cast=int)
+LINK_VERIFICATION_RETRY_DELAYS = [300, 1800, 7200]  # 5 min, 30 min, 2 hours
+

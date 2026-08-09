@@ -18,8 +18,10 @@ from .models import (
     AgencyMemberScanResultVideo,
     AgencyMemberScanResultPageUrl,
     LinkRemovalRequestFromCustomer,
-    LinkRemovalRequestFromAgencyMember
+    LinkRemovalRequestFromAgencyMember,
+    LinkRemovalVerification,
 )
+from .tasks import enqueue_verification_for_request
 
 from django.utils.html import format_html
 
@@ -317,7 +319,7 @@ class LinkRemovalRequestFromCustomerAdmin(ModelAdmin):
     list_filter = ('customer', 'status')
     list_display_links = ('id', 'customer', 'clickable_link')
     list_editable = ('status',)
-    actions = ['make_pending', 'make_removed', 'make_failed']
+    actions = ['make_pending', 'make_removed', 'make_failed', 'run_automated_verification']
 
     @admin.action(description='Mark selected requests as Pending')
     def make_pending(self, request, queryset):
@@ -333,6 +335,14 @@ class LinkRemovalRequestFromCustomerAdmin(ModelAdmin):
     def make_failed(self, request, queryset):
         updated = queryset.update(status='failed')
         self.message_user(request, f'{updated} requests were successfully marked as Failed.')
+
+    @admin.action(description='Run automated verification for selected requests')
+    def run_automated_verification(self, request, queryset):
+        count = 0
+        for obj in queryset:
+            enqueue_verification_for_request(obj)
+            count += 1
+        self.message_user(request, f'Enqueued automated background verification for {count} links.')
 
     def clickable_link(self, obj):
         return format_html(
@@ -359,7 +369,7 @@ class LinkRemovalRequestFromAgencyMemberAdmin(ModelAdmin):
     list_filter = ('agency', 'agency_member', 'status')
     list_display_links = ('id', 'agency', 'agency_member', 'clickable_link')
     list_editable = ('status',)
-    actions = ['make_pending', 'make_removed', 'make_failed']
+    actions = ['make_pending', 'make_removed', 'make_failed', 'run_automated_verification']
 
     @admin.action(description='Mark selected requests as Pending')
     def make_pending(self, request, queryset):
@@ -375,6 +385,14 @@ class LinkRemovalRequestFromAgencyMemberAdmin(ModelAdmin):
     def make_failed(self, request, queryset):
         updated = queryset.update(status='failed')
         self.message_user(request, f'{updated} requests were successfully marked as Failed.')
+
+    @admin.action(description='Run automated verification for selected requests')
+    def run_automated_verification(self, request, queryset):
+        count = 0
+        for obj in queryset:
+            enqueue_verification_for_request(obj)
+            count += 1
+        self.message_user(request, f'Enqueued automated background verification for {count} links.')
 
     def clickable_link(self, obj):
         return format_html(
@@ -393,5 +411,13 @@ class LinkRemovalRequestFromAgencyMemberAdmin(ModelAdmin):
         )
 
     clickable_link.short_description = "Link"
+
+
+@admin.register(LinkRemovalVerification)
+class LinkRemovalVerificationAdmin(ModelAdmin):
+    list_display = ('id', 'url', 'verification_status', 'http_status_code', 'retry_count', 'checked_at')
+    search_fields = ('url', 'error_message')
+    list_filter = ('verification_status', 'http_status_code')
+
 
     
