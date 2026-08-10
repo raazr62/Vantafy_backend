@@ -356,7 +356,7 @@ class LinkRemovalRequestFromCustomer(models.Model):
     ]
 
     customer = models.ForeignKey(User,on_delete=models.CASCADE,related_name='link_requested_for_removal_by_customer',)
-    link = models.URLField(max_length=500)
+    link = models.URLField(max_length=500, unique=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     links = models.CharField(max_length=20, choices=LINKS_STATUS_CHOICES, default='pending', help_text="Email submission status: pending or submitted")
     
