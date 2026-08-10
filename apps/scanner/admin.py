@@ -157,7 +157,7 @@ class CustomerScanResultInline(TabularInline):
     extra = 0
     show_change_link = True
     fields = ('website', 'status', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'created_at')
-    readonly_fields = ('website', 'status', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'created_at')
+    readonly_fields = ('status', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'created_at')
 
     @admin.display(description='Total Images')
     def total_images_display(self, obj):
