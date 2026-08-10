@@ -7,10 +7,121 @@ from .models import (
     LinkRemovalRequestFromCustomer,
     LinkRemovalRequestFromAgencyMember,
     LinkRemovalVerification,
+    UnauthorizedWebsiteAndEmail,
 )
 from .verification import verify_url_availability
+from .utils import send_dmca_notice, extract_domain_from_url
 
 logger = logging.getLogger(__name__)
+
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=60)
+def send_dmca_notice_task(self, request_id, request_type='customer'):
+    """
+    Celery background task to send DMCA notice for a removal request.
+    Extracts the domain from the link, looks up the corresponding email from UnauthorizedWebsiteAndEmail,
+    and sends the DMCA email via send_dmca_notice.
+    """
+    url = None
+    creator_name = "Legal Compliance Team"
+
+    if request_type == 'customer':
+        try:
+            req = LinkRemovalRequestFromCustomer.objects.get(id=request_id)
+            url = req.link
+            if req.customer:
+                creator_name = req.customer.full_name or req.customer.username or "Content Creator"
+        except LinkRemovalRequestFromCustomer.DoesNotExist:
+            logger.error(f"LinkRemovalRequestFromCustomer #{request_id} not found.")
+            return {'status': 'not_found'}
+
+    elif request_type == 'agency':
+        try:
+            req = LinkRemovalRequestFromAgencyMember.objects.get(id=request_id)
+            url = req.link
+            if req.agency_member:
+                creator_name = req.agency_member.name
+            elif req.agency:
+                creator_name = req.agency.full_name or req.agency.username
+        except LinkRemovalRequestFromAgencyMember.DoesNotExist:
+            logger.error(f"LinkRemovalRequestFromAgencyMember #{request_id} not found.")
+            return {'status': 'not_found'}
+    else:
+        logger.error(f"Unknown request_type '{request_type}'.")
+        return {'status': 'invalid_type'}
+
+    if not url:
+        return {'status': 'no_url'}
+
+    domain = extract_domain_from_url(url)
+
+    if getattr(req, 'links', 'pending') == 'submitted':
+        logger.info(f"Link request #{request_id} for {url} is already marked as 'submitted'. Skipping email dispatch.")
+        return {'status': 'already_submitted', 'domain': domain}
+
+    if not domain:
+        logger.warning(f"Could not extract domain from link: {url}")
+        return {'status': 'domain_extraction_failed'}
+
+    # Look up matching UnauthorizedWebsiteAndEmail entry by website domain
+    record = UnauthorizedWebsiteAndEmail.objects.filter(website__iexact=domain).first()
+    if not record:
+        # Fallback partial lookup if domain contains website or vice versa
+        record = UnauthorizedWebsiteAndEmail.objects.filter(website__icontains=domain).first()
+
+    if not record or not record.email:
+        logger.warning(f"No contact email found in UnauthorizedWebsiteAndEmail for domain '{domain}' (link: {url}).")
+        return {'status': 'email_not_found', 'domain': domain}
+
+    # Categorize link into collected_data
+    lower_url = url.lower()
+    images = []
+    videos = []
+    page_urls = [url]
+
+    if any(ext in lower_url for ext in ['.jpg', '.jpeg', '.png', '.gif', '.webp', '/screenshots/']):
+        images.append({'original': url})
+    elif any(ext in lower_url for ext in ['.mp4', '.webm', '.avi', '.m3u8', '.mov']):
+        videos.append(url)
+
+    collected_data = {
+        'page_urls': page_urls,
+        'images': images,
+        'videos': videos
+    }
+
+    success, msg = send_dmca_notice(
+        contact_emails=[record.email],
+        collected_data=collected_data,
+        creator_name=creator_name
+    )
+
+    if success:
+        req.links = 'submitted'
+        req.save(update_fields=['links', 'updated_at'])
+        logger.info(f"Successfully sent DMCA notice email to {record.email} for domain {domain} (Link #{request_id})")
+        return {'status': 'email_sent', 'to': record.email, 'domain': domain}
+    else:
+        logger.error(f"Failed to send DMCA notice email to {record.email}: {msg}")
+        return {'status': 'email_failed', 'error': msg}
+
+
+def enqueue_dmca_notice_for_request(request_obj):
+    """
+    Helper function to enqueue a Celery task to send a DMCA notice email for a customer or agency request.
+    """
+    if isinstance(request_obj, LinkRemovalRequestFromCustomer):
+        if getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False):
+            return send_dmca_notice_task(request_obj.id, 'customer')
+        else:
+            return send_dmca_notice_task.delay(request_obj.id, 'customer')
+
+    elif isinstance(request_obj, LinkRemovalRequestFromAgencyMember):
+        if getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False):
+            return send_dmca_notice_task(request_obj.id, 'agency')
+        else:
+            return send_dmca_notice_task.delay(request_obj.id, 'agency')
+    return None
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=300)
