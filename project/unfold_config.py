@@ -110,7 +110,7 @@ def get_unfold_settings():
                             "title": _("Scan Results"),
                             "icon": "check_circle",
                             "link": reverse_lazy(
-                                "admin:scanner_customerscanresult_changelist"
+                                "admin:scanner_customerscanusersummary_changelist"
                             ),
                         },
                         
@@ -133,7 +133,7 @@ def get_unfold_settings():
                             "title": _("Scan Results"),
                             "icon": "check_circle",
                             "link": reverse_lazy(
-                                "admin:scanner_agencymemberscanresult_changelist"
+                                "admin:scanner_agencymemberscanusersummary_changelist"
                             ),
                         },
                         
