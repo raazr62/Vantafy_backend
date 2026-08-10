@@ -268,6 +268,9 @@ class ScanResultListView(APIView):
        
 
 
+from .tasks import enqueue_dmca_notice_for_request, enqueue_verification_for_request
+
+
 class LinkRemovalRequestAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -291,27 +294,36 @@ class LinkRemovalRequestAPIView(APIView):
             except AgencyMemberList.DoesNotExist:
                 return error(message='Agency member not found')
 
-        if role == 'customer':
-            # create objects
-            objects = [
-                LinkRemovalRequestFromCustomer(customer=user, link=link)
-                for link in links
-            ]
+        if user.is_staff or user.is_superuser or role == 'admin':
+            customer_id = request.data.get('customer_id') or request.data.get('user_id')
+            target_user = user
+            if customer_id:
+                try:
+                    target_user = User.objects.get(id=customer_id)
+                except User.DoesNotExist:
+                    return error(message='Selected customer user not found')
 
-            # bulk save
-            LinkRemovalRequestFromCustomer.objects.bulk_create(objects)
+            for link in links:
+                obj = LinkRemovalRequestFromCustomer.objects.create(customer=target_user, link=link)
+                enqueue_dmca_notice_for_request(obj)
+                enqueue_verification_for_request(obj)
+
+        elif role == 'customer':
+            for link in links:
+                obj = LinkRemovalRequestFromCustomer.objects.create(customer=user, link=link)
+                enqueue_dmca_notice_for_request(obj)
+                enqueue_verification_for_request(obj)
 
         elif role == 'agency':
-            # create objects
-            objects = [
-                LinkRemovalRequestFromAgencyMember(agency=user, agency_member=agency_member, link=link)
-                for link in links
-            ]
-
-            # bulk save
-            LinkRemovalRequestFromAgencyMember.objects.bulk_create(objects)
+            for link in links:
+                obj = LinkRemovalRequestFromAgencyMember.objects.create(
+                    agency=user, agency_member=agency_member, link=link
+                )
+                enqueue_dmca_notice_for_request(obj)
+                enqueue_verification_for_request(obj)
 
         return success(data=[], message='Links submitted successfully.')
+
 
 class LinkRemovalRequestListAPIView(APIView):
     permission_classes = [IsAuthenticated]
