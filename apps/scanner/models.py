@@ -434,5 +434,20 @@ class LinkRemovalVerification(models.Model):
         return f"{self.url} -> {self.verification_status} ({self.http_status_code})"
 
 
+class CustomerScanUserSummary(User):
+    class Meta:
+        proxy = True
+        verbose_name = "Customer Scan Result"
+        verbose_name_plural = "Customer Scan Results"
+
+
+class AgencyMemberScanUserSummary(AgencyMemberList):
+    class Meta:
+        proxy = True
+        verbose_name = "Agency Member Scan Result"
+        verbose_name_plural = "Agency Member Scan Results"
+
+
+
 
 

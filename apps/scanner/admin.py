@@ -20,6 +20,8 @@ from .models import (
     LinkRemovalRequestFromCustomer,
     LinkRemovalRequestFromAgencyMember,
     LinkRemovalVerification,
+    CustomerScanUserSummary,
+    AgencyMemberScanUserSummary,
 )
 from .tasks import enqueue_verification_for_request
 
@@ -149,6 +151,61 @@ class CustomerScanResultAdmin(ModelAdmin):
         return obj.total_page_urls
 
 
+class CustomerScanResultInline(TabularInline):
+    model = CustomerScanResult
+    fk_name = 'customer'
+    extra = 0
+    show_change_link = True
+    fields = ('website', 'status', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'created_at')
+    readonly_fields = ('website', 'status', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'created_at')
+
+    @admin.display(description='Total Images')
+    def total_images_display(self, obj):
+        return obj.total_images if obj else 0
+
+    @admin.display(description='Total Videos')
+    def total_videos_display(self, obj):
+        return obj.total_videos if obj else 0
+
+    @admin.display(description='Total Page URLs')
+    def total_page_urls_display(self, obj):
+        return obj.total_page_urls if obj else 0
+
+
+@admin.register(CustomerScanUserSummary)
+class CustomerScanUserSummaryAdmin(ModelAdmin):
+    list_display = ('email', 'full_name', 'total_websites_display', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'last_scanned_at_display')
+    list_display_links = ('email', 'full_name')
+    search_fields = ('email', 'full_name')
+    readonly_fields = ('email', 'full_name', 'total_websites_display', 'total_images_display', 'total_videos_display', 'total_page_urls_display')
+    inlines = [CustomerScanResultInline]
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(customer_scan_results__isnull=False).distinct()
+
+    @admin.display(description='Total Websites Scanned')
+    def total_websites_display(self, obj):
+        return obj.customer_scan_results.count()
+
+    @admin.display(description='Total Images')
+    def total_images_display(self, obj):
+        return sum(res.total_images for res in obj.customer_scan_results.all())
+
+    @admin.display(description='Total Videos')
+    def total_videos_display(self, obj):
+        return sum(res.total_videos for res in obj.customer_scan_results.all())
+
+    @admin.display(description='Total Page URLs')
+    def total_page_urls_display(self, obj):
+        return sum(res.total_page_urls for res in obj.customer_scan_results.all())
+
+    @admin.display(description='Latest Scan')
+    def last_scanned_at_display(self, obj):
+        latest = obj.customer_scan_results.order_by('-created_at').first()
+        return latest.created_at if latest else "-"
+
+
 
 # -------------------------
 # Inlines for Scan Result Images/Videos/URLs
@@ -257,6 +314,65 @@ class AgencyMemberScanResultAdmin(ModelAdmin):
     @admin.display(description='Total Page URLs')
     def total_page_urls_display(self, obj):
         return obj.total_page_urls
+
+
+class AgencyMemberScanResultInline(TabularInline):
+    model = AgencyMemberScanResult
+    fk_name = 'agency_member'
+    extra = 0
+    show_change_link = True
+    fields = ('website', 'status', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'created_at')
+    readonly_fields = ('website', 'status', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'created_at')
+
+    @admin.display(description='Total Images')
+    def total_images_display(self, obj):
+        return obj.total_images if obj else 0
+
+    @admin.display(description='Total Videos')
+    def total_videos_display(self, obj):
+        return obj.total_videos if obj else 0
+
+    @admin.display(description='Total Page URLs')
+    def total_page_urls_display(self, obj):
+        return obj.total_page_urls if obj else 0
+
+
+@admin.register(AgencyMemberScanUserSummary)
+class AgencyMemberScanUserSummaryAdmin(ModelAdmin):
+    list_display = ('name', 'agency_email_display', 'total_websites_display', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'last_scanned_at_display')
+    list_display_links = ('name', 'agency_email_display')
+    search_fields = ('name', 'agency__email')
+    readonly_fields = ('name', 'agency_email_display', 'total_websites_display', 'total_images_display', 'total_videos_display', 'total_page_urls_display')
+    inlines = [AgencyMemberScanResultInline]
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(agency_member_scan_results__isnull=False).distinct()
+
+    @admin.display(description='Agency Email')
+    def agency_email_display(self, obj):
+        return obj.agency.email if obj.agency else "-"
+
+    @admin.display(description='Total Websites Scanned')
+    def total_websites_display(self, obj):
+        return obj.agency_member_scan_results.count()
+
+    @admin.display(description='Total Images')
+    def total_images_display(self, obj):
+        return sum(res.total_images for res in obj.agency_member_scan_results.all())
+
+    @admin.display(description='Total Videos')
+    def total_videos_display(self, obj):
+        return sum(res.total_videos for res in obj.agency_member_scan_results.all())
+
+    @admin.display(description='Total Page URLs')
+    def total_page_urls_display(self, obj):
+        return sum(res.total_page_urls for res in obj.agency_member_scan_results.all())
+
+    @admin.display(description='Latest Scan')
+    def last_scanned_at_display(self, obj):
+        latest = obj.agency_member_scan_results.order_by('-created_at').first()
+        return latest.created_at if latest else "-"
 
 class AgencyMemberScanResultImageInline(TabularInline):
     model = AgencyMemberScanResultImage
