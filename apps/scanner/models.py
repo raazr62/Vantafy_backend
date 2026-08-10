@@ -153,6 +153,8 @@ class CustomerScanResultImage(models.Model):
 class CustomerScanResultVideo(models.Model):
     customer_scan_result = models.ForeignKey(CustomerScanResult, on_delete=models.CASCADE, related_name='video_entries')
     video_url = models.URLField(max_length=500)
+    video = models.FileField(upload_to='customer_scan_videos/', blank=True, null=True)
+    
 
     class Meta:
         unique_together = ('customer_scan_result', 'video_url')
@@ -322,6 +324,7 @@ class AgencyMemberScanResultImage(models.Model):
 class AgencyMemberScanResultVideo(models.Model):
     agency_member_scan_result = models.ForeignKey(AgencyMemberScanResult, on_delete=models.CASCADE, related_name='video_entries')
     video_url = models.URLField(max_length=500, default="")
+    video = models.FileField(upload_to='agency_member_scan_videos/', blank=True, null=True)
 
     class Meta:
         unique_together = ('agency_member_scan_result', 'video_url')

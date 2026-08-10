@@ -40,7 +40,7 @@ class CustomerScanProcessingAdmin(ModelAdmin):
     list_display = ('id', 'scanned_name_display', 'customer', 'status', 'progress_percentage_display', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'created_at', 'updated_at', 'completed_at')
     list_filter = ('status', 'created_at', 'updated_at')
     list_display_links =('id', 'scanned_name_display', 'customer', 'status', 'progress_percentage_display', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'created_at', 'updated_at', 'completed_at')
-    search_fields = ('customer__username', 'customer__email', 'custom_search_name', 'error_message')
+    search_fields = ('customer__full_name', 'customer__email', 'custom_search_name', 'error_message')
     readonly_fields = ('created_at', 'updated_at', 'completed_at', 'progress_percentage_display', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'scanned_name_display')
     actions_list = ["start_new_scan_action"]
 
@@ -132,7 +132,7 @@ class CustomerScanResultAdmin(ModelAdmin):
     list_display = ('id', 'customer', 'website', 'status', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'created_at', 'updated_at')
     list_filter = ('status', 'website', 'created_at', 'updated_at')
     list_display_links =('id', 'customer', 'website', 'status', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'created_at', 'updated_at')
-    search_fields = ('customer__username', 'customer__email', 'website')
+    search_fields = ('customer__full_name', 'customer__email', 'website')
     readonly_fields = ('created_at', 'updated_at', 'total_images_display', 'total_videos_display', 'total_page_urls_display')
 
     # Display methods to show related totals
@@ -156,7 +156,7 @@ class CustomerScanResultAdmin(ModelAdmin):
 class CustomerScanResultImageInline(TabularInline):
     model = CustomerScanResultImage
     extra = 0
-    readonly_fields = ('image_preview', 'image_url', 'image')
+    readonly_fields = ('image_preview', 'image')
     fields = ('image_preview', 'image_url', 'image')
 
     @admin.display(description='Preview')
@@ -174,7 +174,6 @@ class CustomerScanResultImageInline(TabularInline):
 class CustomerScanResultVideoInline(TabularInline):
     model = CustomerScanResultVideo
     extra = 0
-    readonly_fields = ('video_url',)
 
 class CustomerScanResultPageUrlInline(TabularInline):
     model = CustomerScanResultPageUrl
@@ -213,7 +212,7 @@ class AgencyMemberScanProcessingAdmin(ModelAdmin):
     list_display = ('id', 'scanned_name_display', 'agency', 'agency_member', 'status', 'progress_percentage_display', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'created_at', 'updated_at', 'completed_at')
     list_filter = ('status', 'created_at', 'updated_at')
     list_display_links = ('id', 'scanned_name_display', 'agency', 'agency_member', 'status', 'progress_percentage_display', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'created_at', 'updated_at', 'completed_at')
-    search_fields = ('agency__username', 'agency__email', 'agency_member__name', 'custom_search_name', 'error_message')
+    search_fields = ('agency__full_name', 'agency__email', 'agency_member__name', 'custom_search_name', 'error_message')
     readonly_fields = ('created_at', 'updated_at', 'completed_at', 'progress_percentage_display', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'scanned_name_display')
 
     @admin.display(description='Scanned Name')
@@ -244,7 +243,7 @@ class AgencyMemberScanResultAdmin(ModelAdmin):
     list_display = ('id', 'agency', 'agency_member', 'website', 'status', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'created_at', 'updated_at')
     list_filter = ('status', 'website', 'created_at', 'updated_at')
     list_display_links = ('id', 'agency', 'agency_member', 'website', 'status', 'total_images_display', 'total_videos_display', 'total_page_urls_display', 'created_at', 'updated_at')
-    search_fields = ('agency__username', 'agency__email', 'agency_member__name', 'website')
+    search_fields = ('agency__full_name', 'agency__email', 'agency_member__name', 'website')
     readonly_fields = ('created_at', 'updated_at', 'total_images_display', 'total_videos_display', 'total_page_urls_display')
 
     @admin.display(description='Total Images')
