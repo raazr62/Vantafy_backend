@@ -235,7 +235,6 @@ class CustomerScanResultVideoInline(TabularInline):
 class CustomerScanResultPageUrlInline(TabularInline):
     model = CustomerScanResultPageUrl
     extra = 0
-    readonly_fields = ('page_url',)
 
 CustomerScanResultAdmin.inlines = [
     CustomerScanResultImageInline,
