@@ -428,12 +428,29 @@ class AgencyMemberScanResultImageAdmin(ModelAdmin):
 
 @admin.register(LinkRemovalRequestFromCustomer)
 class LinkRemovalRequestFromCustomerAdmin(ModelAdmin):
-    list_display = ('id', 'customer', 'clickable_link', 'status')
+    list_display = ('id', 'customer', 'clickable_link', 'status', 'links')
     search_fields = ('customer__email', 'link')
-    list_filter = ('customer', 'status')
+    list_filter = ('customer', 'status', 'links')
     list_display_links = ('id', 'customer', 'clickable_link')
-    list_editable = ('status',)
-    actions = ['make_pending', 'make_removed', 'make_failed', 'run_automated_verification']
+    list_editable = ('status', 'links')
+    actions = ['make_pending', 'make_removed', 'make_failed', 'send_dmca_notice_action', 'run_automated_verification']
+
+    def save_model(self, request, obj, form, change):
+        is_new = obj.pk is None
+        super().save_model(request, obj, form, change)
+        if is_new or obj.links == 'pending':
+            from .tasks import enqueue_dmca_notice_for_request
+            enqueue_dmca_notice_for_request(obj)
+            enqueue_verification_for_request(obj)
+
+    @admin.action(description='Send DMCA notice email for selected requests')
+    def send_dmca_notice_action(self, request, queryset):
+        from .tasks import enqueue_dmca_notice_for_request
+        count = 0
+        for obj in queryset:
+            enqueue_dmca_notice_for_request(obj)
+            count += 1
+        self.message_user(request, f'Enqueued DMCA notice processing for {count} requests.')
 
     @admin.action(description='Mark selected requests as Pending')
     def make_pending(self, request, queryset):
@@ -478,12 +495,29 @@ class LinkRemovalRequestFromCustomerAdmin(ModelAdmin):
 
 @admin.register(LinkRemovalRequestFromAgencyMember)
 class LinkRemovalRequestFromAgencyMemberAdmin(ModelAdmin):
-    list_display = ('id', 'agency', 'agency_member', 'clickable_link', 'status')
+    list_display = ('id', 'agency', 'agency_member', 'clickable_link', 'status', 'links')
     search_fields = ('agency__email', 'agency_member__name', 'link')
-    list_filter = ('agency', 'agency_member', 'status')
+    list_filter = ('agency', 'agency_member', 'status', 'links')
     list_display_links = ('id', 'agency', 'agency_member', 'clickable_link')
-    list_editable = ('status',)
-    actions = ['make_pending', 'make_removed', 'make_failed', 'run_automated_verification']
+    list_editable = ('status', 'links')
+    actions = ['make_pending', 'make_removed', 'make_failed', 'send_dmca_notice_action', 'run_automated_verification']
+
+    def save_model(self, request, obj, form, change):
+        is_new = obj.pk is None
+        super().save_model(request, obj, form, change)
+        if is_new or obj.links == 'pending':
+            from .tasks import enqueue_dmca_notice_for_request
+            enqueue_dmca_notice_for_request(obj)
+            enqueue_verification_for_request(obj)
+
+    @admin.action(description='Send DMCA notice email for selected requests')
+    def send_dmca_notice_action(self, request, queryset):
+        from .tasks import enqueue_dmca_notice_for_request
+        count = 0
+        for obj in queryset:
+            enqueue_dmca_notice_for_request(obj)
+            count += 1
+        self.message_user(request, f'Enqueued DMCA notice processing for {count} requests.')
 
     @admin.action(description='Mark selected requests as Pending')
     def make_pending(self, request, queryset):

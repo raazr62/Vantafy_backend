@@ -57,6 +57,34 @@ def download_file(url):
     
     return None, None
 
+from urllib.parse import urlparse
+
+
+def extract_domain_from_url(url):
+    """
+    Extract the clean domain/website name from a given URL.
+    Examples:
+        - 'https://www.camvideos.org/contents/...' -> 'camvideos.org'
+        - 'http://camvideos.org/page' -> 'camvideos.org'
+    """
+    if not url:
+        return ''
+    try:
+        netloc = urlparse(url).netloc
+        if not netloc:
+            # Fallback if scheme was omitted e.g. 'camvideos.org/path'
+            netloc = url.split('/')[0]
+        # Remove port if present
+        netloc = netloc.split(':')[0].lower()
+        # Strip common subdomains like 'www.'
+        if netloc.startswith('www.'):
+            netloc = netloc[4:]
+        return netloc
+    except Exception as e:
+        logger.error(f"Error parsing domain from URL '{url}': {e}")
+        return ''
+
+
 def send_dmca_notice(contact_emails, collected_data, creator_name):
     """
     Send DMCA takedown notice to specific emails.
@@ -74,7 +102,10 @@ def send_dmca_notice(contact_emails, collected_data, creator_name):
     
     # Construct Email Body
     site_links = "\n".join(collected_data.get('page_urls', []))
-    image_links = "\n".join([img.get('original') for img in collected_data.get('images', [])])
+    image_links = "\n".join([
+        img.get('original') if isinstance(img, dict) else str(img) 
+        for img in collected_data.get('images', [])
+    ])
     video_links = "\n".join(collected_data.get('videos', []))
     
     body = f"""
@@ -109,3 +140,4 @@ For: {creator_name}
     except Exception as e:
         logger.error(f"Email Error: {e}")
         return False, str(e)
+
