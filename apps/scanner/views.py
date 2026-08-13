@@ -305,13 +305,21 @@ class LinkRemovalRequestAPIView(APIView):
 
             for link in links:
                 obj = LinkRemovalRequestFromCustomer.objects.create(customer=target_user, link=link)
-                enqueue_dmca_notice_for_request(obj)
+                # Change status from 'pending' to 'requested'
+                CustomerScanResultPageUrl.objects.filter(
+                    customer_scan_result__customer=target_user,
+                    page_url=link
+                ).update(send_mail_status='requested')
                 enqueue_verification_for_request(obj)
 
         elif role == 'customer':
             for link in links:
                 obj = LinkRemovalRequestFromCustomer.objects.create(customer=user, link=link)
-                enqueue_dmca_notice_for_request(obj)
+                # Change status from 'pending' to 'requested'
+                CustomerScanResultPageUrl.objects.filter(
+                    customer_scan_result__customer=user,
+                    page_url=link
+                ).update(send_mail_status='requested')
                 enqueue_verification_for_request(obj)
 
         elif role == 'agency':
@@ -319,7 +327,11 @@ class LinkRemovalRequestAPIView(APIView):
                 obj = LinkRemovalRequestFromAgencyMember.objects.create(
                     agency=user, agency_member=agency_member, link=link
                 )
-                enqueue_dmca_notice_for_request(obj)
+                # Change status from 'pending' to 'requested'
+                AgencyMemberScanResultPageUrl.objects.filter(
+                    agency_member_scan_result__agency_member=agency_member,
+                    page_url=link
+                ).update(send_mail_status='requested')
                 enqueue_verification_for_request(obj)
 
         return success(data=[], message='Links submitted successfully.')
