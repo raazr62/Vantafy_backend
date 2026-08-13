@@ -8,6 +8,8 @@ from .models import (
     LinkRemovalRequestFromAgencyMember,
     LinkRemovalVerification,
     UnauthorizedWebsiteAndEmail,
+    CustomerScanResultPageUrl,
+    AgencyMemberScanResultPageUrl,
 )
 from .verification import verify_url_availability
 from .utils import send_dmca_notice, extract_domain_from_url
@@ -99,6 +101,10 @@ def send_dmca_notice_task(self, request_id, request_type='customer'):
     if success:
         req.links = 'submitted'
         req.save(update_fields=['links', 'updated_at'])
+        if request_type == 'customer' and hasattr(req, 'customer') and req.customer:
+            CustomerScanResultPageUrl.objects.filter(customer_scan_result__customer=req.customer, page_url=url).update(send_mail_status='submitted')
+        elif request_type == 'agency' and hasattr(req, 'agency_member') and req.agency_member:
+            AgencyMemberScanResultPageUrl.objects.filter(agency_member_scan_result__agency_member=req.agency_member, page_url=url).update(send_mail_status='submitted')
         logger.info(f"Successfully sent DMCA notice email to {record.email} for domain {domain} (Link #{request_id})")
         return {'status': 'email_sent', 'to': record.email, 'domain': domain}
     else:

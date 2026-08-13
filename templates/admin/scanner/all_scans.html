@@ -1,0 +1,417 @@
+{% extends 'admin/base.html' %}
+{% load i18n %}
+
+{% block title %}
+All Scans Overview | {{ site_title|default:_('Django site admin') }}
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Styling for dark/light mode compatibility */
+    .scan-card-container {
+        background-color: #1e293b !important;
+        border: 1px solid #334155 !important;
+        color: #f8fafc !important;
+    }
+    .scan-text-title {
+        color: #ffffff !important;
+    }
+    .scan-text-subtitle {
+        color: #94a3b8 !important;
+    }
+    .scan-form-input, .scan-form-select {
+        background-color: #0f172a !important;
+        color: #ffffff !important;
+        border: 1px solid #475569 !important;
+        border-radius: 0.75rem !important;
+        padding: 0.5rem 1rem !important;
+        font-size: 0.875rem !important;
+    }
+    .scan-form-input::placeholder {
+        color: #64748b !important;
+    }
+    .scan-form-input:focus, .scan-form-select:focus {
+        border-color: #a855f7 !important;
+        outline: 2px solid #a855f7 !important;
+    }
+    .scan-btn-primary {
+        background-color: #9333ea !important;
+        color: #ffffff !important;
+        font-weight: 600 !important;
+        padding: 0.5rem 1.25rem !important;
+        border-radius: 0.75rem !important;
+        border: none !important;
+        cursor: pointer !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.375rem !important;
+    }
+    .scan-btn-primary:hover {
+        background-color: #7e22ce !important;
+    }
+    .scan-btn-secondary {
+        background-color: #334155 !important;
+        color: #f8fafc !important;
+        font-weight: 600 !important;
+        padding: 0.5rem 1.25rem !important;
+        border-radius: 0.75rem !important;
+        border: 1px solid #475569 !important;
+        text-decoration: none !important;
+        display: inline-block !important;
+    }
+    .tab-btn {
+        padding: 0.5rem 1rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    .tab-btn-active {
+        background-color: #9333ea;
+        color: #ffffff !important;
+    }
+    .tab-btn-inactive {
+        background-color: transparent;
+        color: #94a3b8 !important;
+    }
+    .tab-btn-inactive:hover {
+        background-color: rgba(51, 65, 85, 0.5);
+        color: #ffffff !important;
+    }
+    .scan-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    .scan-table th {
+        background-color: #0f172a;
+        color: #94a3b8;
+        font-weight: 600;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #334155;
+        text-align: left;
+    }
+    .scan-table td {
+        padding: 0.875rem 1rem;
+        border-bottom: 1px solid rgba(51, 65, 85, 0.6);
+        font-size: 0.875rem;
+        color: #e2e8f0;
+    }
+    .scan-table tr:hover td {
+        background-color: rgba(51, 65, 85, 0.4);
+    }
+    .badge-individual {
+        background-color: rgba(59, 130, 246, 0.15);
+        color: #60a5fa;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        padding: 0.25rem 0.625rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    .badge-agency {
+        background-color: rgba(168, 85, 247, 0.15);
+        color: #c084fc;
+        border: 1px solid rgba(168, 85, 247, 0.3);
+        padding: 0.25rem 0.625rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    .badge-count {
+        background-color: rgba(99, 102, 241, 0.15);
+        color: #818cf8;
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        padding: 0.25rem 0.625rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    .badge-status {
+        padding: 0.25rem 0.625rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: capitalize;
+    }
+    .status-completed {
+        background-color: rgba(34, 197, 94, 0.15);
+        color: #4ade80;
+        border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+    .status-running {
+        background-color: rgba(234, 179, 8, 0.15);
+        color: #facc15;
+        border: 1px solid rgba(234, 179, 8, 0.3);
+    }
+    .status-pending {
+        background-color: rgba(148, 163, 184, 0.15);
+        color: #cbd5e1;
+        border: 1px solid rgba(148, 163, 184, 0.3);
+    }
+    .status-failed {
+        background-color: rgba(239, 68, 68, 0.15);
+        color: #f87171;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    /* Light Mode Overrides */
+    html:not(.dark) .scan-card-container {
+        background-color: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        color: #0f172a !important;
+    }
+    html:not(.dark) .scan-text-title {
+        color: #0f172a !important;
+    }
+    html:not(.dark) .scan-text-subtitle {
+        color: #64748b !important;
+    }
+    html:not(.dark) .scan-form-input, html:not(.dark) .scan-form-select {
+        background-color: #f8fafc !important;
+        color: #0f172a !important;
+        border: 1px solid #cbd5e1 !important;
+    }
+    html:not(.dark) .scan-table th {
+        background-color: #f1f5f9;
+        color: #475569;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    html:not(.dark) .scan-table td {
+        border-bottom: 1px solid #f1f5f9;
+        color: #1e293b;
+    }
+    html:not(.dark) .scan-table tr:hover td {
+        background-color: #f8fafc;
+    }
+    html:not(.dark) .scan-btn-secondary {
+        background-color: #f1f5f9 !important;
+        color: #334155 !important;
+        border: 1px solid #cbd5e1 !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+    <div class="scan-card-container p-6 rounded-2xl shadow-xl mt-4">
+        
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-5 border-b border-slate-700/60">
+            <div class="flex items-center gap-4">
+                <div class="p-3 bg-purple-600/20 rounded-xl text-purple-400 shrink-0">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold scan-text-title">All Scans Overview</h1>
+                    <p class="text-sm scan-text-subtitle mt-0.5">Grouped scan summary across all Individual Customers and Agency Members</p>
+                </div>
+            </div>
+
+            <div>
+                <a href="{% url 'admin:scanner_customerscanprocessing_scannow' %}" class="scan-btn-primary">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Start New Scan
+                </a>
+            </div>
+        </div>
+
+        <!-- View Mode Navigation Tabs & Filters -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <!-- Tabs -->
+            <div class="flex items-center gap-2 bg-slate-800/80 p-1 rounded-xl border border-slate-700/60 w-fit">
+                <a href="?view_mode=grouped{% if search_query %}&q={{ search_query }}{% endif %}{% if scan_type_filter %}&scan_type={{ scan_type_filter }}{% endif %}" 
+                   class="tab-btn {% if view_mode != 'detailed' %}tab-btn-active{% else %}tab-btn-inactive{% endif %}">
+                    Grouped by Customer ({{ grouped_scans|length }})
+                </a>
+                <a href="?view_mode=detailed{% if search_query %}&q={{ search_query }}{% endif %}{% if scan_type_filter %}&scan_type={{ scan_type_filter }}{% endif %}" 
+                   class="tab-btn {% if view_mode == 'detailed' %}tab-btn-active{% else %}tab-btn-inactive{% endif %}">
+                    All Executions ({{ detailed_scans|length }})
+                </a>
+            </div>
+
+            <!-- Filter & Search Form -->
+            <form method="GET" action="" class="flex flex-col sm:flex-row items-center gap-3">
+                <input type="hidden" name="view_mode" value="{{ view_mode }}">
+                <div class="w-full sm:w-64">
+                    <input 
+                        type="text" 
+                        name="q" 
+                        value="{{ search_query }}" 
+                        placeholder="Search customer name or email..." 
+                        class="scan-form-input w-full"
+                    >
+                </div>
+                <div class="w-full sm:w-44">
+                    <select name="scan_type" class="scan-form-select w-full">
+                        <option value="">All Scan Types</option>
+                        <option value="Individual" {% if scan_type_filter == 'Individual' %}selected{% endif %}>Individual</option>
+                        <option value="Agency" {% if scan_type_filter == 'Agency' %}selected{% endif %}>Agency</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <button type="submit" class="scan-btn-primary">Filter</button>
+                    {% if search_query or scan_type_filter %}
+                        <a href="?view_mode={{ view_mode }}" class="scan-btn-secondary">Clear</a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        {% if view_mode == 'detailed' %}
+        <!-- DETAILED ALL EXECUTION LIST TABLE -->
+        <div class="overflow-x-auto rounded-xl border border-slate-700/60">
+            <table class="scan-table">
+                <thead>
+                    <tr>
+                        <th>Customer Name</th>
+                        <th>Customer Email</th>
+                        <th>Scan Type</th>
+                        <th>Last Scan Time</th>
+                        <th>Status</th>
+                        <th>Results</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for scan in detailed_scans %}
+                    <tr>
+                        <td class="font-semibold text-slate-100">{{ scan.customer_name }}</td>
+                        <td>{{ scan.customer_email }}</td>
+                        <td>
+                            {% if scan.scan_type == 'Individual' %}
+                                <span class="badge-individual">Individual</span>
+                            {% else %}
+                                <span class="badge-agency">Agency</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ scan.last_scan_time|date:"Y-m-d H:i:s"|default:"-" }}</td>
+                        <td>
+                            <span class="badge-status status-{{ scan.status_raw }}">
+                                {{ scan.status }}
+                            </span>
+                        </td>
+                        <td class="text-xs text-slate-400">
+                            {{ scan.total_images }} img / {{ scan.total_videos }} vid / {{ scan.total_page_urls }} urls
+                        </td>
+                        <td>
+                            <a href="{{ scan.detail_url }}" class="text-purple-400 hover:text-purple-300 font-medium text-xs underline">
+                                View Details &rarr;
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-8 text-slate-400">
+                            No individual scan runs found matching your criteria.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% else %}
+        <!-- GROUPED BY CUSTOMER TABLE -->
+        <div class="overflow-x-auto rounded-xl border border-slate-700/60">
+            <table class="scan-table">
+                <thead>
+                    <tr>
+                        <th>Customer Name</th>
+                        <th>Customer Email</th>
+                        <th>Scan Type</th>
+                        <th>Total Scans</th>
+                        <th>Last Scan Time</th>
+                        <th>Latest Status</th>
+                        <th>Total Results</th>
+                        <th>Quick Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for group in grouped_scans %}
+                    <tr>
+                        <td class="font-semibold text-slate-100">
+                            <a href="{{ group.detail_url }}" class="hover:text-purple-400 hover:underline">
+                                {{ group.customer_name }}
+                            </a>
+                        </td>
+                        <td>{{ group.customer_email }}</td>
+                        <td>
+                            {% if group.scan_type == 'Individual' %}
+                                <span class="badge-individual">Individual</span>
+                            {% else %}
+                                <span class="badge-agency">Agency</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge-count">{{ group.total_scans }} Scan{% if group.total_scans > 1 %}s{% endif %}</span>
+                        </td>
+                        <td>{{ group.last_scan_time|date:"Y-m-d H:i:s"|default:"-" }}</td>
+                        <td>
+                            <span class="badge-status status-{{ group.status_raw }}">
+                                {{ group.status }}
+                            </span>
+                        </td>
+                        <td class="text-xs text-slate-300 font-medium">
+                            <span class="text-purple-300">{{ group.total_images }}</span> images &bull;
+                            <span class="text-blue-300">{{ group.total_videos }}</span> videos &bull;
+                            <span class="text-emerald-300">{{ group.total_page_urls }}</span> urls
+                        </td>
+                        <td>
+                            <a href="{{ group.detail_url }}" 
+                               class="px-2.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs rounded-lg inline-flex items-center gap-1 transition mr-2">
+                                View Details &rarr;
+                            </a>
+                            {% if group.scan_type == 'Individual' %}
+                                <a href="{% url 'admin:scanner_customerscanusersummary_changelist' %}?q={{ group.customer_email }}" 
+                                   class="text-slate-400 hover:text-slate-200 font-medium text-xs underline mr-1.5">
+                                    Results
+                                </a>
+                                <a href="{% url 'admin:scanner_customerscanresultimage_changelist' %}?q={{ group.customer_email }}" 
+                                   class="text-slate-400 hover:text-slate-200 font-medium text-xs underline mr-1.5">
+                                    Images
+                                </a>
+                                <a href="{% url 'admin:scanner_customerscanresultpageurl_changelist' %}?q={{ group.customer_email }}" 
+                                   class="text-slate-400 hover:text-slate-200 font-medium text-xs underline">
+                                    Links
+                                </a>
+                            {% else %}
+                                <a href="{% url 'admin:scanner_agencymemberscanusersummary_changelist' %}?q={{ group.customer_name }}" 
+                                   class="text-slate-400 hover:text-slate-200 font-medium text-xs underline mr-1.5">
+                                    Results
+                                </a>
+                                <a href="{% url 'admin:scanner_agencymemberscanresultimage_changelist' %}?q={{ group.customer_name }}" 
+                                   class="text-slate-400 hover:text-slate-200 font-medium text-xs underline mr-1.5">
+                                    Images
+                                </a>
+                                <a href="{% url 'admin:scanner_agencymemberscanresultpageurl_changelist' %}?q={{ group.customer_name }}" 
+                                   class="text-slate-400 hover:text-slate-200 font-medium text-xs underline">
+                                    Links
+                                </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-8 text-slate-400">
+                            No scan groups found matching your criteria.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}
