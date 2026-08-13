@@ -88,6 +88,41 @@ def get_unfold_settings():
                     ],
                 },
                 {
+                    "title": _("Scan Management"),
+                    "separator": True,
+                    "collapsible": True,
+                    "items": [
+                        {
+                            "title": _("All Scans Overview"),
+                            "icon": "auto_awesome_motion",
+                            "link": reverse_lazy(
+                                "admin:scanner_customerscanprocessing_allscans"
+                            ),
+                        },
+                        {
+                            "title": _("Scan Results"),
+                            "icon": "check_circle",
+                            "link": reverse_lazy(
+                                "admin:scanner_customerscanusersummary_changelist"
+                            ),
+                        },
+                        {
+                            "title": _("Images"),
+                            "icon": "image",
+                            "link": reverse_lazy(
+                                "admin:scanner_customerscanresultimage_changelist"
+                            ),
+                        },
+                        {
+                            "title": _("Links"),
+                            "icon": "link",
+                            "link": reverse_lazy(
+                                "admin:scanner_customerscanresultpageurl_changelist"
+                            ),
+                        },
+                    ],
+                },
+                {
                     "title": _("Individual User Scan Management"),
                     "separator": True,
                     "collapsible": True,
@@ -113,11 +148,23 @@ def get_unfold_settings():
                                 "admin:scanner_customerscanusersummary_changelist"
                             ),
                         },
-                        
+                        {
+                            "title": _("Images"),
+                            "icon": "image",
+                            "link": reverse_lazy(
+                                "admin:scanner_customerscanresultimage_changelist"
+                            ),
+                        },
+                        {
+                            "title": _("Links"),
+                            "icon": "link",
+                            "link": reverse_lazy(
+                                "admin:scanner_customerscanresultpageurl_changelist"
+                            ),
+                        },
                     ],
                 },
-            
-                            {
+                {
                     "title": _("Agency Scan Management"),
                     "separator": True,
                     "collapsible": True,
@@ -136,7 +183,20 @@ def get_unfold_settings():
                                 "admin:scanner_agencymemberscanusersummary_changelist"
                             ),
                         },
-                        
+                        {
+                            "title": _("Images"),
+                            "icon": "image",
+                            "link": reverse_lazy(
+                                "admin:scanner_agencymemberscanresultimage_changelist"
+                            ),
+                        },
+                        {
+                            "title": _("Links"),
+                            "icon": "link",
+                            "link": reverse_lazy(
+                                "admin:scanner_agencymemberscanresultpageurl_changelist"
+                            ),
+                        },
                     ],
                 },
                 {
