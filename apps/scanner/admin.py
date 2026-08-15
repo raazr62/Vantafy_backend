@@ -3,6 +3,7 @@ from django.urls import path
 from django.shortcuts import render, redirect
 from unfold.admin import ModelAdmin, TabularInline
 from unfold.decorators import action
+from django.db.models import Count
 from apps.user.models import User
 from .services import run_all_spiders_async
 from .models import (
@@ -162,6 +163,104 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                     django_messages.warning(request, "No links were selected for sending emails.")
                 return redirect(request.path)
 
+            elif action == "add_manual_links":
+                raw_links = request.POST.get("manual_links", "").strip()
+                if not raw_links:
+                    django_messages.warning(request, "Please enter at least one link.")
+                    return redirect(request.path)
+
+                from urllib.parse import urlparse
+                lines = [line.strip().strip("[]() ") for line in raw_links.splitlines() if line.strip()]
+                added_count = 0
+
+                customer_user = None
+                agency_user = None
+                agency_member_obj = None
+                job_obj = None
+
+                if target_type == "customer":
+                    customer_user = User.objects.filter(id=target_id).first()
+                elif target_type == "agency_member":
+                    agency_member_obj = AgencyMemberList.objects.select_related('agency').filter(id=target_id).first()
+                    agency_user = agency_member_obj.agency if agency_member_obj else None
+                elif target_type == "customer_job":
+                    job_obj = CustomerScanProcessing.objects.select_related('customer').filter(id=target_id).first()
+                    customer_user = job_obj.customer if job_obj else None
+                elif target_type == "agency_job":
+                    job_obj = AgencyMemberScanProcessing.objects.select_related('agency', 'agency_member').filter(id=target_id).first()
+                    agency_user = job_obj.agency if job_obj else None
+                    agency_member_obj = job_obj.agency_member if job_obj else None
+
+                for link_url in lines:
+                    formatted_url = link_url
+                    if not (formatted_url.startswith("http://") or formatted_url.startswith("https://")):
+                        formatted_url = "https://" + formatted_url
+
+                    parsed = urlparse(formatted_url)
+                    website_source = parsed.netloc or "manual-entry"
+
+                    if target_type in ["customer", "customer_job"]:
+                        if target_type == "customer":
+                            scan_res = CustomerScanResult.objects.filter(customer=customer_user, website=website_source).first()
+                            if not scan_res:
+                                scan_res = CustomerScanResult.objects.create(
+                                    customer=customer_user,
+                                    website=website_source,
+                                    status='action_taken'
+                                )
+                        else:
+                            scan_res = CustomerScanResult.objects.filter(scan_job=job_obj, website=website_source).first()
+                            if not scan_res:
+                                scan_res = CustomerScanResult.objects.create(
+                                    customer=customer_user,
+                                    scan_job=job_obj,
+                                    website=website_source,
+                                    status='action_taken'
+                                )
+
+                        _, created = CustomerScanResultPageUrl.objects.get_or_create(
+                            customer_scan_result=scan_res,
+                            page_url=formatted_url,
+                            defaults={'send_mail_status': 'pending'}
+                        )
+                        if created:
+                            added_count += 1
+
+                    elif target_type in ["agency_member", "agency_job"]:
+                        if target_type == "agency_member":
+                            scan_res = AgencyMemberScanResult.objects.filter(agency=agency_user, agency_member=agency_member_obj, website=website_source).first()
+                            if not scan_res:
+                                scan_res = AgencyMemberScanResult.objects.create(
+                                    agency=agency_user,
+                                    agency_member=agency_member_obj,
+                                    website=website_source,
+                                    status='action_taken'
+                                )
+                        else:
+                            scan_res = AgencyMemberScanResult.objects.filter(scan_job=job_obj, website=website_source).first()
+                            if not scan_res:
+                                scan_res = AgencyMemberScanResult.objects.create(
+                                    agency=agency_user,
+                                    agency_member=agency_member_obj,
+                                    scan_job=job_obj,
+                                    website=website_source,
+                                    status='action_taken'
+                                )
+
+                        _, created = AgencyMemberScanResultPageUrl.objects.get_or_create(
+                            agency_member_scan_result=scan_res,
+                            page_url=formatted_url,
+                            defaults={'send_mail_status': 'pending'}
+                        )
+                        if created:
+                            added_count += 1
+
+                if added_count > 0:
+                    django_messages.success(request, f"Successfully added {added_count} manual link(s).")
+                else:
+                    django_messages.info(request, "No new unique links were added (the links may already exist).")
+                return redirect(request.path)
+
         target_title = "Scan Details"
         target_subtitle = ""
         scan_type = "Individual"
@@ -176,7 +275,11 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                 target_title = customer.full_name or customer.email
                 target_subtitle = f"Customer Scan Overview for {customer.email}"
                 scan_type = "Individual Customer"
-                results_qs = CustomerScanResult.objects.filter(customer=customer).prefetch_related('image_entries', 'page_url_entries')
+                results_qs = CustomerScanResult.objects.filter(customer=customer).annotate(
+                    num_images=Count('image_entries', distinct=True),
+                    num_videos=Count('video_entries', distinct=True),
+                    num_page_urls=Count('page_url_entries', distinct=True)
+                ).prefetch_related('image_entries', 'video_entries', 'page_url_entries')
                 for res in results_qs:
                     c_url = reverse('admin:scanner_customerscanresult_change', args=[res.id])
                     scan_results.append({
@@ -196,7 +299,7 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                         images.append({
                             'id': img.id,
                             'image_url': img.image_url,
-                            'display_url': img.image.url if img.image else img.image_url,
+                            'display_url': img.image_url or (img.image.url if img.image.name else ''),
                             'website': res.website,
                         })
 
@@ -216,7 +319,11 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                 agency_email = member.agency.email if member.agency else ""
                 target_subtitle = f"Agency Member Scan Overview ({agency_email})"
                 scan_type = "Agency Member"
-                results_qs = AgencyMemberScanResult.objects.filter(agency_member=member).prefetch_related('image_entries', 'page_url_entries')
+                results_qs = AgencyMemberScanResult.objects.filter(agency_member=member).annotate(
+                    num_images=Count('image_entries', distinct=True),
+                    num_videos=Count('video_entries', distinct=True),
+                    num_page_urls=Count('page_url_entries', distinct=True)
+                ).prefetch_related('image_entries', 'video_entries', 'page_url_entries')
                 for res in results_qs:
                     c_url = reverse('admin:scanner_agencymemberscanresult_change', args=[res.id])
                     scan_results.append({
@@ -236,7 +343,7 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                         images.append({
                             'id': img.id,
                             'image_url': img.image_url,
-                            'display_url': img.image.url if img.image else img.image_url,
+                            'display_url': img.image_url or (img.image.url if img.image.name else ''),
                             'website': res.website,
                         })
 
@@ -256,7 +363,11 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                 c_email = job.customer.email if job.customer else "-"
                 target_subtitle = f"Individual Scan Run #{job.id} for {c_email}"
                 scan_type = "Individual Execution"
-                results_qs = job.results.all().prefetch_related('image_entries', 'page_url_entries')
+                results_qs = job.results.all().annotate(
+                    num_images=Count('image_entries', distinct=True),
+                    num_videos=Count('video_entries', distinct=True),
+                    num_page_urls=Count('page_url_entries', distinct=True)
+                ).prefetch_related('image_entries', 'video_entries', 'page_url_entries')
                 for res in results_qs:
                     c_url = reverse('admin:scanner_customerscanresult_change', args=[res.id])
                     scan_results.append({
@@ -276,7 +387,7 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                         images.append({
                             'id': img.id,
                             'image_url': img.image_url,
-                            'display_url': img.image.url if img.image else img.image_url,
+                            'display_url': img.image.url or (img.image.url if img.image.name else ''),
                             'website': res.website,
                         })
 
@@ -296,7 +407,11 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                 a_email = job.agency.email if job.agency else "-"
                 target_subtitle = f"Agency Scan Run #{job.id} for {a_email}"
                 scan_type = "Agency Execution"
-                results_qs = job.results.all().prefetch_related('image_entries', 'page_url_entries')
+                results_qs = job.results.all().annotate(
+                    num_images=Count('image_entries', distinct=True),
+                    num_videos=Count('video_entries', distinct=True),
+                    num_page_urls=Count('page_url_entries', distinct=True)
+                ).prefetch_related('image_entries', 'video_entries', 'page_url_entries')
                 for res in results_qs:
                     c_url = reverse('admin:scanner_agencymemberscanresult_change', args=[res.id])
                     scan_results.append({
@@ -316,7 +431,7 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                         images.append({
                             'id': img.id,
                             'image_url': img.image_url,
-                            'display_url': img.image.url if img.image else img.image_url,
+                            'display_url': img.image_url or (img.image.url if img.image.name else ''),
                             'website': res.website,
                         })
 
@@ -350,8 +465,18 @@ class CustomerScanProcessingAdmin(ModelAdmin):
         scan_type_filter = request.GET.get('scan_type', '').strip()
         view_mode = request.GET.get('view_mode', 'grouped').strip()
 
-        customer_scans = CustomerScanProcessing.objects.select_related('customer').all()
-        agency_scans = AgencyMemberScanProcessing.objects.select_related('agency', 'agency_member').all()
+        from django.db.models import Count
+
+        customer_scans = CustomerScanProcessing.objects.select_related('customer').annotate(
+            num_images=Count('results__image_entries', distinct=True),
+            num_videos=Count('results__video_entries', distinct=True),
+            num_page_urls=Count('results__page_url_entries', distinct=True),
+        ).all()
+        agency_scans = AgencyMemberScanProcessing.objects.select_related('agency', 'agency_member').annotate(
+            num_images=Count('results__image_entries', distinct=True),
+            num_videos=Count('results__video_entries', distinct=True),
+            num_page_urls=Count('results__page_url_entries', distinct=True),
+        ).all()
 
         detailed_scans = []
 

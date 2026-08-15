@@ -264,19 +264,21 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
             {% csrf_token %}
 
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 pb-3 border-b border-slate-700/60">
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 cursor-pointer select-none" onclick="toggleAccordion('links')">
                     <div class="p-2.5 bg-emerald-500/20 rounded-xl text-emerald-400">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
                         </svg>
                     </div>
                     <div>
-                        <h2 class="text-xl font-bold text-slate-100">1. Links</h2>
+                        <h2 class="text-xl font-bold text-slate-100 flex items-center gap-2">
+                            1. Links
+                        </h2>
                         <p class="text-xs text-slate-400">All page links discovered during scanning</p>
                     </div>
                 </div>
 
-                <!-- Action Controls: Choice count, Delete & Send Mail buttons -->
+                <!-- Action Controls: Choice count, Delete & Send Mail buttons + Accordion toggle -->
                 <div class="flex items-center gap-2.5 flex-wrap">
                     <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full text-xs font-semibold mr-1">
                         {{ page_urls|length }} Link{% if page_urls|length != 1 %}s{% endif %}
@@ -300,8 +302,8 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                             name="action"
                             value="send_mail"
                             onclick="return confirm('Send DMCA notice email(s) for the selected link(s)?');" 
-                            class="px-3 py-1.5 !bg-emerald-600 hover:!bg-emerald-700 !text-white font-semibold text-xs rounded-lg inline-flex items-center gap-1.5 transition cursor-pointer shadow-sm"
-                            style="background-color: #059669 !important; color: #ffffff !important;"
+                            class="px-3 py-1.5 !bg-emerald-600 hover:!bg-emerald-700 !text-white font-semibold text-xs rounded-lg inline-flex items-center gap-1.5 transition cursor-pointer shadow-sm mr-2"
+                            style="background-color: #059669 !important; color: #ffffff !important; margin-right: 8px !important;"
                             title="Send DMCA notice mail for selected links">
                         <svg class="w-4 h-4" style="width: 16px; height: 16px; min-width: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
@@ -309,86 +311,148 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                         Send Mail
                     </button>
                     {% endif %}
+
+                    <!-- Add Links Button -->
+                    <button type="button" 
+                            onclick="toggleAddLinksForm()" 
+                            class="px-3 py-1.5 !bg-purple-600 hover:!bg-purple-700 !text-white font-semibold text-xs rounded-lg inline-flex items-center gap-1.5 transition cursor-pointer shadow-sm mr-2"
+                            style="background-color: #9333ea !important; color: #ffffff !important; margin-right: 8px !important;"
+                            title="Add Links Manually">
+                        <svg class="w-4 h-4" style="width: 16px; height: 16px; min-width: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Add Links
+                    </button>
+
+                    <!-- Accordion (+/-) Toggle Button -->
+                    <button type="button" 
+                            onclick="toggleAccordion('links')" 
+                            class="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono font-bold text-base border border-slate-700 transition cursor-pointer ml-1 select-none"
+                            title="Expand / Collapse Links Section">
+                        <span id="links-accordion-icon">&minus;</span>
+                    </button>
                 </div>
             </div>
 
-            <div class="overflow-x-auto rounded-xl border border-slate-700/60">
-                <table class="scan-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 40px;" class="text-center">
-                                <input type="checkbox" 
-                                       id="select-all-links" 
-                                       class="rounded border-slate-600 text-purple-600 focus:ring-purple-500 bg-slate-900 cursor-pointer" 
-                                       onclick="toggleSelectAllLinks(this)"
-                                       title="Select / Deselect all links">
-                            </th>
-                            <th style="width: 50px;">#</th>
-                            <th>Discovered Page URL</th>
-                            <th>Website / Source</th>
-                            <th>Mail Status</th>
-                            <th style="width: 140px;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in page_urls %}
-                        <tr>
-                            <td class="text-center">
-                                <input type="checkbox" 
-                                       name="selected_link_ids" 
-                                       value="{{ item.id }}" 
-                                       class="link-checkbox rounded border-slate-600 text-purple-600 focus:ring-purple-500 bg-slate-900 cursor-pointer">
-                            </td>
-                            <td class="text-slate-400 font-mono text-xs">{{ forloop.counter }}</td>
-                            <td class="font-mono text-xs text-emerald-300 break-all">
-                                <a href="{{ item.page_url }}" target="_blank" class="hover:underline inline-flex items-center gap-1.5 max-w-full">
-                                    <span class="break-all">{{ item.page_url }}</span>
-                                    <svg class="w-3.5 h-3.5 shrink-0 opacity-75" style="width: 14px; height: 14px; min-width: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                                    </svg>
-                                </a>
-                            </td>
-                            <td>
-                                <span class="px-2.5 py-1 bg-slate-800 text-slate-300 border border-slate-700 rounded-lg text-xs font-medium">
-                                    {{ item.website }}
-                                </span>
-                            </td>
-                            <td>
-                                {% if item.send_mail_status == 'submitted' %}
-                                    <span class="px-2.5 py-1 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 rounded-full text-xs font-semibold">
-                                        Submitted
+            <!-- Links Body -->
+            <div id="links-body" class="transition-all duration-300">
+                <!-- Add Links Form Container (Hidden by default) -->
+                <div id="add-links-container" class="hidden mb-4 p-4 bg-slate-800/90 rounded-xl border border-purple-500/30 shadow-md">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            Add Links Manually
+                        </h3>
+                        <span class="text-xs text-purple-300 bg-purple-500/10 px-2.5 py-0.5 rounded border border-purple-500/20 font-medium">Paste line by line</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-3">Paste your URLs below (one link per line). The website domain source will automatically be detected and saved for each link.</p>
+                    
+                    <div class="mb-3">
+                        <textarea name="manual_links" 
+                                  rows="4" 
+                                  class="w-full p-3 bg-slate-900 text-slate-100 border border-slate-700 rounded-lg text-xs font-mono focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                                  placeholder="https://www.bigtitslust.com/videos/46580/example1&#10;https://www.bigtitslust.com/videos/447712/example2"></textarea>
+                    </div>
+                    
+                    <div class="flex items-center justify-end gap-2">
+                        <button type="button" 
+                                onclick="toggleAddLinksForm()" 
+                                class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 font-medium text-xs rounded-lg transition cursor-pointer">
+                            Cancel
+                        </button>
+                        <button type="submit" 
+                                name="action" 
+                                value="add_manual_links" 
+                                class="px-4 py-1.5 !bg-purple-600 hover:!bg-purple-700 !text-white font-semibold text-xs rounded-lg inline-flex items-center gap-1.5 transition cursor-pointer shadow-sm"
+                                style="background-color: #9333ea !important; color: #ffffff !important;">
+                            <svg class="w-4 h-4" style="width: 16px; height: 16px; min-width: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Save Links
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto rounded-xl border border-slate-700/60">
+                    <table class="scan-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;" class="text-center">
+                                    <input type="checkbox" 
+                                           id="select-all-links" 
+                                           class="rounded border-slate-600 text-purple-600 focus:ring-purple-500 bg-slate-900 cursor-pointer" 
+                                           onclick="toggleSelectAllLinks(this)"
+                                           title="Select / Deselect all links">
+                                </th>
+                                <th style="width: 50px;">#</th>
+                                <th>Discovered Page URL</th>
+                                <th>Website / Source</th>
+                                <th>Mail Status</th>
+                                <th style="width: 140px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in page_urls %}
+                            <tr>
+                                <td class="text-center">
+                                    <input type="checkbox" 
+                                           name="selected_link_ids" 
+                                           value="{{ item.id }}" 
+                                           class="link-checkbox rounded border-slate-600 text-purple-600 focus:ring-purple-500 bg-slate-900 cursor-pointer">
+                                </td>
+                                <td class="text-slate-400 font-mono text-xs">{{ forloop.counter }}</td>
+                                <td class="font-mono text-xs text-emerald-300 break-all">
+                                    <a href="{{ item.page_url }}" target="_blank" class="hover:underline inline-flex items-center gap-1.5 max-w-full">
+                                        <span class="break-all">{{ item.page_url }}</span>
+                                        <svg class="w-3.5 h-3.5 shrink-0 opacity-75" style="width: 14px; height: 14px; min-width: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                        </svg>
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="px-2.5 py-1 bg-slate-800 text-slate-300 border border-slate-700 rounded-lg text-xs font-medium">
+                                        {{ item.website }}
                                     </span>
-                                {% elif item.send_mail_status == 'requested' %}
-                                    <span class="px-2.5 py-1 bg-blue-500/15 text-blue-400 border border-blue-500/30 rounded-full text-xs font-semibold">
-                                        Requested
-                                    </span>
-                                {% else %}
-                                    <span class="px-2.5 py-1 bg-amber-500/15 text-amber-400 border border-amber-500/30 rounded-full text-xs font-semibold">
-                                        Pending
-                                    </span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <div class="flex items-center gap-2">
-                                    <button type="button" 
-                                            onclick="navigator.clipboard.writeText('{{ item.page_url|escapejs }}').then(() => { var msg=this.nextElementSibling; msg.style.display='inline'; setTimeout(()=>{msg.style.display='none';}, 1500); });" 
-                                            class="px-2 py-1 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded text-xs font-medium transition"
-                                            title="Copy URL">
-                                        Copy Link
-                                    </button>
-                                    <span style="display: none;" class="text-xs text-emerald-400 font-semibold">Copied!</span>
-                                </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="6" class="text-center py-8 text-slate-400">
-                                No page links discovered for this scan item.
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                                </td>
+                                <td>
+                                    {% if item.send_mail_status == 'submitted' %}
+                                        <span class="px-2.5 py-1 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 rounded-full text-xs font-semibold">
+                                            Submitted
+                                        </span>
+                                    {% elif item.send_mail_status == 'requested' %}
+                                        <span class="px-2.5 py-1 bg-blue-500/15 text-blue-400 border border-blue-500/30 rounded-full text-xs font-semibold">
+                                            Requested
+                                        </span>
+                                    {% else %}
+                                        <span class="px-2.5 py-1 bg-amber-500/15 text-amber-400 border border-amber-500/30 rounded-full text-xs font-semibold">
+                                            Pending
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" 
+                                                onclick="navigator.clipboard.writeText('{{ item.page_url|escapejs }}').then(() => { var msg=this.nextElementSibling; msg.style.display='inline'; setTimeout(()=>{msg.style.display='none';}, 1500); });" 
+                                                class="px-2 py-1 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded text-xs font-medium transition"
+                                                title="Copy URL">
+                                            Copy Link
+                                        </button>
+                                        <span style="display: none;" class="text-xs text-emerald-400 font-semibold">Copied!</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-8 text-slate-400">
+                                    No page links discovered for this scan item.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </form>
     </div>
@@ -409,14 +473,16 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
             {% csrf_token %}
 
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 pb-3 border-b border-slate-700/60">
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 cursor-pointer select-none" onclick="toggleAccordion('images')">
                     <div class="p-2.5 bg-blue-500/20 rounded-xl text-blue-400">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                         </svg>
                     </div>
                     <div>
-                        <h2 class="text-xl font-bold text-slate-100">2. Images</h2>
+                        <h2 class="text-xl font-bold text-slate-100 flex items-center gap-2">
+                            2. Images
+                        </h2>
                         <p class="text-xs text-slate-400">Gallery of image previews found during scanning</p>
                     </div>
                 </div>
@@ -450,66 +516,77 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                         Delete
                     </button>
                     {% endif %}
+
+                    <!-- Accordion (+/-) Toggle Button -->
+                    <button type="button" 
+                            onclick="toggleAccordion('images')" 
+                            class="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono font-bold text-base border border-slate-700 transition cursor-pointer ml-1 select-none"
+                            title="Expand / Collapse Images Section">
+                        <span id="images-accordion-icon">&minus;</span>
+                    </button>
                 </div>
             </div>
 
-            {% if images %}
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {% for img in images %}
-                <div class="image-card relative flex flex-col justify-between p-3">
-                    <div class="absolute top-4 left-4 z-10 bg-slate-900/80 p-1 rounded-md border border-slate-700/60 shadow-md">
-                        <input type="checkbox" 
-                               name="selected_image_ids" 
-                               value="{{ img.id }}" 
-                               class="image-checkbox rounded border-slate-600 text-blue-600 focus:ring-blue-500 bg-slate-900 cursor-pointer w-4 h-4 block">
-                    </div>
-
-                    <div class="relative w-full h-44 bg-slate-900 rounded-lg overflow-hidden flex items-center justify-center border border-slate-700/50 mb-3">
-                        {% if img.display_url %}
-                            <img src="{{ img.display_url }}" 
-                                 alt="Scan result image" 
-                                 class="w-full h-full object-contain hover:scale-105 transition-transform duration-300"
-                                 loading="lazy" 
-                                 onerror="this.onerror=null; this.src='https://placehold.co/300x200?text=No+Preview+Available';" />
-                        {% else %}
-                            <span class="text-slate-500 text-xs">No Preview</span>
-                        {% endif %}
-                    </div>
-
-                    <div>
-                        <div class="flex items-center justify-between gap-2 mb-2">
-                            <span class="px-2 py-0.5 bg-slate-800 text-slate-300 border border-slate-700 rounded text-xs font-medium truncate max-w-[150px]">
-                                {{ img.website }}
-                            </span>
+            <!-- Images Body -->
+            <div id="images-body" class="transition-all duration-300">
+                {% if images %}
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {% for img in images %}
+                    <div class="image-card relative flex flex-col justify-between p-3">
+                        <div class="absolute top-4 left-4 z-10 bg-slate-900/80 p-1 rounded-md border border-slate-700/60 shadow-md">
+                            <input type="checkbox" 
+                                   name="selected_image_ids" 
+                                   value="{{ img.id }}" 
+                                   class="image-checkbox rounded border-slate-600 text-blue-600 focus:ring-blue-500 bg-slate-900 cursor-pointer w-4 h-4 block">
                         </div>
 
-                        <p class="text-xs font-mono text-slate-400 truncate mb-3" title="{{ img.image_url }}">
-                            {{ img.image_url }}
-                        </p>
-
-                        <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-700/50">
-                            <button type="button" 
-                                    onclick="navigator.clipboard.writeText('{{ img.image_url|escapejs }}').then(() => { var msg=this.nextElementSibling; msg.style.display='inline'; setTimeout(()=>{msg.style.display='none';}, 1500); });" 
-                                    class="text-xs text-blue-400 hover:text-blue-300 font-medium underline">
-                                Copy Link
-                            </button>
-                            <span style="display: none;" class="text-xs text-emerald-400 font-semibold">Copied!</span>
-
+                        <div class="relative w-full h-44 bg-slate-900 rounded-lg overflow-hidden flex items-center justify-center border border-slate-700/50 mb-3">
                             {% if img.display_url %}
-                            <a href="{{ img.display_url }}" target="_blank" class="text-xs text-purple-400 hover:text-purple-300 font-medium underline flex items-center gap-1">
-                                View Full &rarr;
-                            </a>
+                                <img src="{{ img.display_url }}" 
+                                     alt="Scan result image" 
+                                     class="w-full h-full object-contain hover:scale-105 transition-transform duration-300"
+                                     loading="lazy" 
+                                     onerror="this.onerror=null; this.src='https://placehold.co/300x200?text=No+Preview+Available';" />
+                            {% else %}
+                                <span class="text-slate-500 text-xs">No Preview</span>
                             {% endif %}
                         </div>
+
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <span class="px-2 py-0.5 bg-slate-800 text-slate-300 border border-slate-700 rounded text-xs font-medium truncate max-w-[150px]">
+                                    {{ img.website }}
+                                </span>
+                            </div>
+
+                            <p class="text-xs font-mono text-slate-400 truncate mb-3" title="{{ img.image_url }}">
+                                {{ img.image_url }}
+                            </p>
+
+                            <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-700/50">
+                                <button type="button" 
+                                        onclick="navigator.clipboard.writeText('{{ img.image_url|escapejs }}').then(() => { var msg=this.nextElementSibling; msg.style.display='inline'; setTimeout(()=>{msg.style.display='none';}, 1500); });" 
+                                        class="text-xs text-blue-400 hover:text-blue-300 font-medium underline">
+                                    Copy Link
+                                </button>
+                                <span style="display: none;" class="text-xs text-emerald-400 font-semibold">Copied!</span>
+
+                                {% if img.display_url %}
+                                <a href="{{ img.display_url }}" target="_blank" class="text-xs text-purple-400 hover:text-purple-300 font-medium underline flex items-center gap-1">
+                                    View Full &rarr;
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
+                {% else %}
+                <div class="text-center py-10 bg-slate-900/40 rounded-xl border border-slate-700/50 text-slate-400">
+                    No images discovered for this scan item.
+                </div>
+                {% endif %}
             </div>
-            {% else %}
-            <div class="text-center py-10 bg-slate-900/40 rounded-xl border border-slate-700/50 text-slate-400">
-                No images discovered for this scan item.
-            </div>
-            {% endif %}
         </form>
     </div>
 
@@ -526,96 +603,139 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
     <!-- ================================================================= -->
     <div id="scan-results-section" class="scan-section-card shadow-lg">
         <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-700/60">
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 cursor-pointer select-none" onclick="toggleAccordion('scan-results')">
                 <div class="p-2.5 bg-purple-500/20 rounded-xl text-purple-400">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                 </div>
                 <div>
-                    <h2 class="text-xl font-bold text-slate-100">3. Scan Results</h2>
+                    <h2 class="text-xl font-bold text-slate-100 flex items-center gap-2">
+                        3. Scan Results
+                    </h2>
                     <p class="text-xs text-slate-400">Scanned website summaries and execution status</p>
                 </div>
             </div>
-            <span class="px-3 py-1 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-full text-xs font-semibold">
-                {{ scan_results|length }} Website Result{% if scan_results|length != 1 %}s{% endif %}
-            </span>
+            
+            <div class="flex items-center gap-2.5">
+                <span class="px-3 py-1 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-full text-xs font-semibold">
+                    {{ scan_results|length }} Website Result{% if scan_results|length != 1 %}s{% endif %}
+                </span>
+
+                <!-- Accordion (+/-) Toggle Button -->
+                <button type="button" 
+                        onclick="toggleAccordion('scan-results')" 
+                        class="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono font-bold text-base border border-slate-700 transition cursor-pointer ml-1 select-none"
+                        title="Expand / Collapse Scan Results Section">
+                    <span id="scan-results-accordion-icon">&minus;</span>
+                </button>
+            </div>
         </div>
 
-        <div class="overflow-x-auto rounded-xl border border-slate-700/60">
-            <table class="scan-table">
-                <thead>
-                    <tr>
-                        <th>Website Name</th>
-                        <th>Review Status</th>
-                        <th>Profile URL</th>
-                        <th>Contact Emails</th>
-                        <th>Content Found</th>
-                        <th>Created At</th>
-                        <th>Admin Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for res in scan_results %}
-                    <tr>
-                        <td class="font-bold text-slate-100">{{ res.website }}</td>
-                        <td>
-                            <span class="badge-status status-{{ res.status }}">
-                                {{ res.get_status_display }}
-                            </span>
-                        </td>
-                        <td class="font-mono text-xs">
-                            {% if res.profile_url %}
-                                <a href="{{ res.profile_url }}" target="_blank" class="text-blue-400 hover:underline inline-flex items-center gap-1 max-w-full">
-                                    <span class="truncate max-w-[200px] inline-block">{{ res.profile_url }}</span>
-                                    <svg class="w-3 h-3 shrink-0" style="width: 12px; height: 12px; min-width: 12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                                    </svg>
-                                </a>
-                            {% else %}
-                                <span class="text-slate-500">-</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-xs">
-                            {% if res.contact_emails %}
-                                <div class="flex flex-wrap gap-1">
-                                    {% for email in res.contact_emails %}
-                                        <span class="px-2 py-0.5 bg-slate-800 text-slate-300 rounded border border-slate-700 font-mono">{{ email }}</span>
-                                    {% endfor %}
-                                </div>
-                            {% else %}
-                                <span class="text-slate-500">-</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-xs text-slate-300 font-medium">
-                            <span class="text-blue-300 font-semibold">{{ res.total_images }}</span> images &bull;
-                            <span class="text-purple-300 font-semibold">{{ res.total_videos }}</span> videos &bull;
-                            <span class="text-emerald-300 font-semibold">{{ res.total_page_urls }}</span> urls
-                        </td>
-                        <td class="text-xs text-slate-400">
-                            {{ res.created_at|date:"Y-m-d H:i" }}
-                        </td>
-                        <td>
-                            {% if res.change_url %}
-                                <a href="{{ res.change_url }}" class="text-purple-400 hover:text-purple-300 font-medium text-xs underline">
-                                    Edit Entry &rarr;
-                                </a>
-                            {% else %}
-                                <span class="text-slate-500">-</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="7" class="text-center py-8 text-slate-400">
-                            No scan result records available for this scan item.
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <!-- Scan Results Body -->
+        <div id="scan-results-body" class="transition-all duration-300">
+            <div class="overflow-x-auto rounded-xl border border-slate-700/60">
+                <table class="scan-table">
+                    <thead>
+                        <tr>
+                            <th>Website Name</th>
+                            <th>Review Status</th>
+                            <th>Profile URL</th>
+                            <th>Contact Emails</th>
+                            <th>Content Found</th>
+                            <th>Created At</th>
+                            <th>Admin Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for res in scan_results %}
+                        <tr>
+                            <td class="font-bold text-slate-100">{{ res.website }}</td>
+                            <td>
+                                <span class="badge-status status-{{ res.status }}">
+                                    {{ res.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="text-xs">
+                                {% if res.profile_url %}
+                                    <a href="{{ res.profile_url }}" 
+                                       target="_blank" 
+                                       class="px-2.5 py-1 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/20 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 transition shadow-sm whitespace-nowrap"
+                                       title="{{ res.profile_url }}">
+                                        <span>View Profile</span>
+                                        <svg class="w-3 h-3 shrink-0 opacity-80" style="width: 12px; height: 12px; min-width: 12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                        </svg>
+                                    </a>
+                                {% else %}
+                                    <span class="text-slate-500">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-xs">
+                                {% if res.contact_emails %}
+                                    <div class="flex flex-wrap gap-1">
+                                        {% for email in res.contact_emails %}
+                                            <span class="px-2 py-0.5 bg-slate-800 text-slate-300 rounded border border-slate-700 font-mono">{{ email }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <span class="text-slate-500">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-xs text-slate-300 font-medium">
+                                <span class="text-blue-300 font-semibold">{{ res.total_images }}</span> images &bull;
+                                <span class="text-purple-300 font-semibold">{{ res.total_videos }}</span> videos &bull;
+                                <span class="text-emerald-300 font-semibold">{{ res.total_page_urls }}</span> urls
+                            </td>
+                            <td class="text-xs text-slate-400">
+                                {{ res.created_at|date:"Y-m-d H:i" }}
+                            </td>
+                            <td>
+                                {% if res.change_url %}
+                                    <a href="{{ res.change_url }}" class="text-purple-400 hover:text-purple-300 font-medium text-xs underline">
+                                        Edit Entry &rarr;
+                                    </a>
+                                {% else %}
+                                    <span class="text-slate-500">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-8 text-slate-400">
+                                No scan result records available for this scan item.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
+
+    <!-- Accordion & Add Links Toggle JavaScript Helpers -->
+    <script>
+    function toggleAccordion(sectionPrefix) {
+        const body = document.getElementById(sectionPrefix + '-body');
+        const icon = document.getElementById(sectionPrefix + '-accordion-icon');
+        if (!body) return;
+
+        if (body.classList.contains('hidden')) {
+            body.classList.remove('hidden');
+            if (icon) icon.innerHTML = '&minus;';
+        } else {
+            body.classList.add('hidden');
+            if (icon) icon.innerHTML = '&#43;';
+        }
+    }
+
+    function toggleAddLinksForm() {
+        const container = document.getElementById('add-links-container');
+        if (container) {
+            container.classList.toggle('hidden');
+        }
+    }
+    </script>
 
 </div>
 {% endblock %}
