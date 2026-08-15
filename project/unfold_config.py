@@ -3,6 +3,10 @@ from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 
 
+from functools import lru_cache
+
+
+@lru_cache(maxsize=1)
 def get_about_system():
     from apps.system_setting.models import AboutSystem
 
