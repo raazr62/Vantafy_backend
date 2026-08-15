@@ -50,14 +50,20 @@ class CustomerScanProcessing(models.Model):
     
     @property
     def total_images(self):
+        if hasattr(self, 'num_images'):
+            return self.num_images
         return sum(result.total_images for result in self.results.all())
     
     @property
     def total_videos(self):
+        if hasattr(self, 'num_videos'):
+            return self.num_videos
         return sum(result.total_videos for result in self.results.all())
     
     @property
     def total_page_urls(self):
+        if hasattr(self, 'num_page_urls'):
+            return self.num_page_urls
         return sum(result.total_page_urls for result in self.results.all())
 
 
@@ -88,14 +94,20 @@ class CustomerScanResult(models.Model):
     
     @property
     def total_images(self):
+        if hasattr(self, 'num_images'):
+            return self.num_images
         return self.image_entries.count()
 
     @property
     def total_videos(self):
+        if hasattr(self, 'num_videos'):
+            return self.num_videos
         return self.video_entries.count()
 
     @property
     def total_page_urls(self):
+        if hasattr(self, 'num_page_urls'):
+            return self.num_page_urls
         return self.page_url_entries.count()
     
     def add_image(self, original_url, content=None):
@@ -229,14 +241,20 @@ class AgencyMemberScanProcessing(models.Model):
     
     @property
     def total_images(self):
+        if hasattr(self, 'num_images'):
+            return self.num_images
         return sum(result.total_images for result in self.results.all())
     
     @property
     def total_videos(self):
+        if hasattr(self, 'num_videos'):
+            return self.num_videos
         return sum(result.total_videos for result in self.results.all())
 
     @property
     def total_page_urls(self):
+        if hasattr(self, 'num_page_urls'):
+            return self.num_page_urls
         return sum(result.total_page_urls for result in self.results.all())
     
 
@@ -268,14 +286,20 @@ class AgencyMemberScanResult(models.Model):
     
     @property
     def total_images(self):
+        if hasattr(self, 'num_images'):
+            return self.num_images
         return self.image_entries.count()
 
     @property
     def total_videos(self):
+        if hasattr(self, 'num_videos'):
+            return self.num_videos
         return self.video_entries.count()
 
     @property
     def total_page_urls(self):
+        if hasattr(self, 'num_page_urls'):
+            return self.num_page_urls
         return self.page_url_entries.count()
         
     def add_image(self, original_url, content=None):
