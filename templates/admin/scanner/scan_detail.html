@@ -329,13 +329,13 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                             onclick="toggleAccordion('links')" 
                             class="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono font-bold text-base border border-slate-700 transition cursor-pointer ml-1 select-none"
                             title="Expand / Collapse Links Section">
-                        <span id="links-accordion-icon">&minus;</span>
+                        <span id="links-accordion-icon">&#43;</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Links Body -->
-            <div id="links-body" class="transition-all duration-300">
+            <!-- Links Body (Default Collapsed) -->
+            <div id="links-body" class="hidden transition-all duration-300">
                 <!-- Add Links Form Container (Hidden by default) -->
                 <div id="add-links-container" class="hidden mb-4 p-4 bg-slate-800/90 rounded-xl border border-purple-500/30 shadow-md">
                     <div class="flex items-center justify-between mb-2">
@@ -404,11 +404,8 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                                 </td>
                                 <td class="text-slate-400 font-mono text-xs">{{ forloop.counter }}</td>
                                 <td class="font-mono text-xs text-emerald-300 break-all">
-                                    <a href="{{ item.page_url }}" target="_blank" class="hover:underline inline-flex items-center gap-1.5 max-w-full">
+                                    <a href="{{ item.page_url }}" target="_blank" class="hover:underline inline-block max-w-full">
                                         <span class="break-all">{{ item.page_url }}</span>
-                                        <svg class="w-3.5 h-3.5 shrink-0 opacity-75" style="width: 14px; height: 14px; min-width: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                                        </svg>
                                     </a>
                                 </td>
                                 <td>
@@ -507,8 +504,8 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                             name="action"
                             value="delete_images"
                             onclick="return confirm('Are you sure you want to delete the selected image(s)?');" 
-                            class="px-3 py-1.5 !bg-red-600 hover:!bg-red-700 !text-white font-semibold text-xs rounded-lg inline-flex items-center gap-1.5 transition cursor-pointer shadow-sm ml-1"
-                            style="background-color: #dc2626 !important; color: #ffffff !important;"
+                            class="px-3 py-1.5 !bg-red-600 hover:!bg-red-700 !text-white font-semibold text-xs rounded-lg inline-flex items-center gap-1.5 transition cursor-pointer shadow-sm ml-1 mr-2"
+                            style="background-color: #dc2626 !important; color: #ffffff !important; margin-right: 8px !important;"
                             title="Delete selected images">
                         <svg class="w-4 h-4" style="width: 16px; height: 16px; min-width: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -517,18 +514,68 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                     </button>
                     {% endif %}
 
+                    <!-- Add Images Button -->
+                    <button type="button" 
+                            onclick="toggleAddImagesForm()" 
+                            class="px-3 py-1.5 !bg-purple-600 hover:!bg-purple-700 !text-white font-semibold text-xs rounded-lg inline-flex items-center gap-1.5 transition cursor-pointer shadow-sm mr-2"
+                            style="background-color: #9333ea !important; color: #ffffff !important; margin-right: 8px !important;"
+                            title="Add Images Manually">
+                        <svg class="w-4 h-4" style="width: 16px; height: 16px; min-width: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Add Images
+                    </button>
+
                     <!-- Accordion (+/-) Toggle Button -->
                     <button type="button" 
                             onclick="toggleAccordion('images')" 
                             class="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono font-bold text-base border border-slate-700 transition cursor-pointer ml-1 select-none"
                             title="Expand / Collapse Images Section">
-                        <span id="images-accordion-icon">&minus;</span>
+                        <span id="images-accordion-icon">&#43;</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Images Body -->
-            <div id="images-body" class="transition-all duration-300">
+            <!-- Images Body (Default Collapsed) -->
+            <div id="images-body" class="hidden transition-all duration-300">
+                <!-- Add Images Form Container (Hidden by default) -->
+                <div id="add-images-container" class="hidden mb-4 p-4 bg-slate-800/90 rounded-xl border border-purple-500/30 shadow-md">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            Add Images Manually
+                        </h3>
+                        <span class="text-xs text-purple-300 bg-purple-500/10 px-2.5 py-0.5 rounded border border-purple-500/20 font-medium">Paste line by line</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-3">Paste image URLs below (one image link per line). The website domain source will automatically be detected and saved for each image.</p>
+                    
+                    <div class="mb-3">
+                        <textarea name="manual_images" 
+                                  rows="4" 
+                                  class="w-full p-3 bg-slate-900 text-slate-100 border border-slate-700 rounded-lg text-xs font-mono focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                                  placeholder="https://example.com/images/sample1.jpg&#10;https://example.com/images/sample2.png"></textarea>
+                    </div>
+                    
+                    <div class="flex items-center justify-end gap-2">
+                        <button type="button" 
+                                onclick="toggleAddImagesForm()" 
+                                class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 font-medium text-xs rounded-lg transition cursor-pointer">
+                            Cancel
+                        </button>
+                        <button type="submit" 
+                                name="action" 
+                                value="add_manual_images" 
+                                class="px-4 py-1.5 !bg-purple-600 hover:!bg-purple-700 !text-white font-semibold text-xs rounded-lg inline-flex items-center gap-1.5 transition cursor-pointer shadow-sm"
+                                style="background-color: #9333ea !important; color: #ffffff !important;">
+                            <svg class="w-4 h-4" style="width: 16px; height: 16px; min-width: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Save Images
+                        </button>
+                    </div>
+                </div>
                 {% if images %}
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {% for img in images %}
@@ -627,13 +674,13 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                         onclick="toggleAccordion('scan-results')" 
                         class="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono font-bold text-base border border-slate-700 transition cursor-pointer ml-1 select-none"
                         title="Expand / Collapse Scan Results Section">
-                    <span id="scan-results-accordion-icon">&minus;</span>
+                    <span id="scan-results-accordion-icon">&#43;</span>
                 </button>
             </div>
         </div>
 
-        <!-- Scan Results Body -->
-        <div id="scan-results-body" class="transition-all duration-300">
+        <!-- Scan Results Body (Default Collapsed) -->
+        <div id="scan-results-body" class="hidden transition-all duration-300">
             <div class="overflow-x-auto rounded-xl border border-slate-700/60">
                 <table class="scan-table">
                     <thead>
@@ -731,6 +778,13 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
 
     function toggleAddLinksForm() {
         const container = document.getElementById('add-links-container');
+        if (container) {
+            container.classList.toggle('hidden');
+        }
+    }
+
+    function toggleAddImagesForm() {
+        const container = document.getElementById('add-images-container');
         if (container) {
             container.classList.toggle('hidden');
         }
