@@ -19,7 +19,7 @@ def get_unfold_settings():
         "SITE_HEADER": lambda request: get_about_system().title,
         "SITE_SUBHEADER": lambda request: get_about_system().title,
         "SITE_URL": "https://vantafy.com",
-        "SITE_ICON": {
+        "SITE_LOGO": {
             "light": lambda request: get_about_system().logo.url,  # light mode
             "dark": lambda request: get_about_system().logo.url,  # dark mode
         },
@@ -95,6 +95,7 @@ def get_unfold_settings():
                     "title": _("Scan Management"),
                     "separator": True,
                     "collapsible": True,
+                    "collapsed": True,
                     "items": [
                         {
                             "title": _("All Scans Overview"),
@@ -130,6 +131,7 @@ def get_unfold_settings():
                     "title": _("Individual User Scan Management"),
                     "separator": True,
                     "collapsible": True,
+                    "collapsed": True,
                     "items": [
                         {
                             "title": _("Start Scan by Name"),
@@ -172,6 +174,7 @@ def get_unfold_settings():
                     "title": _("Agency Scan Management"),
                     "separator": True,
                     "collapsible": True,
+                    "collapsed": True,
                     "items": [
                         {
                             "title": _("Scan Processes"),
