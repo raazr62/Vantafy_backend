@@ -262,14 +262,16 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                 return redirect(request.path)
 
             elif action == "add_manual_images":
+                uploaded_files = request.FILES.getlist("manual_image_files")
                 raw_images = request.POST.get("manual_images", "").strip()
-                if not raw_images:
-                    django_messages.warning(request, "Please enter at least one image URL.")
+                custom_site = request.POST.get("website_source", "").strip()
+
+                if not uploaded_files and not raw_images:
+                    django_messages.warning(request, "Please select image file(s) to upload or enter image URLs.")
                     return redirect(request.path)
 
                 from urllib.parse import urlparse
                 from .models import CustomerScanResultImage, AgencyMemberScanResultImage
-                lines = [line.strip().strip("[]() ") for line in raw_images.splitlines() if line.strip()]
                 added_count = 0
 
                 customer_user = None
@@ -290,72 +292,136 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                     agency_user = job_obj.agency if job_obj else None
                     agency_member_obj = job_obj.agency_member if job_obj else None
 
-                for img_url in lines:
-                    formatted_url = img_url
-                    if not (formatted_url.startswith("http://") or formatted_url.startswith("https://")):
-                        formatted_url = "https://" + formatted_url
-
-                    parsed = urlparse(formatted_url)
-                    website_source = parsed.netloc or "manual-entry"
-
+                # Process uploaded image files
+                if uploaded_files:
+                    site_source = custom_site or "manual-upload"
                     if target_type in ["customer", "customer_job"]:
                         if target_type == "customer":
-                            scan_res = CustomerScanResult.objects.filter(customer=customer_user, website=website_source).first()
+                            scan_res = CustomerScanResult.objects.filter(customer=customer_user, website=site_source).first()
                             if not scan_res:
                                 scan_res = CustomerScanResult.objects.create(
                                     customer=customer_user,
-                                    website=website_source,
+                                    website=site_source,
                                     status='action_taken'
                                 )
                         else:
-                            scan_res = CustomerScanResult.objects.filter(scan_job=job_obj, website=website_source).first()
+                            scan_res = CustomerScanResult.objects.filter(scan_job=job_obj, website=site_source).first()
                             if not scan_res:
                                 scan_res = CustomerScanResult.objects.create(
                                     customer=customer_user,
                                     scan_job=job_obj,
-                                    website=website_source,
+                                    website=site_source,
                                     status='action_taken'
                                 )
 
-                        _, created = CustomerScanResultImage.objects.get_or_create(
-                            customer_scan_result=scan_res,
-                            image_url=formatted_url
-                        )
-                        if created:
+                        for f_obj in uploaded_files:
+                            fname = f_obj.name
+                            img_obj = CustomerScanResultImage(
+                                customer_scan_result=scan_res,
+                                image_url=f"/media/customer_scan_images/{fname}"
+                            )
+                            img_obj.image.save(fname, f_obj, save=True)
                             added_count += 1
 
                     elif target_type in ["agency_member", "agency_job"]:
                         if target_type == "agency_member":
-                            scan_res = AgencyMemberScanResult.objects.filter(agency=agency_user, agency_member=agency_member_obj, website=website_source).first()
+                            scan_res = AgencyMemberScanResult.objects.filter(agency=agency_user, agency_member=agency_member_obj, website=site_source).first()
                             if not scan_res:
                                 scan_res = AgencyMemberScanResult.objects.create(
                                     agency=agency_user,
                                     agency_member=agency_member_obj,
-                                    website=website_source,
+                                    website=site_source,
                                     status='action_taken'
                                 )
                         else:
-                            scan_res = AgencyMemberScanResult.objects.filter(scan_job=job_obj, website=website_source).first()
+                            scan_res = AgencyMemberScanResult.objects.filter(scan_job=job_obj, website=site_source).first()
                             if not scan_res:
                                 scan_res = AgencyMemberScanResult.objects.create(
                                     agency=agency_user,
                                     agency_member=agency_member_obj,
                                     scan_job=job_obj,
-                                    website=website_source,
+                                    website=site_source,
                                     status='action_taken'
                                 )
 
-                        _, created = AgencyMemberScanResultImage.objects.get_or_create(
-                            agency_member_scan_result=scan_res,
-                            image_url=formatted_url
-                        )
-                        if created:
+                        for f_obj in uploaded_files:
+                            fname = f_obj.name
+                            img_obj = AgencyMemberScanResultImage(
+                                agency_member_scan_result=scan_res,
+                                image_url=f"/media/agency_member_scan_images/{fname}"
+                            )
+                            img_obj.image.save(fname, f_obj, save=True)
                             added_count += 1
 
+                # Process URL image lines if provided
+                if raw_images:
+                    lines = [line.strip().strip("[]() ") for line in raw_images.splitlines() if line.strip()]
+                    for img_url in lines:
+                        formatted_url = img_url
+                        if not (formatted_url.startswith("http://") or formatted_url.startswith("https://")):
+                            formatted_url = "https://" + formatted_url
+
+                        parsed = urlparse(formatted_url)
+                        website_source = custom_site or (parsed.netloc or "manual-entry")
+
+                        if target_type in ["customer", "customer_job"]:
+                            if target_type == "customer":
+                                scan_res = CustomerScanResult.objects.filter(customer=customer_user, website=website_source).first()
+                                if not scan_res:
+                                    scan_res = CustomerScanResult.objects.create(
+                                        customer=customer_user,
+                                        website=website_source,
+                                        status='action_taken'
+                                    )
+                            else:
+                                scan_res = CustomerScanResult.objects.filter(scan_job=job_obj, website=website_source).first()
+                                if not scan_res:
+                                    scan_res = CustomerScanResult.objects.create(
+                                        customer=customer_user,
+                                        scan_job=job_obj,
+                                        website=website_source,
+                                        status='action_taken'
+                                    )
+
+                            _, created = CustomerScanResultImage.objects.get_or_create(
+                                customer_scan_result=scan_res,
+                                image_url=formatted_url
+                            )
+                            if created:
+                                added_count += 1
+
+                        elif target_type in ["agency_member", "agency_job"]:
+                            if target_type == "agency_member":
+                                scan_res = AgencyMemberScanResult.objects.filter(agency=agency_user, agency_member=agency_member_obj, website=website_source).first()
+                                if not scan_res:
+                                    scan_res = AgencyMemberScanResult.objects.create(
+                                        agency=agency_user,
+                                        agency_member=agency_member_obj,
+                                        website=website_source,
+                                        status='action_taken'
+                                    )
+                            else:
+                                scan_res = AgencyMemberScanResult.objects.filter(scan_job=job_obj, website=website_source).first()
+                                if not scan_res:
+                                    scan_res = AgencyMemberScanResult.objects.create(
+                                        agency=agency_user,
+                                        agency_member=agency_member_obj,
+                                        scan_job=job_obj,
+                                        website=website_source,
+                                        status='action_taken'
+                                    )
+
+                            _, created = AgencyMemberScanResultImage.objects.get_or_create(
+                                agency_member_scan_result=scan_res,
+                                image_url=formatted_url
+                            )
+                            if created:
+                                added_count += 1
+
                 if added_count > 0:
-                    django_messages.success(request, f"Successfully added {added_count} manual image(s).")
+                    django_messages.success(request, f"Successfully uploaded/added {added_count} image(s).")
                 else:
-                    django_messages.info(request, "No new unique image URLs were added (the images may already exist).")
+                    django_messages.info(request, "No new unique images were added (the images may already exist).")
                 return redirect(request.path)
 
         target_title = "Scan Details"
