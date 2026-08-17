@@ -466,7 +466,7 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
     <!-- SECTION 2: IMAGES -->
     <!-- ================================================================= -->
     <div id="images-section" class="scan-section-card shadow-lg">
-        <form method="POST" action="">
+        <form method="POST" action="" enctype="multipart/form-data">
             {% csrf_token %}
 
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 pb-3 border-b border-slate-700/60">
@@ -543,18 +543,39 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                     <div class="flex items-center justify-between mb-2">
                         <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
                             <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                             </svg>
-                            Add Images Manually
+                            Upload Image Files
                         </h3>
-                        <span class="text-xs text-purple-300 bg-purple-500/10 px-2.5 py-0.5 rounded border border-purple-500/20 font-medium">Paste line by line</span>
+                        <span class="text-xs text-purple-300 bg-purple-500/10 px-2.5 py-0.5 rounded border border-purple-500/20 font-medium">File Upload</span>
                     </div>
-                    <p class="text-xs text-slate-400 mb-3">Paste image URLs below (one image link per line). The website domain source will automatically be detected and saved for each image.</p>
+                    <p class="text-xs text-slate-400 mb-3">Upload image files from your computer or paste image URLs below.</p>
                     
+                    <!-- Optional Website Source -->
                     <div class="mb-3">
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Website / Source Name (Optional)</label>
+                        <input type="text" 
+                               name="website_source" 
+                               class="w-full p-2.5 bg-slate-900 text-slate-100 border border-slate-700 rounded-lg text-xs focus:outline-none focus:border-purple-500" 
+                               placeholder="e.g. instagram.com or leave blank for manual-upload">
+                    </div>
+
+                    <!-- Image File Upload Input -->
+                    <div class="mb-3">
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Select Image File(s)</label>
+                        <input type="file" 
+                               name="manual_image_files" 
+                               multiple 
+                               accept="image/*" 
+                               class="w-full p-2 bg-slate-900 text-slate-100 border border-slate-700 rounded-lg text-xs file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700 cursor-pointer">
+                    </div>
+
+                    <!-- Or Paste Image URLs -->
+                    <div class="mb-3">
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Or Paste Image URLs (Line by Line)</label>
                         <textarea name="manual_images" 
-                                  rows="4" 
-                                  class="w-full p-3 bg-slate-900 text-slate-100 border border-slate-700 rounded-lg text-xs font-mono focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                                  rows="3" 
+                                  class="w-full p-2.5 bg-slate-900 text-slate-100 border border-slate-700 rounded-lg text-xs font-mono focus:outline-none focus:border-purple-500"
                                   placeholder="https://example.com/images/sample1.jpg&#10;https://example.com/images/sample2.png"></textarea>
                     </div>
                     
@@ -570,9 +591,9 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                                 class="px-4 py-1.5 !bg-purple-600 hover:!bg-purple-700 !text-white font-semibold text-xs rounded-lg inline-flex items-center gap-1.5 transition cursor-pointer shadow-sm"
                                 style="background-color: #9333ea !important; color: #ffffff !important;">
                             <svg class="w-4 h-4" style="width: 16px; height: 16px; min-width: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
                             </svg>
-                            Save Images
+                            Upload Images
                         </button>
                     </div>
                 </div>
