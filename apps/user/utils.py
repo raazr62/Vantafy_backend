@@ -10,10 +10,12 @@ def generate_otp(length=6):
     return ''.join(secrets.choice(digits) for _ in range(length))
 
 def send_normal_mail(data):
+    from apps.system_setting.email_backend import get_active_from_email
+    from_email = get_active_from_email()
     email = EmailMessage(
         subject=data['subject'],
         body=data['body'],
-        from_email=settings.EMAIL_HOST_USER,
+        from_email=from_email,
         to=data['to']
     )
     email.send()
