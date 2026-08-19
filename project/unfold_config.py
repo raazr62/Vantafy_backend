@@ -105,6 +105,13 @@ def get_unfold_settings():
                             ),
                         },
                         {
+                            "title": _("Submitted Links"),
+                            "icon": "check_circle",
+                            "link": reverse_lazy(
+                                "admin:scanner_submitted_links"
+                            ),
+                        },
+                        {
                             "title": _("Scan Results"),
                             "icon": "check_circle",
                             "link": reverse_lazy(
