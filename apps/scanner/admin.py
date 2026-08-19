@@ -65,12 +65,247 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                 name="scanner_customerscanprocessing_allscans",
             ),
             path(
+                "submitted-links/",
+                self.admin_site.admin_view(self.admin_submitted_links_view),
+                name="scanner_submitted_links",
+            ),
+            path(
                 "scan-detail/<str:target_type>/<int:target_id>/",
                 self.admin_site.admin_view(self.admin_scan_detail_view),
                 name="scanner_scan_detail",
             ),
         ]
         return custom_urls + urls
+
+    def admin_submitted_links_view(self, request):
+        from django.urls import reverse
+        from datetime import datetime
+        from django.utils import timezone
+        from urllib.parse import urlparse
+        from django.contrib import messages as django_messages
+        from apps.user.models import User, AgencyMemberList
+        from .models import (
+            CustomerScanResultPageUrl,
+            AgencyMemberScanResultPageUrl,
+            CustomerScanResult,
+            AgencyMemberScanResult,
+            LinkRemovalRequestFromCustomer,
+            LinkRemovalRequestFromAgencyMember,
+        )
+
+        search_query = request.GET.get('q', '').strip()
+
+        if request.method == "POST":
+            action = request.POST.get("action")
+            selected_keys = request.POST.getlist("selected_link_keys")
+
+            if action == "delete_submitted_links":
+                if selected_keys:
+                    c_purl_ids = []
+                    a_purl_ids = []
+                    c_req_ids = []
+                    a_req_ids = []
+
+                    for key in selected_keys:
+                        if key.startswith("c_purl_"):
+                            c_purl_ids.append(int(key.replace("c_purl_", "")))
+                        elif key.startswith("a_purl_"):
+                            a_purl_ids.append(int(key.replace("a_purl_", "")))
+                        elif key.startswith("c_req_"):
+                            c_req_ids.append(int(key.replace("c_req_", "")))
+                        elif key.startswith("a_req_"):
+                            a_req_ids.append(int(key.replace("a_req_", "")))
+
+                    deleted_total = 0
+                    if c_purl_ids:
+                        cnt, _ = CustomerScanResultPageUrl.objects.filter(id__in=c_purl_ids).delete()
+                        deleted_total += cnt
+                    if a_purl_ids:
+                        cnt, _ = AgencyMemberScanResultPageUrl.objects.filter(id__in=a_purl_ids).delete()
+                        deleted_total += cnt
+                    if c_req_ids:
+                        cnt, _ = LinkRemovalRequestFromCustomer.objects.filter(id__in=c_req_ids).delete()
+                        deleted_total += cnt
+                    if a_req_ids:
+                        cnt, _ = LinkRemovalRequestFromAgencyMember.objects.filter(id__in=a_req_ids).delete()
+                        deleted_total += cnt
+
+                    django_messages.success(request, f"Successfully deleted {deleted_total} selected submitted link(s).")
+                else:
+                    django_messages.warning(request, "No submitted links were selected for deletion.")
+                return redirect(request.path)
+
+            elif action == "add_manual_submitted_links":
+                raw_links = request.POST.get("manual_submitted_links", "").strip()
+                if not raw_links:
+                    django_messages.warning(request, "Please enter at least one link.")
+                    return redirect(request.path)
+
+                lines = [line.strip().strip("[]() ") for line in raw_links.splitlines() if line.strip()]
+                added_count = 0
+
+                for link_url in lines:
+                    formatted_url = link_url
+                    if not (formatted_url.startswith("http://") or formatted_url.startswith("https://")):
+                        formatted_url = "https://" + formatted_url
+
+                    parsed = urlparse(formatted_url)
+                    website_source = parsed.netloc or "manual-entry"
+
+                    scan_res = CustomerScanResult.objects.filter(website=website_source).first()
+                    if not scan_res:
+                        scan_res = CustomerScanResult.objects.create(
+                            website=website_source,
+                            status='action_taken'
+                        )
+
+                    _, created = CustomerScanResultPageUrl.objects.get_or_create(
+                        customer_scan_result=scan_res,
+                        page_url=formatted_url,
+                        defaults={'send_mail_status': 'submitted'}
+                    )
+                    if created:
+                        added_count += 1
+
+                if added_count > 0:
+                    django_messages.success(request, f"Successfully added {added_count} manual submitted link(s).")
+                else:
+                    django_messages.info(request, "No new unique submitted links were added (they may already exist).")
+                return redirect(request.path)
+
+        all_submitted_items = []
+        seen_urls = set()
+
+        # 1. Fetch submitted CustomerScanResultPageUrl items
+        c_purls = CustomerScanResultPageUrl.objects.filter(send_mail_status='submitted').select_related('customer_scan_result__customer')
+        for purl in c_purls:
+            url_str = purl.page_url
+            if url_str in seen_urls:
+                continue
+            seen_urls.add(url_str)
+
+            cust = purl.customer_scan_result.customer if purl.customer_scan_result else None
+            c_name = cust.full_name or cust.email if cust else "System / Manual"
+            web_domain = purl.customer_scan_result.website if purl.customer_scan_result else urlparse(url_str).netloc
+
+            all_submitted_items.append({
+                'key': f'c_purl_{purl.id}',
+                'id': purl.id,
+                'page_url': url_str,
+                'customer_display': c_name,
+                'website': web_domain,
+                'created_at': purl.customer_scan_result.created_at if (purl.customer_scan_result and purl.customer_scan_result.created_at) else timezone.now(),
+            })
+
+        # 2. Fetch submitted AgencyMemberScanResultPageUrl items
+        a_purls = AgencyMemberScanResultPageUrl.objects.filter(send_mail_status='submitted').select_related('agency_member_scan_result__agency', 'agency_member_scan_result__agency_member')
+        for purl in a_purls:
+            url_str = purl.page_url
+            if url_str in seen_urls:
+                continue
+            seen_urls.add(url_str)
+
+            member = purl.agency_member_scan_result.agency_member if purl.agency_member_scan_result else None
+            c_name = member.name if member else "Agency Member"
+            web_domain = purl.agency_member_scan_result.website if purl.agency_member_scan_result else urlparse(url_str).netloc
+
+            all_submitted_items.append({
+                'key': f'a_purl_{purl.id}',
+                'id': purl.id,
+                'page_url': url_str,
+                'customer_display': c_name,
+                'website': web_domain,
+                'created_at': purl.agency_member_scan_result.created_at if (purl.agency_member_scan_result and purl.agency_member_scan_result.created_at) else timezone.now(),
+            })
+
+        # 3. Fetch LinkRemovalRequestFromCustomer items with links='submitted'
+        c_reqs = LinkRemovalRequestFromCustomer.objects.filter(links='submitted').select_related('customer')
+        for req in c_reqs:
+            url_str = req.link
+            if url_str in seen_urls:
+                continue
+            seen_urls.add(url_str)
+
+            cust = req.customer
+            c_name = cust.full_name or cust.email if cust else "Customer"
+            web_domain = urlparse(url_str).netloc or "removal-request"
+
+            all_submitted_items.append({
+                'key': f'c_req_{req.id}',
+                'id': req.id,
+                'page_url': url_str,
+                'customer_display': c_name,
+                'website': web_domain,
+                'created_at': req.updated_at or req.created_at,
+            })
+
+        # 4. Fetch LinkRemovalRequestFromAgencyMember items with links='submitted'
+        a_reqs = LinkRemovalRequestFromAgencyMember.objects.filter(links='submitted').select_related('agency', 'agency_member')
+        for req in a_reqs:
+            url_str = req.link
+            if url_str in seen_urls:
+                continue
+            seen_urls.add(url_str)
+
+            member = req.agency_member
+            c_name = member.name if member else "Agency Member"
+            web_domain = urlparse(url_str).netloc or "removal-request"
+
+            all_submitted_items.append({
+                'key': f'a_req_{req.id}',
+                'id': req.id,
+                'page_url': url_str,
+                'customer_display': c_name,
+                'website': web_domain,
+                'created_at': req.updated_at or req.created_at,
+            })
+
+        if search_query:
+            q_lower = search_query.lower()
+            all_submitted_items = [
+                item for item in all_submitted_items
+                if q_lower in item['page_url'].lower() or q_lower in item['customer_display'].lower() or q_lower in item['website'].lower()
+            ]
+
+        # Group by Submission Date (Descending)
+        from collections import defaultdict
+        groups_by_date = defaultdict(list)
+        for item in all_submitted_items:
+            dt = item['created_at']
+            date_key = dt.strftime('%Y-%m-%d')
+            groups_by_date[date_key].append(item)
+
+        sorted_date_keys = sorted(groups_by_date.keys(), reverse=True)
+        today_str = timezone.now().strftime('%Y-%m-%d')
+        today_count = len(groups_by_date.get(today_str, []))
+
+        date_groups = []
+        for d_key in sorted_date_keys:
+            items_for_date = groups_by_date[d_key]
+            items_for_date.sort(key=lambda x: x['created_at'], reverse=True)
+            first_dt = items_for_date[0]['created_at']
+
+            if d_key == today_str:
+                d_display = f"Today ({first_dt.strftime('%B %d, %Y')})"
+            else:
+                d_display = first_dt.strftime('%B %d, %Y')
+
+            date_groups.append({
+                'date_key': d_key,
+                'date_display': d_display,
+                'links': items_for_date,
+            })
+
+        context = {
+            **self.admin_site.each_context(request),
+            "title": "Submitted Links Overview",
+            "date_groups": date_groups,
+            "total_links_count": len(all_submitted_items),
+            "today_count": today_count,
+            "search_query": search_query,
+            "opts": self.model._meta,
+        }
+        return render(request, "admin/scanner/submitted_links.html", context)
 
     def admin_scan_detail_view(self, request, target_type, target_id):
         from django.urls import reverse
