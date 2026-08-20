@@ -10,7 +10,7 @@ from apps.cms.models import (
     Testimonial,
     HowItWorks,
     IdentityTracking,
-    
+    OurMetrics,
 )
 from unfold.admin import ModelAdmin
 
@@ -90,4 +90,10 @@ class IdentityTrackingAdmin(ModelAdmin):
     list_display = ('id', 'title')
     list_display_links = ('id', 'title')
     search_fields = ('title', 'short_description')
+
+@admin.register(OurMetrics)
+class OurMetricsAdmin(ModelAdmin):
+    list_display = ('id', 'section_title', 'header_title', 'web_search', 'content_creators', 'leaks_found', 'recovered', 'success_score', 'status')
+    list_display_links = ('id', 'section_title')
+    list_filter = ('status',)
 

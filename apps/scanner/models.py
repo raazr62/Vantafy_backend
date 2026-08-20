@@ -391,7 +391,7 @@ class LinkRemovalRequestFromCustomer(models.Model):
         ('submitted', 'Submitted'),
     ]
 
-    customer = models.ForeignKey(User,on_delete=models.CASCADE,related_name='link_requested_for_removal_by_customer',)
+    customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='link_requested_for_removal_by_customer', null=True, blank=True)
     link = models.URLField(max_length=500, unique=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     links = models.CharField(max_length=20, choices=LINKS_STATUS_CHOICES, default='pending', help_text="Email submission status: pending or submitted")
@@ -400,7 +400,7 @@ class LinkRemovalRequestFromCustomer(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
-        return self.customer.email
+        return self.customer.email if self.customer else self.link
 
 class LinkRemovalRequestFromAgencyMember(models.Model):
     STATUS_CHOICES = [
@@ -413,8 +413,8 @@ class LinkRemovalRequestFromAgencyMember(models.Model):
         ('submitted', 'Submitted'),
     ]
 
-    agency = models.ForeignKey(User,on_delete=models.CASCADE,related_name='link_requested_for_removal',)
-    agency_member = models.ForeignKey(AgencyMemberList,on_delete=models.CASCADE,related_name='link_requested_for_removal_by_agency',)
+    agency = models.ForeignKey(User, on_delete=models.CASCADE, related_name='link_requested_for_removal', null=True, blank=True)
+    agency_member = models.ForeignKey(AgencyMemberList, on_delete=models.CASCADE, related_name='link_requested_for_removal_by_agency', null=True, blank=True)
     link = models.URLField(max_length=500, unique=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     links = models.CharField(max_length=20, choices=LINKS_STATUS_CHOICES, default='pending', help_text="Email submission status: pending or submitted")
@@ -423,6 +423,7 @@ class LinkRemovalRequestFromAgencyMember(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
+        return self.agency_member.name if self.agency_member else self.link
         return self.agency_member.name
 
 

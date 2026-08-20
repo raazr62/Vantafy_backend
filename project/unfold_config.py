@@ -376,6 +376,13 @@ def get_unfold_settings():
                                 "admin:cms_identitytracking_changelist"
                             ),
                         },
+                        {
+                            "title": _("Our Metrics"),
+                            "icon": "analytics",
+                            "link": reverse_lazy(
+                                "admin:cms_ourmetrics_changelist"
+                            ),
+                        },
                     ],
                 },
                 {

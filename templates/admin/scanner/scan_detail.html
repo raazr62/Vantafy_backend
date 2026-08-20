@@ -278,11 +278,26 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                     </div>
                 </div>
 
-                <!-- Action Controls: Choice count, Delete & Send Mail buttons + Accordion toggle -->
+                <!-- Action Controls: Choice count, Status filter, Delete & Send Mail buttons + Accordion toggle -->
                 <div class="flex items-center gap-2.5 flex-wrap">
                     <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full text-xs font-semibold mr-1">
                         {{ page_urls|length }} Link{% if page_urls|length != 1 %}s{% endif %}
                     </span>
+
+                    <!-- Status Filter Dropdown -->
+                    {% if page_urls %}
+                    <div class="inline-flex items-center gap-1.5 mr-2">
+                        <label for="link-status-filter" class="text-xs text-slate-400 font-medium">Filter:</label>
+                        <select id="link-status-filter" 
+                                onchange="filterLinksByStatus(this.value)"
+                                class="px-2.5 py-1 bg-slate-900 text-slate-100 border border-slate-700 rounded-lg text-xs font-medium focus:outline-none focus:border-purple-500 cursor-pointer">
+                            <option value="all">All Statuses ({{ page_urls|length }})</option>
+                            <option value="pending">Pending</option>
+                            <option value="requested">Requested</option>
+                            <option value="submitted">Submitted</option>
+                        </select>
+                    </div>
+                    {% endif %}
                     
                     {% if page_urls %}
                     <button type="submit" 
@@ -375,6 +390,7 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                     </div>
                 </div>
 
+                {% if page_urls %}
                 <div class="overflow-x-auto rounded-xl border border-slate-700/60">
                     <table class="scan-table">
                         <thead>
@@ -395,7 +411,7 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                         </thead>
                         <tbody>
                             {% for item in page_urls %}
-                            <tr>
+                            <tr class="link-row" data-status="{{ item.send_mail_status|default:'pending' }}">
                                 <td class="text-center">
                                     <input type="checkbox" 
                                            name="selected_link_ids" 
@@ -450,6 +466,7 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                         </tbody>
                     </table>
                 </div>
+                {% endif %}
             </div>
         </form>
     </div>
@@ -809,6 +826,18 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
         if (container) {
             container.classList.toggle('hidden');
         }
+    }
+
+    function filterLinksByStatus(selectedStatus) {
+        const rows = document.querySelectorAll('.link-row');
+        rows.forEach(row => {
+            const status = row.getAttribute('data-status');
+            if (selectedStatus === 'all' || status === selectedStatus) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
     }
     </script>
 

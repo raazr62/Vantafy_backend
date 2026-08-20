@@ -1270,12 +1270,16 @@ class LinkRemovalVerificationAdmin(ModelAdmin):
 
 @admin.register(CustomerScanResultPageUrl)
 class CustomerScanResultPageUrlAdmin(ModelAdmin):
-    list_display = ('id', 'customer_scan_result', 'page_url')
+    list_display = ('id', 'customer_scan_result', 'page_url', 'send_mail_status')
     search_fields = ('page_url', 'customer_scan_result__website', 'customer_scan_result__customer__email')
+    list_filter = ('send_mail_status', 'customer_scan_result__website')
+    list_editable = ('send_mail_status',)
 
 
 @admin.register(AgencyMemberScanResultPageUrl)
 class AgencyMemberScanResultPageUrlAdmin(ModelAdmin):
-    list_display = ('id', 'agency_member_scan_result', 'page_url')
+    list_display = ('id', 'agency_member_scan_result', 'page_url', 'send_mail_status')
     search_fields = ('page_url', 'agency_member_scan_result__website', 'agency_member_scan_result__agency__email')
+    list_filter = ('send_mail_status', 'agency_member_scan_result__website')
+    list_editable = ('send_mail_status',)
 
