@@ -105,13 +105,6 @@ def get_unfold_settings():
                             ),
                         },
                         {
-                            "title": _("Submitted Links"),
-                            "icon": "check_circle",
-                            "link": reverse_lazy(
-                                "admin:scanner_submitted_links"
-                            ),
-                        },
-                        {
                             "title": _("Scan Results"),
                             "icon": "check_circle",
                             "link": reverse_lazy(
@@ -381,6 +374,13 @@ def get_unfold_settings():
                             "icon": "fingerprint",
                             "link": reverse_lazy(
                                 "admin:cms_identitytracking_changelist"
+                            ),
+                        },
+                        {
+                            "title": _("Our Metrics"),
+                            "icon": "analytics",
+                            "link": reverse_lazy(
+                                "admin:cms_ourmetrics_changelist"
                             ),
                         },
                     ],

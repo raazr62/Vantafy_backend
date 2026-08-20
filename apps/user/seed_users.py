@@ -73,19 +73,19 @@ def seed_users():
     ]
 
     for user in user_data:
-         User.objects.create_user(
-            email=user["email"],
-            full_name=user["full_name"],
-            avatar=user["avatar"],
-            password=user["password"],
-            is_staff=user["is_staff"],
-            is_superuser=user["is_superuser"],
-            term_and_condition_accepted=user["term_and_condition_accepted"],
-            role=user.get("role", "customer"),
-        )
+        if not User.objects.filter(email=user["email"]).exists():
+            User.objects.create_user(
+                email=user["email"],
+                full_name=user["full_name"],
+                avatar=user["avatar"],
+                password=user["password"],
+                is_staff=user["is_staff"],
+                is_superuser=user["is_superuser"],
+                term_and_condition_accepted=user["term_and_condition_accepted"],
+                role=user.get("role", "customer"),
+            )
 
-
-    print("✅ User data seeded successfully.")
+    print("[SUCCESS] User data seeded successfully.")
 
 def seed_customer_niches():
     customer = User.objects.get(id=3)
@@ -116,7 +116,7 @@ def seed_customer_niches():
     for niche in niches:
         Niche.objects.get_or_create(customer = customer, name=niche)
 
-    print("✅ Social media & celebrity niches seeded successfully.")
+    print("[SUCCESS] Social media & celebrity niches seeded successfully.")
 
 
 def seed_customer_stage_names():
@@ -143,4 +143,4 @@ def seed_customer_stage_names():
     for stage_name in stage_names:
         StageName.objects.get_or_create(customer = customer, name=stage_name)
 
-    print("✅ Social media & celebrity stage names seeded successfully.")
+    print("[SUCCESS] Social media & celebrity stage names seeded successfully.")
