@@ -126,6 +126,29 @@ class IdentityTracking(models.Model):
         return self.title
 
 
+class OurMetrics(models.Model):
+    section_title = models.CharField(max_length=255, default="Our Metrics")
+    header_title = models.CharField(max_length=255, default="Numbers Matters")
+    web_search = models.CharField(max_length=50, default="+55M", help_text="Web search metric value e.g. +55M")
+    web_search_label = models.CharField(max_length=100, default="Web search")
+    content_creators = models.CharField(max_length=50, default="+1M", help_text="Content Creators metric value e.g. +1M")
+    content_creators_label = models.CharField(max_length=100, default="Content Creators")
+    leaks_found = models.CharField(max_length=50, default="+55M", help_text="Leaks found metric value e.g. +55M")
+    leaks_found_label = models.CharField(max_length=100, default="Leaks found")
+    recovered = models.CharField(max_length=50, default="+55M", help_text="Recovered metric value e.g. +55M")
+    recovered_label = models.CharField(max_length=100, default="Recovered")
+    success_score = models.CharField(max_length=50, default="+100%", help_text="Success Score metric value e.g. +100%")
+    success_score_label = models.CharField(max_length=100, default="Success Score")
+    status = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Our Metrics"
+        verbose_name_plural = "Our Metrics"
+
+    def __str__(self):
+        return f"{self.section_title} - {self.header_title}"
+
+
 # Cache Invalidation Signals
 
 @receiver(post_save, sender=FAQ)
@@ -136,6 +159,7 @@ class IdentityTracking(models.Model):
 @receiver(post_save, sender=Testimonial)
 @receiver(post_save, sender=HowItWorks)
 @receiver(post_save, sender=IdentityTracking)
+@receiver(post_save, sender=OurMetrics)
 def invalidate_landing_page_cache(sender, **kwargs):
     cache.delete(LANDING_PAGE_CACHE_KEY)
 
@@ -147,6 +171,7 @@ def invalidate_landing_page_cache(sender, **kwargs):
 @receiver(post_delete, sender=Testimonial)
 @receiver(post_delete, sender=HowItWorks)
 @receiver(post_delete, sender=IdentityTracking)
+@receiver(post_delete, sender=OurMetrics)
 def invalidate_landing_page_cache_on_delete(sender, **kwargs):
     cache.delete(LANDING_PAGE_CACHE_KEY)
 

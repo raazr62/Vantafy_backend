@@ -2,6 +2,9 @@ from apps.subscriptions.models import Feature, Package, Subscription
 from django.db import connection
 
 def seed_subscription_features():
+    if Feature.objects.exists():
+        print("[INFO] Subscription features already seeded.")
+        return
     feature_data = [
         {'name': 'Anonymity'},
         {'name': 'Weekly Report'},
@@ -35,14 +38,15 @@ def seed_subscription_features():
     ]
 
     for feature in feature_data:
-        Feature.objects.create(**feature)
+        Feature.objects.get_or_create(**feature)
 
-    print("✅ Features seeded successfully.")
-
-
+    print("[SUCCESS] Features seeded successfully.")
 
 
 def seed_subscription_packages():
+    if Package.objects.exists():
+        print("[INFO] Subscription packages already seeded.")
+        return
 
     package_data = [
 
@@ -276,11 +280,13 @@ def seed_subscription_packages():
         features = Feature.objects.filter(name__in=feature_names)
         package.features.set(features)
 
-    print("✅ Packages seeded successfully.")
-
+    print("[SUCCESS] Packages seeded successfully.")
 
 
 def seed_subscription():
+    if Subscription.objects.exists():
+        print("[INFO] Subscriptions already seeded.")
+        return
 
     subscriptions_data = [
         {
@@ -310,4 +316,4 @@ def seed_subscription():
         package = Package.objects.get(name=sub_data.pop('package_name'))
         Subscription.objects.create(package=package, **sub_data)
 
-    print("✅ Subscriptions seeded successfully.")
+    print("[SUCCESS] Subscriptions seeded successfully.")

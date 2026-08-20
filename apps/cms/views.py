@@ -6,7 +6,6 @@ from django.utils.decorators import method_decorator
 
 from apps.utils.helpers import success, error
 from .models import (
-
     FAQ,
     HeroSection,
     HeroRadarIcon,
@@ -15,9 +14,8 @@ from .models import (
     Testimonial,
     HowItWorks,
     IdentityTracking,
+    OurMetrics,
     Page,
-    
-    
 )
 from .serializers import (
     FAQSerializer,
@@ -27,8 +25,8 @@ from .serializers import (
     TestimonialSerializer,
     HowItWorksSerializer,
     IdentityTrackingSerializer,
-    PageSerializer
-    
+    OurMetricsSerializer,
+    PageSerializer,
 )
 
 # Create your views here.
@@ -55,10 +53,11 @@ class LandingPageAllSectionOneByOneView(APIView):
         testimonials = Testimonial.objects.all()
         how_it_works = HowItWorks.objects.filter(status=True)
         identity_tracking = IdentityTracking.objects.all()
+        our_metrics = OurMetrics.objects.filter(status=True).first()
         
         # Serialize data
         data = {
-            'hero_section': HeroSectionSerializer(hero_section).data,
+            'hero_section': HeroSectionSerializer(hero_section).data if hero_section else None,
             'hero_radar_icons': [icon.icon.url for icon in hero_radar_icons],
             'faqs': FAQSerializer(faqs, many=True).data,
             'platforms': RepresentPlatformSerializer(platforms, many=True).data,
@@ -66,6 +65,7 @@ class LandingPageAllSectionOneByOneView(APIView):
             'testimonials': TestimonialSerializer(testimonials, many=True).data,
             'how_it_works': HowItWorksSerializer(how_it_works, many=True).data,
             'identity_tracking': IdentityTrackingSerializer(identity_tracking, many=True).data,
+            'our_metrics': OurMetricsSerializer(our_metrics).data if our_metrics else None,
         }
         
         # Store in cache for 1 hour (3600 seconds)

@@ -13,7 +13,7 @@ def seed_system_setting():
     }
 
     AboutSystem.objects.get_or_create(defaults=system_setting)
-    print("✅ About System seeded successfully.")
+    print("[SUCCESS] About System seeded successfully.")
 
 
 def seed_social_media():
@@ -26,7 +26,7 @@ def seed_social_media():
     for sm in social_media:
         SocialMedia.objects.get_or_create(**sm)
 
-    print("✅ Social Media seeded successfully.")
+    print("[SUCCESS] Social Media seeded successfully.")
 
 
 def seed_smtp_credentials():
@@ -42,7 +42,7 @@ def seed_smtp_credentials():
     }
 
     SMTPSetting.objects.get_or_create(defaults=smtp_credentials)
-    print("✅ SMTP Credentials seeded successfully.")
+    print("[SUCCESS] SMTP Credentials seeded successfully.")
 
 
 def seed_system_color():
@@ -50,4 +50,4 @@ def seed_system_color():
         "name" : "orange",
         "code" : "#FFA500"
     })
-    print("✅ System Color seeded successfully.")
+    print("[SUCCESS] System Color seeded successfully.")
