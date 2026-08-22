@@ -164,6 +164,27 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
         background-color: #ffffff;
         border: 1px solid #e2e8f0;
     }
+    .stat-cards-grid {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 1rem !important;
+    }
+    @media (max-width: 640px) {
+        .stat-cards-grid {
+            grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+        }
+    }
+    /* Custom select dropdown styling for panel color compatibility */
+    select.custom-panel-select,
+    select.custom-panel-select option {
+        background-color: #0f172a !important;
+        color: #f8fafc !important;
+    }
+    html:not(.dark) select.custom-panel-select,
+    html:not(.dark) select.custom-panel-select option {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+    }
 </style>
 {% endblock %}
 
@@ -193,7 +214,7 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
         </div>
 
         <!-- Quick Summary Stats -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+        <div class="stat-cards-grid mb-4">
             <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-3">
                 <div class="p-3 bg-emerald-500/20 rounded-lg text-emerald-400">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -255,7 +276,6 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
         </div>
     </div>
 
-
     <!-- ================================================================= -->
     <!-- SECTION 1: LINKS -->
     <!-- ================================================================= -->
@@ -290,7 +310,7 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                         <label for="link-status-filter" class="text-xs text-slate-400 font-medium">Filter:</label>
                         <select id="link-status-filter" 
                                 onchange="filterLinksByStatus(this.value)"
-                                class="px-2.5 py-1 bg-slate-900 text-slate-100 border border-slate-700 rounded-lg text-xs font-medium focus:outline-none focus:border-purple-500 cursor-pointer">
+                                class="custom-panel-select px-2.5 py-1 border border-slate-700 rounded-lg text-xs font-medium focus:outline-none focus:border-purple-500 cursor-pointer">
                             <option value="all">All Statuses ({{ page_urls|length }})</option>
                             <option value="pending">Pending</option>
                             <option value="requested">Requested</option>
