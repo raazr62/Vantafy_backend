@@ -623,22 +623,31 @@ class CustomerScanProcessingAdmin(ModelAdmin):
     def admin_all_scans_view(self, request):
         from django.urls import reverse
         from datetime import datetime
+        from django.db.models import Count, Q
 
         search_query = request.GET.get('q', '').strip()
         scan_type_filter = request.GET.get('scan_type', '').strip()
         view_mode = request.GET.get('view_mode', 'grouped').strip()
 
-        from django.db.models import Count
-
         customer_scans = CustomerScanProcessing.objects.select_related('customer').annotate(
             num_images=Count('results__image_entries', distinct=True),
             num_videos=Count('results__video_entries', distinct=True),
             num_page_urls=Count('results__page_url_entries', distinct=True),
+            num_pending_page_urls=Count(
+                'results__page_url_entries',
+                filter=Q(results__page_url_entries__send_mail_status='pending'),
+                distinct=True
+            ),
         ).all()
         agency_scans = AgencyMemberScanProcessing.objects.select_related('agency', 'agency_member').annotate(
             num_images=Count('results__image_entries', distinct=True),
             num_videos=Count('results__video_entries', distinct=True),
             num_page_urls=Count('results__page_url_entries', distinct=True),
+            num_pending_page_urls=Count(
+                'results__page_url_entries',
+                filter=Q(results__page_url_entries__send_mail_status='pending'),
+                distinct=True
+            ),
         ).all()
 
         detailed_scans = []
@@ -652,6 +661,14 @@ class CustomerScanProcessingAdmin(ModelAdmin):
 
             detail_url = reverse('admin:scanner_scan_detail', kwargs={'target_type': 'customer_job', 'target_id': item.id})
 
+            pending_count = getattr(item, 'num_pending_page_urls', 0)
+            if pending_count > 0:
+                status_raw = 'pending'
+                status_display = 'Pending'
+            else:
+                status_raw = 'completed'
+                status_display = 'Completed'
+
             detailed_scans.append({
                 'id': item.id,
                 'target_type': 'customer',
@@ -660,12 +677,13 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                 'customer_name': c_name,
                 'customer_email': c_email,
                 'scan_type': 'Individual',
-                'status': item.get_status_display(),
-                'status_raw': item.status,
+                'status': status_display,
+                'status_raw': status_raw,
                 'last_scan_time': last_time,
                 'total_images': item.total_images,
                 'total_videos': item.total_videos,
                 'total_page_urls': item.total_page_urls,
+                'total_pending_urls': pending_count,
                 'detail_url': detail_url,
             })
 
@@ -678,6 +696,14 @@ class CustomerScanProcessingAdmin(ModelAdmin):
 
             detail_url = reverse('admin:scanner_scan_detail', kwargs={'target_type': 'agency_job', 'target_id': item.id})
 
+            pending_count = getattr(item, 'num_pending_page_urls', 0)
+            if pending_count > 0:
+                status_raw = 'pending'
+                status_display = 'Pending'
+            else:
+                status_raw = 'completed'
+                status_display = 'Completed'
+
             detailed_scans.append({
                 'id': item.id,
                 'target_type': 'agency_member',
@@ -686,12 +712,13 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                 'customer_name': c_name,
                 'customer_email': c_email,
                 'scan_type': 'Agency',
-                'status': item.get_status_display(),
-                'status_raw': item.status,
+                'status': status_display,
+                'status_raw': status_raw,
                 'last_scan_time': last_time,
                 'total_images': item.total_images,
                 'total_videos': item.total_videos,
                 'total_page_urls': item.total_page_urls,
+                'total_pending_urls': pending_count,
                 'detail_url': detail_url,
             })
 
@@ -729,6 +756,7 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                     'total_images': 0,
                     'total_videos': 0,
                     'total_page_urls': 0,
+                    'total_pending_urls': 0,
                     'scans': [],
                     'detail_url': group_detail_url,
                 }
@@ -738,12 +766,19 @@ class CustomerScanProcessingAdmin(ModelAdmin):
             group['total_images'] += s['total_images']
             group['total_videos'] += s['total_videos']
             group['total_page_urls'] += s['total_page_urls']
+            group['total_pending_urls'] += s.get('total_pending_urls', 0)
             group['scans'].append(s)
 
             if s['last_scan_time'] and (group['last_scan_time'] is None or s['last_scan_time'] > group['last_scan_time']):
                 group['last_scan_time'] = s['last_scan_time']
-                group['status'] = s['status']
-                group['status_raw'] = s['status_raw']
+
+        for group in groups_dict.values():
+            if group['total_pending_urls'] > 0:
+                group['status_raw'] = 'pending'
+                group['status'] = 'Pending'
+            else:
+                group['status_raw'] = 'completed'
+                group['status'] = 'Completed'
 
         grouped_scans = list(groups_dict.values())
         grouped_scans.sort(key=lambda x: x['last_scan_time'] if x['last_scan_time'] else datetime.min, reverse=True)

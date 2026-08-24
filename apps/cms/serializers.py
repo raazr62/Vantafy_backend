@@ -69,7 +69,7 @@ class OurMetricsSerializer(serializers.ModelSerializer):
             {"key": "web_search", "value": obj.web_search, "label": obj.web_search_label},
             {"key": "content_creators", "value": obj.content_creators, "label": obj.content_creators_label},
             {"key": "leaks_found", "value": obj.leaks_found, "label": obj.leaks_found_label},
-            {"key": "recovered", "value": obj.recovered, "label": obj.recovered_label},
+            {"key": "recovered", "value": obj.recovered,    "label": obj.recovered_label},
             {"key": "success_score", "value": obj.success_score, "label": obj.success_score_label},
         ]
 
