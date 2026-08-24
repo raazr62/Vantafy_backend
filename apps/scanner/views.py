@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from apps.user.authentication import CookieJWTAuthentication
 from apps.user.models import AgencyMemberList, User
 
+from apps.subscriptions.models import Subscription
 from .models import (
     AgencyMemberScanProcessing, CustomerScanProcessing, 
     CustomerScanResult, AgencyMemberScanResult, 
