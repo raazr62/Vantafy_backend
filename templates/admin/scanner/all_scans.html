@@ -229,11 +229,11 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <!-- Tabs -->
             <div class="flex items-center gap-2 bg-slate-800/80 p-1 rounded-xl border border-slate-700/60 w-fit">
-                <a href="?view_mode=grouped{% if search_query %}&q={{ search_query }}{% endif %}{% if scan_type_filter %}&scan_type={{ scan_type_filter }}{% endif %}" 
+                <a href="?view_mode=grouped{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
                    class="tab-btn {% if view_mode != 'detailed' %}tab-btn-active{% else %}tab-btn-inactive{% endif %}">
                     Grouped by Customer ({{ grouped_scans|length }})
                 </a>
-                <a href="?view_mode=detailed{% if search_query %}&q={{ search_query }}{% endif %}{% if scan_type_filter %}&scan_type={{ scan_type_filter }}{% endif %}" 
+                <a href="?view_mode=detailed{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
                    class="tab-btn {% if view_mode == 'detailed' %}tab-btn-active{% else %}tab-btn-inactive{% endif %}">
                     All Executions ({{ detailed_scans|length }})
                 </a>
@@ -252,18 +252,17 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
                     >
                 </div>
                 <div class="w-full sm:w-44">
-                    <select name="scan_type" class="scan-form-select w-full">
-                        <option value="">All Scan Types</option>
-                        <option value="Individual" {% if scan_type_filter == 'Individual' %}selected{% endif %}>Individual</option>
-                        <option value="Agency" {% if scan_type_filter == 'Agency' %}selected{% endif %}>Agency</option>
+                    <select name="status" onchange="this.form.submit()" class="scan-form-select w-full cursor-pointer">
+                        <option value="">All Statuses</option>
+                        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
                     </select>
                 </div>
+                {% if search_query or status_filter %}
                 <div class="flex items-center gap-2 w-full sm:w-auto">
-                    <button type="submit" class="scan-btn-primary">Filter</button>
-                    {% if search_query or scan_type_filter %}
-                        <a href="?view_mode={{ view_mode }}" class="scan-btn-secondary">Clear</a>
-                    {% endif %}
+                    <a href="?view_mode={{ view_mode }}" class="scan-btn-secondary">Clear</a>
                 </div>
+                {% endif %}
             </form>
         </div>
 
@@ -279,6 +278,7 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
                         <th>Last Scan Time</th>
                         <th>Status</th>
                         <th>Total Pending</th>
+                        <th>Removals Left</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -303,6 +303,9 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
                         <td class="font-bold text-amber-400 font-mono text-center sm:text-left">
                             {{ scan.total_pending_urls }}
                         </td>
+                        <td class="font-bold text-emerald-400 font-mono text-center sm:text-left">
+                            {{ scan.removals_left }}
+                        </td>
                         <td>
                             <a href="{{ scan.detail_url }}" class="text-purple-400 hover:text-purple-300 font-medium text-xs underline">
                                 View Details &rarr;
@@ -311,7 +314,7 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7" class="text-center py-8 text-slate-400">
+                        <td colspan="8" class="text-center py-8 text-slate-400">
                             No individual scan runs found matching your criteria.
                         </td>
                     </tr>
@@ -333,6 +336,7 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
                         <th>Last Scan Time</th>
                         <th>Latest Status</th>
                         <th>Total Pending</th>
+                        <th>Removals Left</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -363,10 +367,13 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
                         <td class="font-bold text-amber-400 font-mono text-center sm:text-left">
                             {{ group.total_pending_urls }}
                         </td>
+                        <td class="font-bold text-emerald-400 font-mono text-center sm:text-left">
+                            {{ group.removals_left }}
+                        </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7" class="text-center py-8 text-slate-400">
+                        <td colspan="8" class="text-center py-8 text-slate-400">
                             No scan groups found matching your criteria.
                         </td>
                     </tr>

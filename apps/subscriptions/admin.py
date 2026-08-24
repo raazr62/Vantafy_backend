@@ -19,7 +19,7 @@ class PackageAdmin(ModelAdmin):
 
 @admin.register(Subscription)
 class SubscriptionAdmin(ModelAdmin):
-    list_display = ['user', 'package', 'status', 'start_date', 'end_date']
+    list_display = ['user', 'package', 'status', 'submitted_links', 'start_date', 'end_date']
     list_filter = ['status', 'start_date', 'end_date']
     search_fields = ['user__email', 'stripe_subscription_id']
     date_hierarchy = 'created_at'
