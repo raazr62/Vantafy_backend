@@ -48,15 +48,40 @@ class Subscription(models.Model):
         ('expired', 'Expired'),
         ('cancelled', 'Cancelled'),
         ('pending', 'Pending')
-    ], default='pending')  
+    ], default='pending')
+    submitted_links = models.IntegerField(
+        default=0, 
+        help_text="Total links submitted for DMCA removal in current active subscription period"
+    )
     start_date = models.DateTimeField(null=True, blank=True)
     end_date = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def has_subscription(self):
-        return self.status == 'active' and self.end_date > timezone.now()
-    
+        return self.status == 'active' and self.end_date is not None and self.end_date > timezone.now()
+
+    def reset_submitted_links(self):
+        self.submitted_links = 0
+        self.save(update_fields=['submitted_links'])
+
+    def can_submit_links(self, count=1):
+        """
+        Check if submitting `count` links would exceed the package's monthly link removal limit.
+        Returns (allowed: bool, current_submitted: int, limit: int).
+        """
+        if not self.package:
+            return False, self.submitted_links, 0
+        
+        limit = self.package.link_removal_limit_per_month
+        if limit > 0 and (self.submitted_links + count > limit):
+            return False, self.submitted_links, limit
+        return True, self.submitted_links, limit
+
+    def increment_submitted_links(self, count=1):
+        self.submitted_links += count
+        self.save(update_fields=['submitted_links'])
+
     def __str__(self):
         return f"{self.user.email} "
     

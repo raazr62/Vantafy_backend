@@ -315,7 +315,6 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                                 class="custom-panel-select px-2.5 py-1 border border-slate-700 rounded-lg text-xs font-medium focus:outline-none focus:border-purple-500 cursor-pointer">
                             <option value="all">All Statuses ({{ page_urls|length }})</option>
                             <option value="pending">Pending</option>
-                            <option value="requested">Requested</option>
                             <option value="submitted">Submitted</option>
                         </select>
                     </div>
@@ -456,12 +455,8 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                                         <span class="px-2.5 py-1 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 rounded-full text-xs font-semibold">
                                             Submitted
                                         </span>
-                                    {% elif item.send_mail_status == 'requested' %}
-                                        <span class="px-2.5 py-1 bg-blue-500/15 text-blue-400 border border-blue-500/30 rounded-full text-xs font-semibold">
-                                            Requested
-                                        </span>
                                     {% else %}
-                                        <span class="px-2.5 py-1 bg-amber-500/15 text-amber-400 border border-amber-500/30 rounded-full text-xs font-semibold">
+                                        <span class="px-2.5 py-1 bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 rounded-full text-xs font-semibold">
                                             Pending
                                         </span>
                                     {% endif %}

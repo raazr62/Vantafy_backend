@@ -178,7 +178,6 @@ class CustomerScanResultVideo(models.Model):
 class CustomerScanResultPageUrl(models.Model):
     MAIL_STATUS_CHOICES = [
         ('pending', 'Pending'),
-        ('requested', 'Requested'),
         ('submitted', 'Submitted'),
     ]
     customer_scan_result = models.ForeignKey(CustomerScanResult, on_delete=models.CASCADE, related_name='page_url_entries')
@@ -257,7 +256,7 @@ class AgencyMemberScanProcessing(models.Model):
             return self.num_page_urls
         return sum(result.total_page_urls for result in self.results.all())
     
-
+    
 
 
 class AgencyMemberScanResult(models.Model):
@@ -366,7 +365,6 @@ class AgencyMemberScanResultVideo(models.Model):
 class AgencyMemberScanResultPageUrl(models.Model):
     MAIL_STATUS_CHOICES = [
         ('pending', 'Pending'),
-        ('requested', 'Requested'),
         ('submitted', 'Submitted'),
     ]
     agency_member_scan_result = models.ForeignKey(AgencyMemberScanResult, on_delete=models.CASCADE, related_name='page_url_entries')

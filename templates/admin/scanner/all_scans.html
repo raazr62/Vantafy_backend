@@ -150,9 +150,9 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
         border: 1px solid rgba(234, 179, 8, 0.3);
     }
     .status-pending {
-        background-color: rgba(148, 163, 184, 0.15);
-        color: #cbd5e1;
-        border: 1px solid rgba(148, 163, 184, 0.3);
+        background-color: rgba(234, 179, 8, 0.2) !important;
+        color: #facc15 !important;
+        border: 1px solid rgba(234, 179, 8, 0.4) !important;
     }
     .status-failed {
         background-color: rgba(239, 68, 68, 0.15);
@@ -229,11 +229,11 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <!-- Tabs -->
             <div class="flex items-center gap-2 bg-slate-800/80 p-1 rounded-xl border border-slate-700/60 w-fit">
-                <a href="?view_mode=grouped{% if search_query %}&q={{ search_query }}{% endif %}{% if scan_type_filter %}&scan_type={{ scan_type_filter }}{% endif %}" 
+                <a href="?view_mode=grouped{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
                    class="tab-btn {% if view_mode != 'detailed' %}tab-btn-active{% else %}tab-btn-inactive{% endif %}">
                     Grouped by Customer ({{ grouped_scans|length }})
                 </a>
-                <a href="?view_mode=detailed{% if search_query %}&q={{ search_query }}{% endif %}{% if scan_type_filter %}&scan_type={{ scan_type_filter }}{% endif %}" 
+                <a href="?view_mode=detailed{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
                    class="tab-btn {% if view_mode == 'detailed' %}tab-btn-active{% else %}tab-btn-inactive{% endif %}">
                     All Executions ({{ detailed_scans|length }})
                 </a>
@@ -252,18 +252,17 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
                     >
                 </div>
                 <div class="w-full sm:w-44">
-                    <select name="scan_type" class="scan-form-select w-full">
-                        <option value="">All Scan Types</option>
-                        <option value="Individual" {% if scan_type_filter == 'Individual' %}selected{% endif %}>Individual</option>
-                        <option value="Agency" {% if scan_type_filter == 'Agency' %}selected{% endif %}>Agency</option>
+                    <select name="status" onchange="this.form.submit()" class="scan-form-select w-full cursor-pointer">
+                        <option value="">All Statuses</option>
+                        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
                     </select>
                 </div>
+                {% if search_query or status_filter %}
                 <div class="flex items-center gap-2 w-full sm:w-auto">
-                    <button type="submit" class="scan-btn-primary">Filter</button>
-                    {% if search_query or scan_type_filter %}
-                        <a href="?view_mode={{ view_mode }}" class="scan-btn-secondary">Clear</a>
-                    {% endif %}
+                    <a href="?view_mode={{ view_mode }}" class="scan-btn-secondary">Clear</a>
                 </div>
+                {% endif %}
             </form>
         </div>
 
@@ -278,7 +277,8 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
                         <th>Scan Type</th>
                         <th>Last Scan Time</th>
                         <th>Status</th>
-                        <th>Results</th>
+                        <th>Total Pending</th>
+                        <th>Removals Left</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -300,8 +300,11 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
                                 {{ scan.status }}
                             </span>
                         </td>
-                        <td class="text-xs text-slate-400">
-                            {{ scan.total_images }} img / {{ scan.total_videos }} vid / {{ scan.total_page_urls }} urls
+                        <td class="font-bold text-amber-400 font-mono text-center sm:text-left">
+                            {{ scan.total_pending_urls }}
+                        </td>
+                        <td class="font-bold text-emerald-400 font-mono text-center sm:text-left">
+                            {{ scan.removals_left }}
                         </td>
                         <td>
                             <a href="{{ scan.detail_url }}" class="text-purple-400 hover:text-purple-300 font-medium text-xs underline">
@@ -311,7 +314,7 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7" class="text-center py-8 text-slate-400">
+                        <td colspan="8" class="text-center py-8 text-slate-400">
                             No individual scan runs found matching your criteria.
                         </td>
                     </tr>
@@ -332,8 +335,8 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
                         <th>Total Scans</th>
                         <th>Last Scan Time</th>
                         <th>Latest Status</th>
-                        <th>Total Results</th>
-                        <th>Quick Actions</th>
+                        <th>Total Pending</th>
+                        <th>Removals Left</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -361,43 +364,11 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
                                 {{ group.status }}
                             </span>
                         </td>
-                        <td class="text-xs text-slate-300 font-medium">
-                            <span class="text-purple-300">{{ group.total_images }}</span> images &bull;
-                            <span class="text-blue-300">{{ group.total_videos }}</span> videos &bull;
-                            <span class="text-emerald-300">{{ group.total_page_urls }}</span> urls
+                        <td class="font-bold text-amber-400 font-mono text-center sm:text-left">
+                            {{ group.total_pending_urls }}
                         </td>
-                        <td>
-                            <a href="{{ group.detail_url }}" 
-                               class="px-2.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs rounded-lg inline-flex items-center gap-1 transition mr-2">
-                                View Details &rarr;
-                            </a>
-                            {% if group.scan_type == 'Individual' %}
-                                <a href="{% url 'admin:scanner_customerscanusersummary_changelist' %}?q={{ group.customer_email }}" 
-                                   class="text-slate-400 hover:text-slate-200 font-medium text-xs underline mr-1.5">
-                                    Results
-                                </a>
-                                <a href="{% url 'admin:scanner_customerscanresultimage_changelist' %}?q={{ group.customer_email }}" 
-                                   class="text-slate-400 hover:text-slate-200 font-medium text-xs underline mr-1.5">
-                                    Images
-                                </a>
-                                <a href="{% url 'admin:scanner_customerscanresultpageurl_changelist' %}?q={{ group.customer_email }}" 
-                                   class="text-slate-400 hover:text-slate-200 font-medium text-xs underline">
-                                    Links
-                                </a>
-                            {% else %}
-                                <a href="{% url 'admin:scanner_agencymemberscanusersummary_changelist' %}?q={{ group.customer_name }}" 
-                                   class="text-slate-400 hover:text-slate-200 font-medium text-xs underline mr-1.5">
-                                    Results
-                                </a>
-                                <a href="{% url 'admin:scanner_agencymemberscanresultimage_changelist' %}?q={{ group.customer_name }}" 
-                                   class="text-slate-400 hover:text-slate-200 font-medium text-xs underline mr-1.5">
-                                    Images
-                                </a>
-                                <a href="{% url 'admin:scanner_agencymemberscanresultpageurl_changelist' %}?q={{ group.customer_name }}" 
-                                   class="text-slate-400 hover:text-slate-200 font-medium text-xs underline">
-                                    Links
-                                </a>
-                            {% endif %}
+                        <td class="font-bold text-emerald-400 font-mono text-center sm:text-left">
+                            {{ group.removals_left }}
                         </td>
                     </tr>
                     {% empty %}

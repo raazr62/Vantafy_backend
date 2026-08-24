@@ -114,6 +114,7 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                 if selected_ids:
                     from .tasks import enqueue_dmca_notice_for_request, enqueue_verification_for_request
                     from .models import LinkRemovalRequestFromCustomer, LinkRemovalRequestFromAgencyMember
+                    from apps.subscriptions.models import Subscription
 
                     # Count already submitted links
                     already_submitted_c = CustomerScanResultPageUrl.objects.filter(id__in=selected_ids, send_mail_status='submitted').count()
@@ -127,6 +128,41 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                     if not c_purls.exists() and not a_purls.exists():
                         django_messages.warning(request, f"The selected link(s) have already been submitted ({skipped_count} link(s) skipped). No duplicate emails were sent.")
                         return redirect(request.path)
+
+                    new_links_count = c_purls.count() + a_purls.count()
+
+                    # Find target user for limit validation
+                    target_user = None
+                    if target_type == "customer":
+                        target_user = User.objects.filter(id=target_id).first()
+                    elif target_type == "agency_member":
+                        ag_mem = AgencyMemberList.objects.select_related('agency').filter(id=target_id).first()
+                        target_user = ag_mem.agency if ag_mem else None
+                    elif target_type == "customer_job":
+                        c_job = CustomerScanProcessing.objects.select_related('customer').filter(id=target_id).first()
+                        target_user = c_job.customer if c_job else None
+                    elif target_type == "agency_job":
+                        a_job = AgencyMemberScanProcessing.objects.select_related('agency').filter(id=target_id).first()
+                        target_user = a_job.agency if a_job else None
+
+                    if not target_user:
+                        first_c = c_purls.first()
+                        if first_c and first_c.customer_scan_result:
+                            target_user = first_c.customer_scan_result.customer
+                        else:
+                            first_a = a_purls.first()
+                            if first_a and first_a.agency_member_scan_result:
+                                target_user = first_a.agency_member_scan_result.agency
+
+                    sub = Subscription.objects.filter(user=target_user, status='active').first() if target_user else None
+                    if sub:
+                        allowed, current_submitted, limit = sub.can_submit_links(new_links_count)
+                        if not allowed:
+                            django_messages.error(
+                                request,
+                                f"Cannot submit links! The monthly link removal limit ({limit} links/month) for the user's active subscription package would be exceeded. Current submitted: {current_submitted}, Attempting to submit: {new_links_count}."
+                            )
+                            return redirect(request.path)
 
                     sent_count = 0
 
@@ -154,6 +190,9 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                         p_url.send_mail_status = 'submitted'
                         p_url.save(update_fields=['send_mail_status'])
                         sent_count += 1
+
+                    if sub and sent_count > 0:
+                        sub.increment_submitted_links(sent_count)
 
                     if skipped_count > 0:
                         django_messages.success(request, f"Successfully sent mail for {sent_count} link(s). ({skipped_count} link(s) skipped because they were already submitted).")
@@ -623,23 +662,50 @@ class CustomerScanProcessingAdmin(ModelAdmin):
     def admin_all_scans_view(self, request):
         from django.urls import reverse
         from datetime import datetime
+        from django.db.models import Count, Q
 
         search_query = request.GET.get('q', '').strip()
-        scan_type_filter = request.GET.get('scan_type', '').strip()
+        status_filter = request.GET.get('status', '').strip().lower()
         view_mode = request.GET.get('view_mode', 'grouped').strip()
-
-        from django.db.models import Count
 
         customer_scans = CustomerScanProcessing.objects.select_related('customer').annotate(
             num_images=Count('results__image_entries', distinct=True),
             num_videos=Count('results__video_entries', distinct=True),
             num_page_urls=Count('results__page_url_entries', distinct=True),
+            num_pending_page_urls=Count(
+                'results__page_url_entries',
+                filter=Q(results__page_url_entries__send_mail_status='pending'),
+                distinct=True
+            ),
         ).all()
         agency_scans = AgencyMemberScanProcessing.objects.select_related('agency', 'agency_member').annotate(
             num_images=Count('results__image_entries', distinct=True),
             num_videos=Count('results__video_entries', distinct=True),
             num_page_urls=Count('results__page_url_entries', distinct=True),
+            num_pending_page_urls=Count(
+                'results__page_url_entries',
+                filter=Q(results__page_url_entries__send_mail_status='pending'),
+                distinct=True
+            ),
         ).all()
+
+        from apps.subscriptions.models import Subscription
+
+        active_subs = Subscription.objects.filter(status='active').select_related('package')
+        user_sub_map = {sub.user_id: sub for sub in active_subs}
+
+        def get_removals_info(u_id):
+            if not u_id:
+                return "-"
+            sub = user_sub_map.get(u_id)
+            if sub and sub.package:
+                limit = sub.package.link_removal_limit_per_month
+                submitted = sub.submitted_links
+                if limit > 0:
+                    left = max(0, limit - submitted)
+                    return f"{left} / {limit}"
+                return "Unlimited"
+            return "No Active Plan"
 
         detailed_scans = []
 
@@ -652,6 +718,14 @@ class CustomerScanProcessingAdmin(ModelAdmin):
 
             detail_url = reverse('admin:scanner_scan_detail', kwargs={'target_type': 'customer_job', 'target_id': item.id})
 
+            pending_count = getattr(item, 'num_pending_page_urls', 0)
+            if pending_count > 0:
+                status_raw = 'pending'
+                status_display = 'Pending'
+            else:
+                status_raw = 'completed'
+                status_display = 'Completed'
+
             detailed_scans.append({
                 'id': item.id,
                 'target_type': 'customer',
@@ -660,12 +734,14 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                 'customer_name': c_name,
                 'customer_email': c_email,
                 'scan_type': 'Individual',
-                'status': item.get_status_display(),
-                'status_raw': item.status,
+                'status': status_display,
+                'status_raw': status_raw,
                 'last_scan_time': last_time,
                 'total_images': item.total_images,
                 'total_videos': item.total_videos,
                 'total_page_urls': item.total_page_urls,
+                'total_pending_urls': pending_count,
+                'removals_left': get_removals_info(item.customer_id),
                 'detail_url': detail_url,
             })
 
@@ -678,6 +754,14 @@ class CustomerScanProcessingAdmin(ModelAdmin):
 
             detail_url = reverse('admin:scanner_scan_detail', kwargs={'target_type': 'agency_job', 'target_id': item.id})
 
+            pending_count = getattr(item, 'num_pending_page_urls', 0)
+            if pending_count > 0:
+                status_raw = 'pending'
+                status_display = 'Pending'
+            else:
+                status_raw = 'completed'
+                status_display = 'Completed'
+
             detailed_scans.append({
                 'id': item.id,
                 'target_type': 'agency_member',
@@ -686,12 +770,14 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                 'customer_name': c_name,
                 'customer_email': c_email,
                 'scan_type': 'Agency',
-                'status': item.get_status_display(),
-                'status_raw': item.status,
+                'status': status_display,
+                'status_raw': status_raw,
                 'last_scan_time': last_time,
                 'total_images': item.total_images,
                 'total_videos': item.total_videos,
                 'total_page_urls': item.total_page_urls,
+                'total_pending_urls': pending_count,
+                'removals_left': get_removals_info(item.agency_id),
                 'detail_url': detail_url,
             })
 
@@ -702,8 +788,8 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                 if q_lower in s['customer_name'].lower() or q_lower in s['customer_email'].lower()
             ]
 
-        if scan_type_filter in ['Individual', 'Agency']:
-            detailed_scans = [s for s in detailed_scans if s['scan_type'] == scan_type_filter]
+        if status_filter in ['pending', 'completed']:
+            detailed_scans = [s for s in detailed_scans if s['status_raw'] == status_filter]
 
         groups_dict = {}
         for s in detailed_scans:
@@ -729,6 +815,8 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                     'total_images': 0,
                     'total_videos': 0,
                     'total_page_urls': 0,
+                    'total_pending_urls': 0,
+                    'removals_left': s['removals_left'],
                     'scans': [],
                     'detail_url': group_detail_url,
                 }
@@ -738,14 +826,25 @@ class CustomerScanProcessingAdmin(ModelAdmin):
             group['total_images'] += s['total_images']
             group['total_videos'] += s['total_videos']
             group['total_page_urls'] += s['total_page_urls']
+            group['total_pending_urls'] += s.get('total_pending_urls', 0)
             group['scans'].append(s)
 
             if s['last_scan_time'] and (group['last_scan_time'] is None or s['last_scan_time'] > group['last_scan_time']):
                 group['last_scan_time'] = s['last_scan_time']
-                group['status'] = s['status']
-                group['status_raw'] = s['status_raw']
 
-        grouped_scans = list(groups_dict.values())
+        for group in groups_dict.values():
+            if group['total_pending_urls'] > 0:
+                group['status_raw'] = 'pending'
+                group['status'] = 'Pending'
+            else:
+                group['status_raw'] = 'completed'
+                group['status'] = 'Completed'
+
+        if status_filter in ['pending', 'completed']:
+            grouped_scans = [g for g in groups_dict.values() if g['status_raw'] == status_filter]
+        else:
+            grouped_scans = list(groups_dict.values())
+
         grouped_scans.sort(key=lambda x: x['last_scan_time'] if x['last_scan_time'] else datetime.min, reverse=True)
         detailed_scans.sort(key=lambda x: x['last_scan_time'] if x['last_scan_time'] else datetime.min, reverse=True)
 
@@ -756,7 +855,7 @@ class CustomerScanProcessingAdmin(ModelAdmin):
             "detailed_scans": detailed_scans,
             "view_mode": view_mode,
             "search_query": search_query,
-            "scan_type_filter": scan_type_filter,
+            "status_filter": status_filter,
             "opts": self.model._meta,
         }
         return render(request, "admin/scanner/all_scans.html", context)

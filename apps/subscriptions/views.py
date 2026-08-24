@@ -176,6 +176,7 @@ class StripeWebhookAPIView(APIView):
                         status='active',
                         start_date=now(),
                         end_date=now() + timedelta(days=duration_days),
+                        submitted_links=0,
                     )
                 else:   
                     subscription = Subscription.objects.get(user=user)
@@ -184,6 +185,7 @@ class StripeWebhookAPIView(APIView):
                     subscription.status = 'active'
                     subscription.start_date = now()
                     subscription.end_date = now() + timedelta(days=duration_days)
+                    subscription.submitted_links = 0
                     subscription.save()
 
 
