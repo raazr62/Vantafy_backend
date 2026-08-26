@@ -62,7 +62,7 @@ class OurMetricsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OurMetrics
-        fields = '__all__'
+        fields = ['id', 'section_title', 'header_title', 'status', 'metrics_list']
 
     def get_metrics_list(self, obj):
         return [
