@@ -27,7 +27,7 @@ class Page(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.title} (v{self.version})"
+        return f"{self.title} ({self.type})"
 
 
 class CMS(models.Model):
