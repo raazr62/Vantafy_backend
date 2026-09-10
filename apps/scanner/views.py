@@ -405,8 +405,8 @@ class DashboardDataAPIView(APIView):
                 video_percentage = 0
             
             # 2. Potential Revenue
-            # Formula: (total_photo + total_video) * 7.5
-            potential_revenue = total_media * 7.5
+            # Formula: (total_photo + total_video) * 7.21
+            potential_revenue = total_media * 7.21
             
             # 3. Link Removal Requests
             removal_requests = LinkRemovalRequestFromCustomer.objects.filter(customer=user)

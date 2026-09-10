@@ -507,13 +507,34 @@ else:
 REDIS_HOST = os.environ.get("REDIS_HOST", "127.0.0.1")
 REDIS_PORT = os.environ.get("REDIS_PORT", "6379")
 
+from celery.schedules import crontab
+
 CELERY_BROKER_URL = config("CELERY_BROKER_URL", default=f"redis://{REDIS_HOST}:{REDIS_PORT}/0")
 CELERY_RESULT_BACKEND = config("CELERY_RESULT_BACKEND", default=CELERY_BROKER_URL)
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
-CELERY_TIMEZONE = TIME_ZONE
+CELERY_TIMEZONE = "America/New_York"
 CELERY_TASK_ALWAYS_EAGER = config("CELERY_TASK_ALWAYS_EAGER", default=False, cast=bool)
+
+CELERY_BEAT_SCHEDULE = {
+    "run-daily-subscription-scans": {
+        "task": "apps.scanner.tasks.run_daily_subscription_scans",
+        "schedule": crontab(minute=5, hour=0),  # 12:05 AM EST daily (Superstar, VIP, Agency)
+    },
+    "send-daily-subscription-email-reports": {
+        "task": "apps.scanner.tasks.send_daily_subscription_email_reports",
+        "schedule": crontab(minute=0, hour=0),  # 12:00 AM EST daily (Superstar, VIP, Agency)
+    },
+    "send-weekly-subscription-email-reports": {
+        "task": "apps.scanner.tasks.send_weekly_subscription_email_reports",
+        "schedule": crontab(minute=0, hour=0, day_of_week=0),  # Sundays 12:00 AM EST (Starlet & Star)
+    },
+    "run-weekly-subscription-scans": {
+        "task": "apps.scanner.tasks.run_weekly_subscription_scans",
+        "schedule": crontab(minute=0, hour=12, day_of_week=0),  # Sundays 12:00 PM EST (Starlet & Star)
+    },
+}
 
 # Automated Link Removal Verification Settings
 LINK_VERIFICATION_USER_AGENT = config(
