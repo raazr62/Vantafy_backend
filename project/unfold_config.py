@@ -346,7 +346,7 @@ def get_unfold_settings():
                             "link": reverse_lazy("admin:cms_heroradaricon_changelist"),
                         },
                         {
-                            "title": _("Represent Platforms"),
+                            "title": _("Represented Platforms"),
                             "icon": "apps",
                             "link": reverse_lazy(
                                 "admin:cms_representplatform_changelist"
@@ -370,7 +370,7 @@ def get_unfold_settings():
                             "link": reverse_lazy("admin:cms_howitworks_changelist"),
                         },
                         {
-                            "title": _("Identity Tracking"),
+                            "title": _("Peace of Mind"),
                             "icon": "fingerprint",
                             "link": reverse_lazy(
                                 "admin:cms_identitytracking_changelist"
