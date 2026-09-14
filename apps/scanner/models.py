@@ -183,6 +183,8 @@ class CustomerScanResultPageUrl(models.Model):
     customer_scan_result = models.ForeignKey(CustomerScanResult, on_delete=models.CASCADE, related_name='page_url_entries')
     page_url = models.URLField(max_length=500)
     send_mail_status = models.CharField(max_length=20, choices=MAIL_STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     class Meta:
         unique_together = ('customer_scan_result', 'page_url')
@@ -370,6 +372,8 @@ class AgencyMemberScanResultPageUrl(models.Model):
     agency_member_scan_result = models.ForeignKey(AgencyMemberScanResult, on_delete=models.CASCADE, related_name='page_url_entries')
     page_url = models.URLField(max_length=500, default="")
     send_mail_status = models.CharField(max_length=20, choices=MAIL_STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     class Meta:
         unique_together = ('agency_member_scan_result', 'page_url')

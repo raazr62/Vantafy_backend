@@ -204,6 +204,10 @@ class CustomerScanProcessingAdmin(ModelAdmin):
 
             elif action == "add_manual_links":
                 raw_links = request.POST.get("manual_links", "").strip()
+                requested_status = request.POST.get("manual_link_status", "pending").strip().lower()
+                if requested_status not in ["pending", "submitted"]:
+                    requested_status = "pending"
+
                 if not raw_links:
                     django_messages.warning(request, "Please enter at least one link.")
                     return redirect(request.path)
@@ -257,12 +261,16 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                                     status='action_taken'
                                 )
 
-                        _, created = CustomerScanResultPageUrl.objects.get_or_create(
+                        p_url, created = CustomerScanResultPageUrl.objects.get_or_create(
                             customer_scan_result=scan_res,
                             page_url=formatted_url,
-                            defaults={'send_mail_status': 'pending'}
+                            defaults={'send_mail_status': requested_status}
                         )
                         if created:
+                            added_count += 1
+                        elif p_url.send_mail_status != requested_status:
+                            p_url.send_mail_status = requested_status
+                            p_url.save(update_fields=['send_mail_status'])
                             added_count += 1
 
                     elif target_type in ["agency_member", "agency_job"]:
@@ -286,18 +294,23 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                                     status='action_taken'
                                 )
 
-                        _, created = AgencyMemberScanResultPageUrl.objects.get_or_create(
+                        p_url, created = AgencyMemberScanResultPageUrl.objects.get_or_create(
                             agency_member_scan_result=scan_res,
                             page_url=formatted_url,
-                            defaults={'send_mail_status': 'pending'}
+                            defaults={'send_mail_status': requested_status}
                         )
                         if created:
                             added_count += 1
+                        elif p_url.send_mail_status != requested_status:
+                            p_url.send_mail_status = requested_status
+                            p_url.save(update_fields=['send_mail_status'])
+                            added_count += 1
 
                 if added_count > 0:
-                    django_messages.success(request, f"Successfully added {added_count} manual link(s).")
+                    status_display = "Pending" if requested_status == "pending" else "Submitted"
+                    django_messages.success(request, f"Successfully processed {added_count} link(s) with status '{status_display}'.")
                 else:
-                    django_messages.info(request, "No new unique links were added (the links may already exist).")
+                    django_messages.info(request, "No links were updated or added.")
                 return redirect(request.path)
 
             elif action == "add_manual_images":
@@ -512,6 +525,7 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                             'website': res.website,
                             'send_mail_status': getattr(p_url, 'send_mail_status', 'pending'),
                             'send_mail_status_display': p_url.get_send_mail_status_display() if hasattr(p_url, 'get_send_mail_status_display') else 'Pending',
+                            'created_at': getattr(p_url, 'created_at', None),
                         })
 
         elif target_type == "agency_member":
@@ -556,6 +570,7 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                             'website': res.website,
                             'send_mail_status': getattr(p_url, 'send_mail_status', 'pending'),
                             'send_mail_status_display': p_url.get_send_mail_status_display() if hasattr(p_url, 'get_send_mail_status_display') else 'Pending',
+                            'created_at': getattr(p_url, 'created_at', None),
                         })
 
         elif target_type == "customer_job":
@@ -600,6 +615,7 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                             'website': res.website,
                             'send_mail_status': getattr(p_url, 'send_mail_status', 'pending'),
                             'send_mail_status_display': p_url.get_send_mail_status_display() if hasattr(p_url, 'get_send_mail_status_display') else 'Pending',
+                            'created_at': getattr(p_url, 'created_at', None),
                         })
 
         elif target_type == "agency_job":
@@ -644,6 +660,7 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                             'website': res.website,
                             'send_mail_status': getattr(p_url, 'send_mail_status', 'pending'),
                             'send_mail_status_display': p_url.get_send_mail_status_display() if hasattr(p_url, 'get_send_mail_status_display') else 'Pending',
+                            'created_at': getattr(p_url, 'created_at', None),
                         })
 
         context = {
@@ -1369,16 +1386,18 @@ class LinkRemovalVerificationAdmin(ModelAdmin):
 
 @admin.register(CustomerScanResultPageUrl)
 class CustomerScanResultPageUrlAdmin(ModelAdmin):
-    list_display = ('id', 'customer_scan_result', 'page_url', 'send_mail_status')
+    list_display = ('id', 'customer_scan_result', 'page_url', 'send_mail_status', 'created_at')
     search_fields = ('page_url', 'customer_scan_result__website', 'customer_scan_result__customer__email')
     list_filter = ('send_mail_status', 'customer_scan_result__website')
     list_editable = ('send_mail_status',)
+    readonly_fields = ('created_at', 'updated_at')
 
 
 @admin.register(AgencyMemberScanResultPageUrl)
 class AgencyMemberScanResultPageUrlAdmin(ModelAdmin):
-    list_display = ('id', 'agency_member_scan_result', 'page_url', 'send_mail_status')
+    list_display = ('id', 'agency_member_scan_result', 'page_url', 'send_mail_status', 'created_at')
     search_fields = ('page_url', 'agency_member_scan_result__website', 'agency_member_scan_result__agency__email')
     list_filter = ('send_mail_status', 'agency_member_scan_result__website')
     list_editable = ('send_mail_status',)
+    readonly_fields = ('created_at', 'updated_at')
 
