@@ -31,6 +31,7 @@ urlpatterns = [
     path('api/', include('apps.subscriptions.urls')),
     path('api/', include('apps.chat.urls')),
     path('api/', include('apps.customer_support.urls')),
+    path('ckeditor5/', include('django_ckeditor_5.urls')),
 ]
 
 if settings.DEBUG:
