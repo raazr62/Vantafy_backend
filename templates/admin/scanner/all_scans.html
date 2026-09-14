@@ -14,13 +14,17 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
         border: 1px solid #334155 !important;
         color: #f8fafc !important;
     }
+
     .scan-text-title {
         color: #ffffff !important;
     }
+
     .scan-text-subtitle {
         color: #94a3b8 !important;
     }
-    .scan-form-input, .scan-form-select {
+
+    .scan-form-input,
+    .scan-form-select {
         background-color: #0f172a !important;
         color: #ffffff !important;
         border: 1px solid #475569 !important;
@@ -28,15 +32,19 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
         padding: 0.5rem 1rem !important;
         font-size: 0.875rem !important;
     }
+
     .scan-form-input::placeholder {
         color: #64748b !important;
     }
-    .scan-form-input:focus, .scan-form-select:focus {
-        border-color: #a855f7 !important;
-        outline: 2px solid #a855f7 !important;
+
+    .scan-form-input:focus,
+    .scan-form-select:focus {
+        border-color: var(--system-color, rgb(var(--color-primary-500))) !important;
+        outline: 2px solid var(--system-color, rgb(var(--color-primary-500))) !important;
     }
+
     .scan-btn-primary {
-        background-color: #9333ea !important;
+        background-color: var(--system-color, rgb(var(--color-primary-500))) !important;
         color: #ffffff !important;
         font-weight: 600 !important;
         padding: 0.5rem 1.25rem !important;
@@ -46,10 +54,17 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
         display: inline-flex !important;
         align-items: center !important;
         gap: 0.375rem !important;
+        text-decoration: none !important;
+        transition: opacity 0.2s ease, filter 0.2s ease;
     }
+
     .scan-btn-primary:hover {
-        background-color: #7e22ce !important;
+        background-color: var(--system-color, rgb(var(--color-primary-500))) !important;
+        filter: brightness(0.9) !important;
+        opacity: 0.95 !important;
+        color: #ffffff !important;
     }
+
     .scan-btn-secondary {
         background-color: #334155 !important;
         color: #f8fafc !important;
@@ -60,6 +75,7 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
         text-decoration: none !important;
         display: inline-block !important;
     }
+
     .tab-btn {
         padding: 0.5rem 1rem;
         font-weight: 600;
@@ -68,23 +84,28 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
         text-decoration: none;
         transition: all 0.2s;
     }
+
     .tab-btn-active {
-        background-color: #9333ea;
+        background-color: var(--system-color, rgb(var(--color-primary-500))) !important;
         color: #ffffff !important;
     }
+
     .tab-btn-inactive {
         background-color: transparent;
         color: #94a3b8 !important;
     }
+
     .tab-btn-inactive:hover {
         background-color: rgba(51, 65, 85, 0.5);
         color: #ffffff !important;
     }
+
     .scan-table {
         width: 100%;
         border-collapse: separate;
         border-spacing: 0;
     }
+
     .scan-table th {
         background-color: #0f172a;
         color: #94a3b8;
@@ -96,15 +117,18 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
         border-bottom: 1px solid #334155;
         text-align: left;
     }
+
     .scan-table td {
         padding: 0.875rem 1rem;
         border-bottom: 1px solid rgba(51, 65, 85, 0.6);
         font-size: 0.875rem;
         color: #e2e8f0;
     }
+
     .scan-table tr:hover td {
         background-color: rgba(51, 65, 85, 0.4);
     }
+
     .badge-individual {
         background-color: rgba(59, 130, 246, 0.15);
         color: #60a5fa;
@@ -114,6 +138,7 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
         font-size: 0.75rem;
         font-weight: 600;
     }
+
     .badge-agency {
         background-color: rgba(168, 85, 247, 0.15);
         color: #c084fc;
@@ -123,6 +148,7 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
         font-size: 0.75rem;
         font-weight: 600;
     }
+
     .badge-count {
         background-color: rgba(99, 102, 241, 0.15);
         color: #818cf8;
@@ -132,6 +158,7 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
         font-size: 0.75rem;
         font-weight: 600;
     }
+
     .badge-status {
         padding: 0.25rem 0.625rem;
         border-radius: 9999px;
@@ -139,21 +166,25 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
         font-weight: 600;
         text-transform: capitalize;
     }
+
     .status-completed {
         background-color: rgba(34, 197, 94, 0.15);
         color: #4ade80;
         border: 1px solid rgba(34, 197, 94, 0.3);
     }
+
     .status-running {
         background-color: rgba(234, 179, 8, 0.15);
         color: #facc15;
         border: 1px solid rgba(234, 179, 8, 0.3);
     }
+
     .status-pending {
         background-color: rgba(234, 179, 8, 0.2) !important;
         color: #facc15 !important;
         border: 1px solid rgba(234, 179, 8, 0.4) !important;
     }
+
     .status-failed {
         background-color: rgba(239, 68, 68, 0.15);
         color: #f87171;
@@ -166,29 +197,37 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
         border: 1px solid #e2e8f0 !important;
         color: #0f172a !important;
     }
+
     html:not(.dark) .scan-text-title {
         color: #0f172a !important;
     }
+
     html:not(.dark) .scan-text-subtitle {
         color: #64748b !important;
     }
-    html:not(.dark) .scan-form-input, html:not(.dark) .scan-form-select {
+
+    html:not(.dark) .scan-form-input,
+    html:not(.dark) .scan-form-select {
         background-color: #f8fafc !important;
         color: #0f172a !important;
         border: 1px solid #cbd5e1 !important;
     }
+
     html:not(.dark) .scan-table th {
         background-color: #f1f5f9;
         color: #475569;
         border-bottom: 1px solid #e2e8f0;
     }
+
     html:not(.dark) .scan-table td {
         border-bottom: 1px solid #f1f5f9;
         color: #1e293b;
     }
+
     html:not(.dark) .scan-table tr:hover td {
         background-color: #f8fafc;
     }
+
     html:not(.dark) .scan-btn-secondary {
         background-color: #f1f5f9 !important;
         color: #334155 !important;
@@ -200,18 +239,23 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
 {% block content %}
 <div class="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
     <div class="scan-card-container p-6 rounded-2xl shadow-xl mt-4">
-        
+
         <!-- Header -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-5 border-b border-slate-700/60">
+        <div
+            class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-5 border-b border-slate-700/60">
             <div class="flex items-center gap-4">
-                <div class="p-3 bg-purple-600/20 rounded-xl text-purple-400 shrink-0">
+                <div class="p-3 rounded-xl shrink-0"
+                    style="background-color: rgba(var(--color-primary-500, 255 165 0), 0.2); color: rgb(var(--color-primary-500, 255 165 0));">
                     <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                        </path>
                     </svg>
                 </div>
                 <div>
                     <h1 class="text-2xl font-bold scan-text-title">All Scans Overview</h1>
-                    <p class="text-sm scan-text-subtitle mt-0.5">Grouped scan summary across all Individual Customers and Agency Members</p>
+                    <p class="text-sm scan-text-subtitle mt-0.5">Grouped scan summary across all Individual Customers
+                        and Agency Members</p>
                 </div>
             </div>
 
@@ -229,12 +273,12 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <!-- Tabs -->
             <div class="flex items-center gap-2 bg-slate-800/80 p-1 rounded-xl border border-slate-700/60 w-fit">
-                <a href="?view_mode=grouped{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
-                   class="tab-btn {% if view_mode != 'detailed' %}tab-btn-active{% else %}tab-btn-inactive{% endif %}">
+                <a href="?view_mode=grouped{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}"
+                    class="tab-btn {% if view_mode != 'detailed' %}tab-btn-active{% else %}tab-btn-inactive{% endif %}">
                     Grouped by Customer ({{ grouped_scans|length }})
                 </a>
-                <a href="?view_mode=detailed{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
-                   class="tab-btn {% if view_mode == 'detailed' %}tab-btn-active{% else %}tab-btn-inactive{% endif %}">
+                <a href="?view_mode=detailed{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}"
+                    class="tab-btn {% if view_mode == 'detailed' %}tab-btn-active{% else %}tab-btn-inactive{% endif %}">
                     All Executions ({{ detailed_scans|length }})
                 </a>
             </div>
@@ -243,19 +287,15 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
             <form method="GET" action="" class="flex flex-col sm:flex-row items-center gap-3">
                 <input type="hidden" name="view_mode" value="{{ view_mode }}">
                 <div class="w-full sm:w-64">
-                    <input 
-                        type="text" 
-                        name="q" 
-                        value="{{ search_query }}" 
-                        placeholder="Search customer name or email..." 
-                        class="scan-form-input w-full"
-                    >
+                    <input type="text" name="q" value="{{ search_query }}"
+                        placeholder="Search customer name or email..." class="scan-form-input w-full">
                 </div>
                 <div class="w-full sm:w-44">
                     <select name="status" onchange="this.form.submit()" class="scan-form-select w-full cursor-pointer">
                         <option value="">All Statuses</option>
                         <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
-                        <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                        <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed
+                        </option>
                     </select>
                 </div>
                 {% if search_query or status_filter %}
@@ -289,9 +329,9 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
                         <td>{{ scan.customer_email }}</td>
                         <td>
                             {% if scan.scan_type == 'Individual' %}
-                                <span class="badge-individual">Individual</span>
+                            <span class="badge-individual">Individual</span>
                             {% else %}
-                                <span class="badge-agency">Agency</span>
+                            <span class="badge-agency">Agency</span>
                             {% endif %}
                         </td>
                         <td>{{ scan.last_scan_time|date:"Y-m-d H:i:s"|default:"-" }}</td>
@@ -307,7 +347,8 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
                             {{ scan.removals_left }}
                         </td>
                         <td>
-                            <a href="{{ scan.detail_url }}" class="text-purple-400 hover:text-purple-300 font-medium text-xs underline">
+                            <a href="{{ scan.detail_url }}"
+                                class="text-purple-400 hover:text-purple-300 font-medium text-xs underline">
                                 View Details &rarr;
                             </a>
                         </td>
@@ -350,9 +391,9 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
                         <td>{{ group.customer_email }}</td>
                         <td>
                             {% if group.scan_type == 'Individual' %}
-                                <span class="badge-individual">Individual</span>
+                            <span class="badge-individual">Individual</span>
                             {% else %}
-                                <span class="badge-agency">Agency</span>
+                            <span class="badge-agency">Agency</span>
                             {% endif %}
                         </td>
                         <td>

@@ -6,6 +6,7 @@ from django.templatetags.static import static
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from decouple import config
+from project.integrations.ckeditor import CKEDITOR_5_CONFIGS
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -141,6 +142,7 @@ INSTALLED_APPS = [
     "debug_toolbar",
     "import_export",
     "corsheaders",
+    "django_ckeditor_5",
     # "channels",
 
     # internal apps
@@ -544,4 +546,5 @@ LINK_VERIFICATION_USER_AGENT = config(
 LINK_VERIFICATION_REQUEST_TIMEOUT = config("LINK_VERIFICATION_REQUEST_TIMEOUT", default=15, cast=int)
 LINK_VERIFICATION_MAX_RETRIES = config("LINK_VERIFICATION_MAX_RETRIES", default=3, cast=int)
 LINK_VERIFICATION_RETRY_DELAYS = [300, 1800, 7200]  # 5 min, 30 min, 2 hours
+
 

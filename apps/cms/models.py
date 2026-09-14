@@ -3,6 +3,7 @@ from django.utils.text import slugify
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.core.cache import cache
+from django_ckeditor_5.fields import CKEditor5Field
 
 # Cache key constant
 LANDING_PAGE_CACHE_KEY = 'landing_page_sections'
@@ -16,7 +17,7 @@ class Page(models.Model):
 
     title = models.CharField(max_length=255)
     slug = models.SlugField(unique=True, blank=True)
-    content = models.TextField()
+    content = CKEditor5Field("Content", config_name='full', blank=True, null=True)
     type = models.CharField(max_length=50, choices=Type.choices)
     status = models.BooleanField(default=True)
 
