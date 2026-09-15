@@ -463,26 +463,26 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                             placeholder="https://example.com/videos/1&#10;https://example.com/videos/2"></textarea>
                     </div>
 
-                    <div class="mb-4 p-3.5 bg-slate-900/90 rounded-xl border-2 shadow-lg"
-                        style="border-color: var(--system-color, rgb(var(--color-primary-500)));">
-                        <label class="block text-sm font-bold text-white mb-2 flex items-center gap-2">
-                            <svg class="w-4 h-4" style="color: var(--system-color, rgb(var(--color-primary-500)));"
-                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            Set Link Status
-                        </label>
-                        <select name="manual_link_status"
+                    <div class="mb-4">
+                        <select id="manual_link_status_select" name="manual_link_status"
+                            onchange="clearStatusSelectError(this)"
                             class="w-full sm:w-72 p-3 rounded-lg text-sm font-semibold cursor-pointer focus:outline-none shadow-md transition-all"
-                            style="background-color: #435168 !important; color: #ffffff !important; border: 2px solid var(--system-color, rgb(var(--color-primary-500))) !important;">
-                            <option value="pending" selected
+                            style="background-color: #1e293b !important; color: #ffffff !important; border: 2px solid var(--system-color, rgb(var(--color-primary-500))) !important;">
+                            <option value="" selected disabled hidden
+                                style="background-color: #1e293b !important; color: #94a3b8 !important;">Set Link Status</option>
+                            <option value="pending"
                                 style="background-color: #1e293b !important; color: #facc15 !important; font-weight: 600;">
-                                Pending (Default)</option>
+                                Pending</option>
                             <option value="submitted"
                                 style="background-color: #1e293b !important; color: #4ade80 !important; font-weight: 600;">
                                 Submitted (DMCA Sent)</option>
                         </select>
+                        <div id="manual_link_status_error" class="hidden text-xs text-red-400 font-semibold mt-1.5 flex items-center gap-1">
+                            <svg class="w-4 h-4 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span>Please select a link status (Pending or Submitted).</span>
+                        </div>
                     </div>
 
                     <div class="flex items-center justify-end gap-2">
@@ -490,7 +490,7 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                             class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 font-medium text-xs rounded-lg transition cursor-pointer">
                             Cancel
                         </button>
-                        <button type="submit" name="action" value="add_manual_links"
+                        <button type="submit" name="action" value="add_manual_links" onclick="return validateManualLinksSubmit(event, this)"
                             class="px-4 py-1.5 !text-white font-semibold text-xs rounded-lg inline-flex items-center gap-1.5 transition cursor-pointer shadow-sm"
                             style="background-color: #9333ea !important; color: #ffffff !important;">
                             <svg class="w-4 h-4" style="width: 16px; height: 16px; min-width: 16px;" fill="none"
@@ -948,6 +948,40 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
             const container = document.getElementById('add-links-container');
             if (container) {
                 container.classList.toggle('hidden');
+            }
+        }
+
+        function validateManualLinksSubmit(event, btn) {
+            const statusSelect = document.getElementById('manual_link_status_select');
+            const errorMsg = document.getElementById('manual_link_status_error');
+            
+            if (!statusSelect) return true;
+
+            const val = statusSelect.value ? statusSelect.value.trim() : '';
+            if (!val || val === 'Set Link Status') {
+                event.preventDefault();
+                statusSelect.style.setProperty('border', '2px solid #ef4444', 'important');
+                statusSelect.style.setProperty('outline', '2px solid #ef4444', 'important');
+                statusSelect.style.setProperty('box-shadow', '0 0 0 4px rgba(239, 68, 68, 0.4)', 'important');
+                if (errorMsg) {
+                    errorMsg.classList.remove('hidden');
+                }
+                statusSelect.focus();
+                return false;
+            }
+
+            return true;
+        }
+
+        function clearStatusSelectError(selectEl) {
+            const errorMsg = document.getElementById('manual_link_status_error');
+            if (selectEl.value) {
+                selectEl.style.setProperty('border', '2px solid var(--system-color, rgb(var(--color-primary-500)))', 'important');
+                selectEl.style.setProperty('outline', 'none', 'important');
+                selectEl.style.setProperty('box-shadow', 'none', 'important');
+                if (errorMsg) {
+                    errorMsg.classList.add('hidden');
+                }
             }
         }
 

@@ -204,9 +204,11 @@ class CustomerScanProcessingAdmin(ModelAdmin):
 
             elif action == "add_manual_links":
                 raw_links = request.POST.get("manual_links", "").strip()
-                requested_status = request.POST.get("manual_link_status", "pending").strip().lower()
+                requested_status = request.POST.get("manual_link_status", "").strip().lower()
+
                 if requested_status not in ["pending", "submitted"]:
-                    requested_status = "pending"
+                    django_messages.warning(request, "Please select a valid link status (Pending or Submitted) before saving links.")
+                    return redirect(request.path)
 
                 if not raw_links:
                     django_messages.warning(request, "Please enter at least one link.")
