@@ -375,6 +375,7 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                                 image_url=f"/media/customer_scan_images/{fname}"
                             )
                             img_obj.image.save(fname, f_obj, save=True)
+                            scan_res.add_page_url(img_obj.image_url)
                             added_count += 1
 
                     elif target_type in ["agency_member", "agency_job"]:
@@ -405,6 +406,7 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                                 image_url=f"/media/agency_member_scan_images/{fname}"
                             )
                             img_obj.image.save(fname, f_obj, save=True)
+                            scan_res.add_page_url(img_obj.image_url)
                             added_count += 1
 
                 # Process URL image lines if provided
@@ -441,6 +443,7 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                                 customer_scan_result=scan_res,
                                 image_url=formatted_url
                             )
+                            scan_res.add_page_url(formatted_url)
                             if created:
                                 added_count += 1
 
@@ -469,6 +472,7 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                                 agency_member_scan_result=scan_res,
                                 image_url=formatted_url
                             )
+                            scan_res.add_page_url(formatted_url)
                             if created:
                                 added_count += 1
 
@@ -513,12 +517,17 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                     })
 
                     for img in res.image_entries.all():
+                        if img.image_url:
+                            res.add_page_url(img.image_url)
                         images.append({
                             'id': img.id,
                             'image_url': img.image_url,
                             'display_url': img.image_url or (img.image.url if img.image.name else ''),
                             'website': res.website,
                         })
+
+                    if hasattr(res, '_prefetched_objects_cache'):
+                        res._prefetched_objects_cache.pop('page_url_entries', None)
 
                     for p_url in res.page_url_entries.all():
                         page_urls.append({
@@ -558,12 +567,17 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                     })
 
                     for img in res.image_entries.all():
+                        if img.image_url:
+                            res.add_page_url(img.image_url)
                         images.append({
                             'id': img.id,
                             'image_url': img.image_url,
                             'display_url': img.image_url or (img.image.url if img.image.name else ''),
                             'website': res.website,
                         })
+
+                    if hasattr(res, '_prefetched_objects_cache'):
+                        res._prefetched_objects_cache.pop('page_url_entries', None)
 
                     for p_url in res.page_url_entries.all():
                         page_urls.append({
@@ -603,12 +617,17 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                     })
 
                     for img in res.image_entries.all():
+                        if img.image_url:
+                            res.add_page_url(img.image_url)
                         images.append({
                             'id': img.id,
                             'image_url': img.image_url,
-                            'display_url': img.image.url or (img.image.url if img.image.name else ''),
+                            'display_url': img.image_url or (img.image.url if img.image.name else ''),
                             'website': res.website,
                         })
+
+                    if hasattr(res, '_prefetched_objects_cache'):
+                        res._prefetched_objects_cache.pop('page_url_entries', None)
 
                     for p_url in res.page_url_entries.all():
                         page_urls.append({
@@ -648,12 +667,17 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                     })
 
                     for img in res.image_entries.all():
+                        if img.image_url:
+                            res.add_page_url(img.image_url)
                         images.append({
                             'id': img.id,
                             'image_url': img.image_url,
                             'display_url': img.image_url or (img.image.url if img.image.name else ''),
                             'website': res.website,
                         })
+
+                    if hasattr(res, '_prefetched_objects_cache'):
+                        res._prefetched_objects_cache.pop('page_url_entries', None)
 
                     for p_url in res.page_url_entries.all():
                         page_urls.append({
