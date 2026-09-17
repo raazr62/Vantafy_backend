@@ -705,34 +705,17 @@ class CustomerScanProcessingAdmin(ModelAdmin):
     def admin_all_scans_view(self, request):
         from django.urls import reverse
         from datetime import datetime
-        from django.db.models import Count, Q
+        from django.db.models import Count, Q, Max
+        from apps.user.models import User, AgencyMemberList
+        from django.utils import timezone
+        from apps.subscriptions.models import Subscription
 
         search_query = request.GET.get('q', '').strip()
         status_filter = request.GET.get('status', '').strip().lower()
-        view_mode = request.GET.get('view_mode', 'grouped').strip()
+        view_mode = request.GET.get('view_mode', 'active').strip()
 
-        customer_scans = CustomerScanProcessing.objects.select_related('customer').annotate(
-            num_images=Count('results__image_entries', distinct=True),
-            num_videos=Count('results__video_entries', distinct=True),
-            num_page_urls=Count('results__page_url_entries', distinct=True),
-            num_pending_page_urls=Count(
-                'results__page_url_entries',
-                filter=Q(results__page_url_entries__send_mail_status='pending'),
-                distinct=True
-            ),
-        ).all()
-        agency_scans = AgencyMemberScanProcessing.objects.select_related('agency', 'agency_member').annotate(
-            num_images=Count('results__image_entries', distinct=True),
-            num_videos=Count('results__video_entries', distinct=True),
-            num_page_urls=Count('results__page_url_entries', distinct=True),
-            num_pending_page_urls=Count(
-                'results__page_url_entries',
-                filter=Q(results__page_url_entries__send_mail_status='pending'),
-                distinct=True
-            ),
-        ).all()
-
-        from apps.subscriptions.models import Subscription
+        if view_mode not in ['active', 'expired']:
+            view_mode = 'active'
 
         active_subs = Subscription.objects.filter(status='active').select_related('package')
         user_sub_map = {sub.user_id: sub for sub in active_subs}
@@ -750,152 +733,140 @@ class CustomerScanProcessingAdmin(ModelAdmin):
                 return "Unlimited"
             return "No Active Plan"
 
-        detailed_scans = []
+        # Fetch all Individual Customer Users
+        customer_users = User.objects.filter(role='customer').annotate(
+            total_scans=Count('customer_scan_processes', distinct=True),
+            total_images=Count('customer_scan_results__image_entries', distinct=True),
+            total_videos=Count('customer_scan_results__video_entries', distinct=True),
+            total_page_urls=Count('customer_scan_results__page_url_entries', distinct=True),
+            total_pending_urls=Count(
+                'customer_scan_results__page_url_entries',
+                filter=Q(customer_scan_results__page_url_entries__send_mail_status='pending'),
+                distinct=True
+            ),
+            last_scan_time=Max('customer_scan_processes__completed_at'),
+            last_result_time=Max('customer_scan_results__created_at'),
+        )
 
-        for item in customer_scans:
-            c_name = item.search_name
-            if c_name == "Unknown" and item.customer:
-                c_name = item.customer.full_name or item.customer.email
-            c_email = item.customer.email if item.customer else "-"
-            last_time = item.completed_at or item.updated_at or item.created_at
+        # Fetch all Agency Member Users
+        agency_members = AgencyMemberList.objects.select_related('agency').annotate(
+            total_scans=Count('agency_member_scan_processes', distinct=True),
+            total_images=Count('agency_member_scan_results__image_entries', distinct=True),
+            total_videos=Count('agency_member_scan_results__video_entries', distinct=True),
+            total_page_urls=Count('agency_member_scan_results__page_url_entries', distinct=True),
+            total_pending_urls=Count(
+                'agency_member_scan_results__page_url_entries',
+                filter=Q(agency_member_scan_results__page_url_entries__send_mail_status='pending'),
+                distinct=True
+            ),
+            last_scan_time=Max('agency_member_scan_processes__completed_at'),
+            last_result_time=Max('agency_member_scan_results__created_at'),
+        )
 
-            detail_url = reverse('admin:scanner_scan_detail', kwargs={'target_type': 'customer_job', 'target_id': item.id})
+        active_users = []
+        expired_users = []
 
-            pending_count = getattr(item, 'num_pending_page_urls', 0)
-            if pending_count > 0:
-                status_raw = 'pending'
-                status_display = 'Pending'
-            else:
-                status_raw = 'completed'
-                status_display = 'Completed'
+        for u in customer_users:
+            c_name = u.full_name or u.email
+            c_email = u.email
+            last_time = u.last_scan_time or u.last_result_time or u.created_at
+            detail_url = reverse('admin:scanner_scan_detail', kwargs={'target_type': 'customer', 'target_id': u.id})
 
-            detailed_scans.append({
-                'id': item.id,
+            pending_count = u.total_pending_urls
+            status_raw = 'pending' if pending_count > 0 else 'completed'
+            status_display = 'Pending' if pending_count > 0 else 'Completed'
+
+            is_active_sub = u.id in user_sub_map
+
+            item_data = {
                 'target_type': 'customer',
-                'target_id': item.customer_id,
-                'group_key': ('Individual', item.customer_id or item.search_name),
+                'target_id': u.id,
                 'customer_name': c_name,
                 'customer_email': c_email,
                 'scan_type': 'Individual',
+                'total_scans': u.total_scans,
+                'last_scan_time': last_time,
                 'status': status_display,
                 'status_raw': status_raw,
-                'last_scan_time': last_time,
-                'total_images': item.total_images,
-                'total_videos': item.total_videos,
-                'total_page_urls': item.total_page_urls,
+                'total_images': u.total_images,
+                'total_videos': u.total_videos,
+                'total_page_urls': u.total_page_urls,
                 'total_pending_urls': pending_count,
-                'removals_left': get_removals_info(item.customer_id),
+                'removals_left': get_removals_info(u.id),
                 'detail_url': detail_url,
-            })
+                'is_active_sub': is_active_sub,
+            }
 
-        for item in agency_scans:
-            c_name = item.search_name
-            if c_name == "Unknown" and item.agency_member:
-                c_name = item.agency_member.name
-            c_email = item.agency.email if item.agency else "-"
-            last_time = item.completed_at or item.updated_at or item.created_at
-
-            detail_url = reverse('admin:scanner_scan_detail', kwargs={'target_type': 'agency_job', 'target_id': item.id})
-
-            pending_count = getattr(item, 'num_pending_page_urls', 0)
-            if pending_count > 0:
-                status_raw = 'pending'
-                status_display = 'Pending'
+            if is_active_sub:
+                active_users.append(item_data)
             else:
-                status_raw = 'completed'
-                status_display = 'Completed'
+                expired_users.append(item_data)
 
-            detailed_scans.append({
-                'id': item.id,
+        for m in agency_members:
+            m_name = m.name or (m.agency.email if m.agency else f"Agency Member #{m.id}")
+            c_email = m.agency.email if m.agency else "-"
+            last_time = m.last_scan_time or m.last_result_time
+            detail_url = reverse('admin:scanner_scan_detail', kwargs={'target_type': 'agency_member', 'target_id': m.id})
+
+            pending_count = m.total_pending_urls
+            status_raw = 'pending' if pending_count > 0 else 'completed'
+            status_display = 'Pending' if pending_count > 0 else 'Completed'
+
+            is_active_sub = m.agency_id in user_sub_map if m.agency_id else False
+
+            item_data = {
                 'target_type': 'agency_member',
-                'target_id': item.agency_member_id,
-                'group_key': ('Agency', item.agency_member_id or item.search_name),
-                'customer_name': c_name,
+                'target_id': m.id,
+                'customer_name': m_name,
                 'customer_email': c_email,
                 'scan_type': 'Agency',
+                'total_scans': m.total_scans,
+                'last_scan_time': last_time,
                 'status': status_display,
                 'status_raw': status_raw,
-                'last_scan_time': last_time,
-                'total_images': item.total_images,
-                'total_videos': item.total_videos,
-                'total_page_urls': item.total_page_urls,
+                'total_images': m.total_images,
+                'total_videos': m.total_videos,
+                'total_page_urls': m.total_page_urls,
                 'total_pending_urls': pending_count,
-                'removals_left': get_removals_info(item.agency_id),
+                'removals_left': get_removals_info(m.agency_id),
                 'detail_url': detail_url,
-            })
+                'is_active_sub': is_active_sub,
+            }
+
+            if is_active_sub:
+                active_users.append(item_data)
+            else:
+                expired_users.append(item_data)
 
         if search_query:
             q_lower = search_query.lower()
-            detailed_scans = [
-                s for s in detailed_scans
-                if q_lower in s['customer_name'].lower() or q_lower in s['customer_email'].lower()
+            active_users = [
+                u for u in active_users
+                if q_lower in u['customer_name'].lower() or q_lower in u['customer_email'].lower()
+            ]
+            expired_users = [
+                u for u in expired_users
+                if q_lower in u['customer_name'].lower() or q_lower in u['customer_email'].lower()
             ]
 
         if status_filter in ['pending', 'completed']:
-            detailed_scans = [s for s in detailed_scans if s['status_raw'] == status_filter]
+            active_users = [u for u in active_users if u['status_raw'] == status_filter]
+            expired_users = [u for u in expired_users if u['status_raw'] == status_filter]
 
-        groups_dict = {}
-        for s in detailed_scans:
-            g_key = s['group_key']
-            if g_key not in groups_dict:
-                t_type = s['target_type']
-                t_id = s['target_id']
-                if t_id and t_type == 'customer':
-                    group_detail_url = reverse('admin:scanner_scan_detail', kwargs={'target_type': 'customer', 'target_id': t_id})
-                elif t_id and t_type == 'agency_member':
-                    group_detail_url = reverse('admin:scanner_scan_detail', kwargs={'target_type': 'agency_member', 'target_id': t_id})
-                else:
-                    group_detail_url = s['detail_url']
+        min_datetime = timezone.make_aware(datetime.min)
+        active_users.sort(key=lambda x: x['last_scan_time'] if x['last_scan_time'] else min_datetime, reverse=True)
+        expired_users.sort(key=lambda x: x['last_scan_time'] if x['last_scan_time'] else min_datetime, reverse=True)
 
-                groups_dict[g_key] = {
-                    'customer_name': s['customer_name'],
-                    'customer_email': s['customer_email'],
-                    'scan_type': s['scan_type'],
-                    'total_scans': 0,
-                    'last_scan_time': s['last_scan_time'],
-                    'status': s['status'],
-                    'status_raw': s['status_raw'],
-                    'total_images': 0,
-                    'total_videos': 0,
-                    'total_page_urls': 0,
-                    'total_pending_urls': 0,
-                    'removals_left': s['removals_left'],
-                    'scans': [],
-                    'detail_url': group_detail_url,
-                }
-
-            group = groups_dict[g_key]
-            group['total_scans'] += 1
-            group['total_images'] += s['total_images']
-            group['total_videos'] += s['total_videos']
-            group['total_page_urls'] += s['total_page_urls']
-            group['total_pending_urls'] += s.get('total_pending_urls', 0)
-            group['scans'].append(s)
-
-            if s['last_scan_time'] and (group['last_scan_time'] is None or s['last_scan_time'] > group['last_scan_time']):
-                group['last_scan_time'] = s['last_scan_time']
-
-        for group in groups_dict.values():
-            if group['total_pending_urls'] > 0:
-                group['status_raw'] = 'pending'
-                group['status'] = 'Pending'
-            else:
-                group['status_raw'] = 'completed'
-                group['status'] = 'Completed'
-
-        if status_filter in ['pending', 'completed']:
-            grouped_scans = [g for g in groups_dict.values() if g['status_raw'] == status_filter]
-        else:
-            grouped_scans = list(groups_dict.values())
-
-        grouped_scans.sort(key=lambda x: x['last_scan_time'] if x['last_scan_time'] else datetime.min, reverse=True)
-        detailed_scans.sort(key=lambda x: x['last_scan_time'] if x['last_scan_time'] else datetime.min, reverse=True)
+        displayed_scans = active_users if view_mode == 'active' else expired_users
 
         context = {
             **self.admin_site.each_context(request),
             "title": "All Scans Overview",
-            "grouped_scans": grouped_scans,
-            "detailed_scans": detailed_scans,
+            "active_users": active_users,
+            "expired_users": expired_users,
+            "active_users_count": len(active_users),
+            "expired_users_count": len(expired_users),
+            "displayed_scans": displayed_scans,
             "view_mode": view_mode,
             "search_query": search_query,
             "status_filter": status_filter,

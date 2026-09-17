@@ -273,13 +273,13 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <!-- Tabs -->
             <div class="flex items-center gap-2 bg-slate-800/80 p-1 rounded-xl border border-slate-700/60 w-fit">
-                <a href="?view_mode=grouped{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}"
-                    class="tab-btn {% if view_mode != 'detailed' %}tab-btn-active{% else %}tab-btn-inactive{% endif %}">
-                    Grouped by Customer ({{ grouped_scans|length }})
+                <a href="?view_mode=active{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}"
+                    class="tab-btn {% if view_mode != 'expired' %}tab-btn-active{% else %}tab-btn-inactive{% endif %}">
+                    Active Users ({{ active_users_count }})
                 </a>
-                <a href="?view_mode=detailed{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}"
-                    class="tab-btn {% if view_mode == 'detailed' %}tab-btn-active{% else %}tab-btn-inactive{% endif %}">
-                    All Executions ({{ detailed_scans|length }})
+                <a href="?view_mode=expired{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}"
+                    class="tab-btn {% if view_mode == 'expired' %}tab-btn-active{% else %}tab-btn-inactive{% endif %}">
+                    Expired Users ({{ expired_users_count }})
                 </a>
             </div>
 
@@ -306,66 +306,7 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
             </form>
         </div>
 
-        {% if view_mode == 'detailed' %}
-        <!-- DETAILED ALL EXECUTION LIST TABLE -->
-        <div class="overflow-x-auto rounded-xl border border-slate-700/60">
-            <table class="scan-table">
-                <thead>
-                    <tr>
-                        <th>Customer Name</th>
-                        <th>Customer Email</th>
-                        <th>Scan Type</th>
-                        <th>Last Scan Time</th>
-                        <th>Status</th>
-                        <th>Total Pending</th>
-                        <th>Removals Left</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for scan in detailed_scans %}
-                    <tr>
-                        <td class="font-semibold text-slate-100">{{ scan.customer_name }}</td>
-                        <td>{{ scan.customer_email }}</td>
-                        <td>
-                            {% if scan.scan_type == 'Individual' %}
-                            <span class="badge-individual">Individual</span>
-                            {% else %}
-                            <span class="badge-agency">Agency</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ scan.last_scan_time|date:"Y-m-d H:i:s"|default:"-" }}</td>
-                        <td>
-                            <span class="badge-status status-{{ scan.status_raw }}">
-                                {{ scan.status }}
-                            </span>
-                        </td>
-                        <td class="font-bold text-amber-400 font-mono text-center sm:text-left">
-                            {{ scan.total_pending_urls }}
-                        </td>
-                        <td class="font-bold text-emerald-400 font-mono text-center sm:text-left">
-                            {{ scan.removals_left }}
-                        </td>
-                        <td>
-                            <a href="{{ scan.detail_url }}"
-                                class="text-purple-400 hover:text-purple-300 font-medium text-xs underline">
-                                View Details &rarr;
-                            </a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="8" class="text-center py-8 text-slate-400">
-                            No individual scan runs found matching your criteria.
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        {% else %}
-        <!-- GROUPED BY CUSTOMER TABLE -->
+        <!-- USERS OVERVIEW TABLE (ACTIVE / EXPIRED) -->
         <div class="overflow-x-auto rounded-xl border border-slate-700/60">
             <table class="scan-table">
                 <thead>
@@ -381,7 +322,7 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
                     </tr>
                 </thead>
                 <tbody>
-                    {% for group in grouped_scans %}
+                    {% for group in displayed_scans %}
                     <tr>
                         <td class="font-semibold text-slate-100">
                             <a href="{{ group.detail_url }}" class="hover:text-purple-400 hover:underline">
@@ -397,7 +338,7 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
                             {% endif %}
                         </td>
                         <td>
-                            <span class="badge-count">{{ group.total_scans }} Scan{% if group.total_scans > 1 %}s{% endif %}</span>
+                            <span class="badge-count">{{ group.total_scans }} Scan{% if group.total_scans != 1 %}s{% endif %}</span>
                         </td>
                         <td>{{ group.last_scan_time|date:"Y-m-d H:i:s"|default:"-" }}</td>
                         <td>
@@ -415,14 +356,17 @@ All Scans Overview | {{ site_title|default:_('Django site admin') }}
                     {% empty %}
                     <tr>
                         <td colspan="8" class="text-center py-8 text-slate-400">
-                            No scan groups found matching your criteria.
+                            {% if view_mode == 'expired' %}
+                            No expired subscription users found matching your criteria.
+                            {% else %}
+                            No active subscription users found matching your criteria.
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-        {% endif %}
 
     </div>
 </div>
