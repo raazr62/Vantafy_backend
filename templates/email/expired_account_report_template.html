@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bi-Monthly Scan & Removal Report - {{ system_info.name|default:"VantaFy" }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 0;
+            color: #1e293b;
+            -webkit-font-smoothing: antialiased;
+            line-height: 1.6;
+        }
+
+        .email-wrapper {
+            width: 100%;
+            background-color: #f8fafc;
+            padding: 48px 16px;
+            box-sizing: border-box;
+        }
+
+        .email-container {
+            max-width: 540px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+        }
+
+        .header-content {
+            padding: 40px 40px 10px 40px;
+            text-align: center;
+        }
+
+        .brand-name {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(90deg, #971DFE 0%, #FF1BE4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+            display: inline-block;
+        }
+
+        .body-content {
+            padding: 10px 40px 36px 40px;
+        }
+
+        .greeting {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-top: 10px;
+            margin-bottom: 12px;
+        }
+
+        .action-button {
+            display: inline-block;
+            background: linear-gradient(90deg, #971DFE 0%, #FF1BE4 100%);
+            color: #ffffff !important;
+            padding: 12px 28px;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 14px;
+            margin-top: 16px;
+            box-shadow: 0 4px 12px rgba(255, 27, 228, 0.25);
+        }
+
+        .divider {
+            height: 1px;
+            background-color: #f1f5f9;
+            margin: 32px 0 24px 0;
+        }
+
+        .footer {
+            padding: 0 40px 32px 40px;
+            text-align: center;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .footer p {
+            margin: 4px 0;
+        }
+
+        .footer a {
+            color: #ff1be4;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-wrapper">
+        <div class="email-container">
+            <div class="header-content">
+                <h1 class="brand-name">{{ system_info.name|default:"VantaFy" }}</h1>
+            </div>
+
+            <div class="body-content">
+                <h2 class="greeting">Hello {{ user.full_name|default:"Valued Creator" }},</h2>
+                <p style="font-size: 14px; color: #475569;">Here is your bi-monthly automated scan and removal findings report ({{ report_date }}):</p>
+
+                <table width="100%" cellpadding="0" cellspacing="0" style="margin: 24px 0;">
+                    <tr>
+                        <td width="48%" style="background: #fdf4ff; border: 1px solid #f5d0fe; border-radius: 14px; padding: 20px; text-align: center;">
+                            <div style="font-size: 13px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">New Links Discovered</div>
+                            <div style="font-size: 32px; font-weight: 800; color: #971DFE; margin-top: 4px;">{{ new_links_count }}</div>
+                        </td>
+                        <td width="4%"></td>
+                        <td width="48%" style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 14px; padding: 20px; text-align: center;">
+                            <div style="font-size: 13px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Links Successfully Deleted</div>
+                            <div style="font-size: 32px; font-weight: 800; color: #16a34a; margin-top: 4px;">{{ deleted_links_count }}</div>
+                        </td>
+                    </tr>
+                </table>
+
+                <div style="text-align: center; margin-top: 24px;">
+                    <a href="{{ dashboard_url|default:'https://dashboard.vantafy.com' }}" class="action-button">View Dashboard & Reactivate Plan</a>
+                </div>
+
+                <p style="font-size: 14px; color: #475569; margin-top: 28px; margin-bottom: 0;">
+                    Thank you for using <strong>{{ system_info.name|default:"VantaFy" }}</strong> to protect your digital presence,<br>
+                    <strong style="color: #0f172a;">The {{ system_info.name|default:"VantaFy" }} Team</strong>
+                </p>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="footer">
+                {% if system_info.copyright %}
+                <p>{{ system_info.copyright }}. All rights reserved.</p>
+                {% else %}
+                <p>&copy; 2026 {{ system_info.name|default:"VantaFy" }}. All rights reserved.</p>
+                {% endif %}
+                <p>Questions? Contact <a href="mailto:{{ system_info.email|default:'support@vantafy.com' }}">{{ system_info.email|default:"support@vantafy.com" }}</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

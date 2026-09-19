@@ -116,18 +116,22 @@ class CustomerScanResult(models.Model):
         
         # Skip if this image URL already exists for this scan result
         if self.image_entries.filter(image_url=original_url).exists():
-            return self.image_entries.filter(image_url=original_url).first()
-        
-        img_entry = CustomerScanResultImage(
-            customer_scan_result=self,
-            image_url=original_url
-        )
-        if content:
-            filename = os.path.basename(original_url) or f"image_{uuid.uuid4()}.jpg"
-            if len(filename) > 100: filename = filename[-100:]
-            img_entry.image.save(filename, ContentFile(content), save=False)
-        
-        img_entry.save()
+            img_entry = self.image_entries.filter(image_url=original_url).first()
+        else:
+            img_entry = CustomerScanResultImage(
+                customer_scan_result=self,
+                image_url=original_url
+            )
+            if content:
+                filename = os.path.basename(original_url) or f"image_{uuid.uuid4()}.jpg"
+                if len(filename) > 100: filename = filename[-100:]
+                img_entry.image.save(filename, ContentFile(content), save=False)
+            
+            img_entry.save()
+
+        if original_url:
+            self.add_page_url(original_url)
+
         return img_entry
 
     def add_video(self, video_url):
@@ -138,6 +142,8 @@ class CustomerScanResult(models.Model):
         return obj
         
     def add_page_url(self, page_url):
+        if not page_url:
+            return None
         obj, created = CustomerScanResultPageUrl.objects.get_or_create(
             customer_scan_result=self,
             page_url=page_url
@@ -309,18 +315,22 @@ class AgencyMemberScanResult(models.Model):
         
         # Skip if this image URL already exists for this scan result
         if self.image_entries.filter(image_url=original_url).exists():
-            return self.image_entries.filter(image_url=original_url).first()
-        
-        img_entry = AgencyMemberScanResultImage(
-            agency_member_scan_result=self,
-            image_url=original_url
-        )
-        if content:
-            filename = os.path.basename(original_url) or f"image_{uuid.uuid4()}.jpg"
-            if len(filename) > 100: filename = filename[-100:]
-            img_entry.image.save(filename, ContentFile(content), save=False)
-        
-        img_entry.save()
+            img_entry = self.image_entries.filter(image_url=original_url).first()
+        else:
+            img_entry = AgencyMemberScanResultImage(
+                agency_member_scan_result=self,
+                image_url=original_url
+            )
+            if content:
+                filename = os.path.basename(original_url) or f"image_{uuid.uuid4()}.jpg"
+                if len(filename) > 100: filename = filename[-100:]
+                img_entry.image.save(filename, ContentFile(content), save=False)
+            
+            img_entry.save()
+
+        if original_url:
+            self.add_page_url(original_url)
+
         return img_entry
 
     def add_video(self, video_url):
@@ -331,6 +341,8 @@ class AgencyMemberScanResult(models.Model):
         return obj
         
     def add_page_url(self, page_url):
+        if not page_url:
+            return None
         obj, created = AgencyMemberScanResultPageUrl.objects.get_or_create(
             agency_member_scan_result=self,
             page_url=page_url

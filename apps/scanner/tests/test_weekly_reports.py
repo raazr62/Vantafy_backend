@@ -14,6 +14,7 @@ from apps.scanner.models import (
 from apps.scanner.tasks import (
     send_weekly_subscription_email_reports,
     send_daily_subscription_email_reports,
+    send_expired_account_email_reports,
     run_weekly_subscription_scans,
 )
 
@@ -72,6 +73,21 @@ class WeeklyAndDailyReportTests(TestCase):
             full_name='Superstar Model',
             role='customer',
             term_and_condition_accepted=True
+        )
+
+        # Expired User
+        self.expired_user = User.objects.create_user(
+            email='expired_report_test@example.com',
+            password='Password123!',
+            full_name='Expired Model',
+            role='customer',
+            term_and_condition_accepted=True
+        )
+        Subscription.objects.create(
+            user=self.expired_user,
+            package=self.starlet_pkg,
+            status='expired',
+            end_date=timezone.now() - datetime.timedelta(days=15)
         )
 
         # Active Subscriptions
@@ -162,6 +178,27 @@ class WeeklyAndDailyReportTests(TestCase):
         self.assertNotIn('starlet_test@example.com', recipients)
         self.assertNotIn('star_test@example.com', recipients)
 
+    @patch('apps.scanner.tasks.send_email')
+    def test_send_expired_account_email_reports(self, mock_send_email, mock_process_task):
+        # Create scan result for expired user
+        scan_res = CustomerScanResult.objects.create(
+            customer=self.expired_user,
+            website='example_spider'
+        )
+        CustomerScanResultPageUrl.objects.create(
+            customer_scan_result=scan_res,
+            page_url='https://example.com/leaked_expired.jpg'
+        )
+
+        res = send_expired_account_email_reports()
+
+        self.assertEqual(res['status'], 'completed')
+        self.assertEqual(res['total_emails_sent'], 1)
+
+        recipients = [call.kwargs.get('to_emails')[0] for call in mock_send_email.call_args_list]
+        self.assertIn('expired_report_test@example.com', recipients)
+        self.assertNotIn('superstar_test@example.com', recipients)
+
     @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
     def test_run_weekly_subscription_scans(self, mock_process_task):
         res = run_weekly_subscription_scans()
@@ -188,3 +225,4 @@ class WeeklyAndDailyReportTests(TestCase):
         res = run_weekly_subscription_scans()
         # Should only schedule star_user since starlet_user has an active pending scan job
         self.assertEqual(res['total_scheduled'], 1)
+

@@ -5,7 +5,7 @@ from django.core.cache import cache
 from apps.user.models import User, AgencyMemberList
 from apps.subscriptions.models import Package, Subscription, Feature
 from apps.scanner.models import CustomerScanProcessing, AgencyMemberScanProcessing
-from apps.scanner.tasks import run_daily_subscription_scans, process_single_scan_job_task
+from apps.scanner.tasks import run_daily_subscription_scans, run_expired_account_scans, process_single_scan_job_task
 
 
 @patch('apps.scanner.tasks.process_single_scan_job_task')
@@ -86,7 +86,40 @@ class ScheduledSubscriptionScanTests(TestCase):
             name="Agency Member 2"
         )
 
-        # Subscriptions
+        # Expired Users
+        self.expired_customer = User.objects.create_user(
+            email='expired@example.com',
+            password='Password123!',
+            full_name='Expired User',
+            role='customer',
+            term_and_condition_accepted=True
+        )
+        Subscription.objects.create(
+            user=self.expired_customer,
+            package=self.starlet_pkg,
+            status='expired',
+            end_date=timezone.now() - timezone.timedelta(days=10)
+        )
+
+        self.expired_agency_user = User.objects.create_user(
+            email='expired_agency@example.com',
+            password='Password123!',
+            full_name='Expired Agency User',
+            role='agency',
+            term_and_condition_accepted=True
+        )
+        Subscription.objects.create(
+            user=self.expired_agency_user,
+            package=self.agency_pkg,
+            status='expired',
+            end_date=timezone.now() - timezone.timedelta(days=10)
+        )
+        self.expired_agency_member = AgencyMemberList.objects.create(
+            agency=self.expired_agency_user,
+            name="Expired Agency Member 1"
+        )
+
+        # Active Subscriptions
         Subscription.objects.create(
             user=self.customer_starlet,
             package=self.starlet_pkg,
@@ -157,3 +190,23 @@ class ScheduledSubscriptionScanTests(TestCase):
         # Should schedule 3 targets instead of 4 (skipping superstar user)
         self.assertEqual(res['total_scheduled'], 3)
         self.assertEqual(CustomerScanProcessing.objects.filter(customer=self.customer_superstar).count(), 1)
+
+    @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
+    def test_run_expired_account_scans(self, mock_sync):
+        res = run_expired_account_scans()
+
+        self.assertEqual(res['status'], 'scheduled')
+        # 2 expired targets: expired_customer and expired_agency_member
+        self.assertEqual(res['total_scheduled'], 2)
+
+        expired_cust_job = CustomerScanProcessing.objects.filter(customer=self.expired_customer).first()
+        self.assertIsNotNone(expired_cust_job)
+        self.assertEqual(expired_cust_job.custom_search_name, 'Expired User')
+
+        expired_mem_job = AgencyMemberScanProcessing.objects.filter(agency_member=self.expired_agency_member).first()
+        self.assertIsNotNone(expired_mem_job)
+        self.assertEqual(expired_mem_job.custom_search_name, 'Expired Agency Member 1')
+
+        # Ensure active subscription users were NOT scanned by run_expired_account_scans
+        self.assertIsNone(CustomerScanProcessing.objects.filter(customer=self.customer_superstar).first())
+
