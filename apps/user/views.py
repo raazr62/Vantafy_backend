@@ -328,6 +328,7 @@ class MyProfileView(APIView):
             'time_zone': user.time_zone,
             'avatar': user.avatar.url if user.avatar else None,
             'role': user.role,
+            'is_automated_mail': user.is_automated_mail,
             'has_subscription': has_subscription,
         }
         

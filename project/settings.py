@@ -536,6 +536,14 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.scanner.tasks.run_weekly_subscription_scans",
         "schedule": crontab(minute=0, hour=12, day_of_week=0),  # Sundays 12:00 PM EST (Starlet & Star)
     },
+    "run-expired-account-scans": {
+        "task": "apps.scanner.tasks.run_expired_account_scans",
+        "schedule": crontab(minute=0, hour=18, day_of_month="1,15"),  # 1st and 15th of the month at 6:00 PM EST (Expired Accounts)
+    },
+    "send-expired-account-email-reports": {
+        "task": "apps.scanner.tasks.send_expired_account_email_reports",
+        "schedule": crontab(minute=0, hour=18, day_of_month="1,15"),  # 1st and 15th of the month at 6:00 PM EST (Expired Accounts)
+    },
 }
 
 # Automated Link Removal Verification Settings

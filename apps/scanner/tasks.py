@@ -257,7 +257,7 @@ from celery import chain
 from django.apps import apps
 from django.core.cache import cache
 from apps.subscriptions.models import Subscription, Package
-from apps.user.models import AgencyMemberList
+from apps.user.models import AgencyMemberList, User
 from .models import CustomerScanProcessing, AgencyMemberScanProcessing
 from .services import run_all_spiders_sync
 
@@ -490,6 +490,8 @@ def send_weekly_subscription_email_reports():
 
         user = sub.user
         processed_users.add(user.id)
+        if getattr(user, 'is_automated_mail', True) is False:
+            continue
 
         role = getattr(user, 'role', None)
 
@@ -736,6 +738,8 @@ def send_daily_subscription_email_reports():
 
         user = sub.user
         processed_users.add(user.id)
+        if getattr(user, 'is_automated_mail', True) is False:
+            continue
 
         role = getattr(user, 'role', None)
 
@@ -797,6 +801,230 @@ def send_daily_subscription_email_reports():
             logger.error(f"Failed to send daily report email to {recipient_email}: {e}")
 
     return {'status': 'completed', 'total_emails_sent': emails_sent_count}
+
+
+@shared_task
+def run_expired_account_scans():
+    """
+    Master Celery Beat scheduled task for automated scans on expired/inactive accounts.
+    Runs on the 1st and 15th of every month at 6:00 PM EST.
+    Filters users/agencies without an active subscription.
+    Deduplicates active/pending jobs and queues jobs sequentially using Celery chain.
+    """
+    logger.info("Initializing bi-monthly expired account scan orchestrator...")
+
+    # Fetch IDs of users with an active subscription
+    active_user_ids = set(
+        Subscription.objects.filter(status='active').values_list('user_id', flat=True)
+    )
+
+    # Fetch expired / inactive individual customer users
+    expired_customers = User.objects.filter(role='customer').exclude(id__in=active_user_ids)
+
+    # Fetch expired / inactive agency members (where parent agency is not active)
+    expired_agency_members = AgencyMemberList.objects.select_related('agency').exclude(agency_id__in=active_user_ids)
+
+    task_signatures = []
+    processed_customer_ids = set()
+    processed_agency_member_ids = set()
+
+    for customer in expired_customers:
+        if customer.id in processed_customer_ids:
+            continue
+        processed_customer_ids.add(customer.id)
+
+        has_active_job = CustomerScanProcessing.objects.filter(
+            customer=customer,
+            status__in=['pending', 'running']
+        ).exists()
+
+        if has_active_job:
+            logger.info(f"Skipping expired scan for Customer #{customer.id} ({customer.email}): active scan already in progress.")
+            continue
+
+        name_to_scan = customer.full_name or getattr(customer, 'username', None) or customer.email
+        if not name_to_scan:
+            continue
+
+        lock_key = f"scan_lock_customer_{customer.id}"
+        if cache.get(lock_key):
+            logger.info(f"Lock active for Customer #{customer.id}. Skipping.")
+            continue
+        try:
+            cache.set(lock_key, "locked", timeout=86400)
+        except Exception as cache_err:
+            logger.warning(f"Could not write cache lock for Customer #{customer.id}: {cache_err}")
+
+        scan_job = CustomerScanProcessing.objects.create(
+            customer=customer,
+            custom_search_name=name_to_scan,
+            status='pending'
+        )
+
+        sig = process_single_scan_job_task.si(
+            scan_job.id,
+            'scanner',
+            'CustomerScanProcessing',
+            name_to_scan,
+            lock_key
+        )
+        task_signatures.append(sig)
+
+    for member in expired_agency_members:
+        if member.id in processed_agency_member_ids:
+            continue
+        processed_agency_member_ids.add(member.id)
+
+        has_active_job = AgencyMemberScanProcessing.objects.filter(
+            agency_member=member,
+            status__in=['pending', 'running']
+        ).exists()
+
+        if has_active_job:
+            logger.info(f"Skipping expired scan for AgencyMember #{member.id} ({member.name}): active scan already in progress.")
+            continue
+
+        name_to_scan = member.name
+        if not name_to_scan:
+            continue
+
+        lock_key = f"scan_lock_agency_member_{member.id}"
+        if cache.get(lock_key):
+            logger.info(f"Lock active for AgencyMember #{member.id}. Skipping.")
+            continue
+        try:
+            cache.set(lock_key, "locked", timeout=86400)
+        except Exception as cache_err:
+            logger.warning(f"Could not write cache lock for AgencyMember #{member.id}: {cache_err}")
+
+        scan_job = AgencyMemberScanProcessing.objects.create(
+            agency=member.agency,
+            agency_member=member,
+            custom_search_name=name_to_scan,
+            status='pending'
+        )
+
+        sig = process_single_scan_job_task.si(
+            scan_job.id,
+            'scanner',
+            'AgencyMemberScanProcessing',
+            name_to_scan,
+            lock_key
+        )
+        task_signatures.append(sig)
+
+    if not task_signatures:
+        logger.info("Expired account scan completed: No eligible targets to scan.")
+        return {'status': 'no_targets', 'total_scheduled': 0}
+
+    logger.info(f"Expired account scan orchestrator scheduled {len(task_signatures)} scan tasks to run sequentially.")
+
+    if getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False):
+        for sig in task_signatures:
+            sig.apply()
+    else:
+        chain(*task_signatures).apply_async()
+
+    return {'status': 'scheduled', 'total_scheduled': len(task_signatures)}
+
+
+@shared_task
+def send_expired_account_email_reports():
+    """
+    Master Celery Beat scheduled task for sending bi-monthly email reports of findings to former/expired customers.
+    Runs on the 1st and 15th of every month at 6:00 PM EST.
+    Calculates number of new links discovered and number of links deleted in the past 15 days.
+    """
+    import datetime
+    from django.utils import timezone
+
+    logger.info("Initializing bi-monthly expired account email report dispatch...")
+
+    fifteen_days_ago = timezone.now() - datetime.timedelta(days=15)
+
+    active_user_ids = set(
+        Subscription.objects.filter(status='active').values_list('user_id', flat=True)
+    )
+
+    # Expired individual customers and agency users
+    expired_users = User.objects.filter(
+        role__in=['customer', 'agency']
+    ).exclude(id__in=active_user_ids)
+
+    processed_users = set()
+    emails_sent_count = 0
+
+    report_date = timezone.now().strftime('%b %d, %Y')
+
+    for user in expired_users:
+        if user.id in processed_users:
+            continue
+        processed_users.add(user.id)
+        if getattr(user, 'is_automated_mail', True) is False:
+            continue
+
+        role = getattr(user, 'role', None)
+
+        new_links_count = 0
+        deleted_links_count = 0
+
+        if role == 'customer':
+            new_links_count = CustomerScanResultPageUrl.objects.filter(
+                customer_scan_result__customer=user,
+                customer_scan_result__created_at__gte=fifteen_days_ago
+            ).count()
+
+            deleted_links_count = LinkRemovalRequestFromCustomer.objects.filter(
+                customer=user,
+                status='removed',
+                updated_at__gte=fifteen_days_ago
+            ).count()
+
+        elif role == 'agency':
+            new_links_count = AgencyMemberScanResultPageUrl.objects.filter(
+                agency_member_scan_result__agency_member__agency=user,
+                agency_member_scan_result__created_at__gte=fifteen_days_ago
+            ).count()
+
+            deleted_links_count = LinkRemovalRequestFromAgencyMember.objects.filter(
+                agency=user,
+                status='removed',
+                updated_at__gte=fifteen_days_ago
+            ).count()
+
+        recipient_email = user.email
+        if not recipient_email:
+            continue
+
+        context = {
+            'user': user,
+            'new_links_count': new_links_count,
+            'deleted_links_count': deleted_links_count,
+            'report_date': report_date,
+            'dashboard_url': getattr(settings, 'FRONTEND_URL', 'https://dashboard.vantafy.com'),
+            'system_info': {'name': 'VantaFy', 'email': 'support@vantafy.com'}
+        }
+
+        try:
+            html_message = render_to_string('email/expired_account_report_template.html', context)
+            subject = f"Your VantaFy Bi-Monthly Scan & Removal Report ({report_date})"
+
+            user_display_name = getattr(user, 'full_name', None) or getattr(user, 'first_name', None) or user.email
+            send_email(
+                subject=subject,
+                body=f"Hello {user_display_name},\n\nBi-Monthly Summary:\nNew Links Discovered: {new_links_count}\nLinks Deleted: {deleted_links_count}\n\nVisit your dashboard to view findings: {context['dashboard_url']}",
+                to_emails=[recipient_email],
+                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', None),
+                html_content=html_message
+            )
+            emails_sent_count += 1
+            logger.info(f"Sent expired account email report to {recipient_email} (Discovered: {new_links_count}, Deleted: {deleted_links_count})")
+        except Exception as e:
+            logger.error(f"Failed to send expired account report email to {recipient_email}: {e}")
+
+    return {'status': 'completed', 'total_emails_sent': emails_sent_count}
+
+
 
 
 

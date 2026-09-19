@@ -450,7 +450,7 @@ class ConnectedSocialAccountSerializer(serializers.ModelSerializer):
 class UpdateProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['full_name', 'country', 'time_zone']
+        fields = ['full_name', 'country', 'time_zone', 'is_automated_mail']
         
     def to_representation(self, instance):
         return {
@@ -460,6 +460,7 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
             'role': instance.role,
             'country': instance.country,
             'time_zone': instance.time_zone,
+            'is_automated_mail': instance.is_automated_mail,
         }
     
 

@@ -342,9 +342,9 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                     </div>
                     <div>
                         <h2 class="text-xl font-bold text-slate-100 flex items-center gap-2">
-                            1. Links
+                            Links
                         </h2>
-                        <p class="text-xs text-slate-400">All page links discovered during scanning</p>
+                        <p class="text-xs text-slate-400">All page links and image URLs discovered during scanning</p>
                     </div>
                 </div>
 
@@ -355,12 +355,22 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                         {{ page_urls|length }} Link{% if page_urls|length != 1 %}s{% endif %}
                     </span>
 
+                    <!-- Search Links Input -->
+                    {% if page_urls %}
+                    <div class="inline-flex items-center mr-1">
+                        <input type="text" id="link-search-input" placeholder="Search links..."
+                            oninput="expandAccordion('links'); filterLinks();"
+                            onclick="expandAccordion('links')" onfocus="expandAccordion('links')"
+                            class="px-3 py-1 bg-slate-900 border border-slate-700 text-slate-100 rounded-lg text-xs font-medium focus:outline-none focus:border-purple-500 w-36 sm:w-48 transition-all">
+                    </div>
+                    {% endif %}
+
                     <!-- Status Filter Dropdown -->
                     {% if page_urls %}
                     <div class="inline-flex items-center gap-1.5 mr-2">
                         <label for="link-status-filter" class="text-xs text-slate-400 font-medium">Filter:</label>
                         <select id="link-status-filter"
-                            onchange="expandAccordion('links'); filterLinksByStatus(this.value);"
+                            onchange="expandAccordion('links'); filterLinks();"
                             onclick="expandAccordion('links')" onfocus="expandAccordion('links')"
                             class="custom-panel-select px-2.5 py-1 border border-slate-700 rounded-lg text-xs font-medium focus:outline-none focus:border-purple-500 cursor-pointer">
                             <option value="all">All Statuses ({{ page_urls|length }})</option>
@@ -600,7 +610,7 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                     </div>
                     <div>
                         <h2 class="text-xl font-bold text-slate-100 flex items-center gap-2">
-                            2. Images
+                            Images
                         </h2>
                         <p class="text-xs text-slate-400">Gallery of image previews found during scanning</p>
                     </div>
@@ -618,9 +628,19 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                     {% endif %}
 
                     <span
-                        class="px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-xs font-semibold">
+                        class="px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-xs font-semibold mr-1">
                         {{ images|length }} Image{% if images|length != 1 %}s{% endif %}
                     </span>
+
+                    {% if images %}
+                    <!-- Search Images Input -->
+                    <div class="inline-flex items-center mr-1">
+                        <input type="text" id="image-search-input" placeholder="Search images..."
+                            oninput="expandAccordion('images'); filterImages();"
+                            onclick="expandAccordion('images')" onfocus="expandAccordion('images')"
+                            class="px-3 py-1 bg-slate-900 border border-slate-700 text-slate-100 rounded-lg text-xs font-medium focus:outline-none focus:border-blue-500 w-36 sm:w-48 transition-all">
+                    </div>
+                    {% endif %}
 
                     {% if images %}
                     <button type="submit" name="action" value="delete_images"
@@ -808,7 +828,7 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                 </div>
                 <div>
                     <h2 class="text-xl font-bold text-slate-100 flex items-center gap-2">
-                        3. Scan Results
+                        Scan Results
                     </h2>
                     <p class="text-xs text-slate-400">Scanned website summaries and execution status</p>
                 </div>
@@ -993,15 +1013,44 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
             }
         }
 
-        function filterLinksByStatus(selectedStatus) {
+        function filterLinks() {
             expandAccordion('links');
+            const statusSelect = document.getElementById('link-status-filter');
+            const selectedStatus = statusSelect ? statusSelect.value : 'all';
+            const searchInput = document.getElementById('link-search-input');
+            const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
             const rows = document.querySelectorAll('.link-row');
             rows.forEach(row => {
-                const status = row.getAttribute('data-status');
-                if (selectedStatus === 'all' || status === selectedStatus) {
+                const status = row.getAttribute('data-status') || 'pending';
+                const matchesStatus = (selectedStatus === 'all' || status === selectedStatus);
+                const textContent = row.textContent.toLowerCase();
+                const matchesQuery = !query || textContent.includes(query);
+
+                if (matchesStatus && matchesQuery) {
                     row.style.display = '';
                 } else {
                     row.style.display = 'none';
+                }
+            });
+        }
+
+        function filterLinksByStatus(selectedStatus) {
+            filterLinks();
+        }
+
+        function filterImages() {
+            expandAccordion('images');
+            const searchInput = document.getElementById('image-search-input');
+            const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+            const cards = document.querySelectorAll('.image-card');
+            cards.forEach(card => {
+                const textContent = card.textContent.toLowerCase();
+                if (!query || textContent.includes(query)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
                 }
             });
         }
