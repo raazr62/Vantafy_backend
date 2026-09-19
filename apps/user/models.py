@@ -26,6 +26,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_superuser = models.BooleanField(default=False)
     term_and_condition_accepted = models.BooleanField()
     is_verified_for_earning = models.BooleanField(default=False)
+    is_automated_mail = models.BooleanField(default=True, null=True, blank=True)
 
     # reference fields
     referral_code = models.CharField(max_length=10,  null=True, blank=True)

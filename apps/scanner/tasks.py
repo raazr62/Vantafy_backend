@@ -490,6 +490,8 @@ def send_weekly_subscription_email_reports():
 
         user = sub.user
         processed_users.add(user.id)
+        if getattr(user, 'is_automated_mail', True) is False:
+            continue
 
         role = getattr(user, 'role', None)
 
@@ -736,6 +738,8 @@ def send_daily_subscription_email_reports():
 
         user = sub.user
         processed_users.add(user.id)
+        if getattr(user, 'is_automated_mail', True) is False:
+            continue
 
         role = getattr(user, 'role', None)
 
@@ -956,6 +960,8 @@ def send_expired_account_email_reports():
         if user.id in processed_users:
             continue
         processed_users.add(user.id)
+        if getattr(user, 'is_automated_mail', True) is False:
+            continue
 
         role = getattr(user, 'role', None)
 
