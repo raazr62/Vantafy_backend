@@ -237,35 +237,47 @@ class CookieTokenRefreshView(TokenRefreshView):
 
 class CookieTokenVerifyView(TokenVerifyView):
 
-    
     def post(self, request, *args, **kwargs):
-
-        data = request.data.copy()
+        data = request.data.copy() if request.data else {}
         
-        # Get token from request or cookie
-        token = data.get('token') or request.COOKIES.get('access_token')
+        # Get token from request body, Authorization header, or cookies
+        token = data.get('token')
+        jwt_auth = CookieJWTAuthentication()
+        
+        if not token:
+            header = jwt_auth.get_header(request)
+            if header is not None:
+                raw_token = jwt_auth.get_raw_token(header)
+                if raw_token is not None:
+                    token = raw_token.decode('utf-8') if isinstance(raw_token, bytes) else str(raw_token)
+                    token = token.strip('\'"')
+                    if token in ('null', 'undefined', '', 'None'):
+                        token = None
+
+        if not token:
+            token = request.COOKIES.get('access_token')
+            if token:
+                token = token.strip('\'"')
+                if token in ('null', 'undefined', '', 'None'):
+                    token = None
+
         if not token:
             return error(message="No token provided.", errors={}, status_code=status.HTTP_401_UNAUTHORIZED)
         
-        data['token'] = token
-        
-        # Validate token
-        serializer = self.get_serializer(data=data)
         try:
-            serializer.is_valid(raise_exception=True)
-        except TokenError as e:
-            raise InvalidToken(e.args[0])
-        
-        # Get user from token
-        jwt_auth = JWTAuthentication()
-        validated_token = jwt_auth.get_validated_token(token)
-        user = jwt_auth.get_user(validated_token)
+            validated_token = jwt_auth.get_validated_token(token)
+            user = jwt_auth.get_user(validated_token)
+            if not user:
+                return error(message="User not found for token.", errors={}, status_code=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            return error(message="Token verification failed.", errors=str(e), status_code=status.HTTP_401_UNAUTHORIZED)
 
-        has_subscription = Subscription.objects.filter(user=user,status='active',).exists()        
+        has_subscription = Subscription.objects.filter(user=user, status='active').exists()        
     
         user_info = {
             'id': user.id,
             'email': user.email,
+            'full_name': user.full_name,
             'role': getattr(user, 'role', None),
             'has_subscription': has_subscription,
             'is_google_login': user.is_google_login,
