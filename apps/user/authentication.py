@@ -49,15 +49,15 @@ class HybridJWTAuthentication(JWTAuthentication):
         if raw_token is None:
             raw_token = request.COOKIES.get('access_token') or None
 
+        if raw_token is not None:
+            if isinstance(raw_token, bytes):
+                raw_token = raw_token.decode('utf-8')
+            raw_token = raw_token.strip('\'"')
+            if raw_token in ('null', 'undefined', '', 'None'):
+                raw_token = None
+
         if raw_token is None:
             return None
-        
-        # Ensure token is string and clean
-        if isinstance(raw_token, bytes):
-            raw_token = raw_token.decode('utf-8')
-        
-        # Strip potential quotes from cookie value
-        raw_token = raw_token.strip('\'"')
 
         # Validate the token
         try:
@@ -67,7 +67,7 @@ class HybridJWTAuthentication(JWTAuthentication):
             refresh_token_str = request.COOKIES.get('refresh_token')
             if refresh_token_str:
                 refresh_token_str = refresh_token_str.strip('\'"')
-                if refresh_token_str not in ('null', 'undefined', ''):
+                if refresh_token_str not in ('null', 'undefined', '', 'None'):
                     try:
                         from rest_framework_simplejwt.tokens import RefreshToken
                         rf = RefreshToken(refresh_token_str)
@@ -114,7 +114,7 @@ class HybridJWTAuthentication(JWTAuthentication):
         """
         from .utils import get_user_agent_hash
 
-        token_ua_hash = validated_token.get('user_agent')
+        token_ua_hash = validated_token.get('user_agent') or validated_token.get('uah')
         current_ua_hash = get_user_agent_hash(request)
 
         if token_ua_hash and token_ua_hash != current_ua_hash:
