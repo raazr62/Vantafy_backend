@@ -388,20 +388,17 @@ CSRF_COOKIE_HTTPONLY = True  # XSS protection
 # ============================================
 # Cookie SameSite and Secure Configuration
 # ============================================
-if CROSS_ORIGIN_DEVELOPMENT and DEBUG:
-
-    SESSION_COOKIE_SAMESITE = 'None'  
-    CSRF_COOKIE_SAMESITE = 'None'
-    SESSION_COOKIE_SECURE = True    
-    CSRF_COOKIE_SECURE = True
-
+if DEBUG:
+    SESSION_COOKIE_SAMESITE = 'Lax'  
+    CSRF_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_SECURE = False    
+    CSRF_COOKIE_SECURE = False
 else:
     # Production settings
     SESSION_COOKIE_SAMESITE = 'Lax'   
     CSRF_COOKIE_SAMESITE = 'Lax'
-    # Only use Secure cookies if we are in production and presumably on HTTPS
-    SESSION_COOKIE_SECURE = not DEBUG      
-    CSRF_COOKIE_SECURE = not DEBUG
+    SESSION_COOKIE_SECURE = True      
+    CSRF_COOKIE_SECURE = True
 
 
 

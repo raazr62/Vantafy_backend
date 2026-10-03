@@ -49,48 +49,61 @@ def get_user_agent_hash(request):
 # Hybrid Authentication Response Utilities
 # ============================================
 
-def set_auth_cookies(response, access_token, refresh_token, secure=False):
+def set_auth_cookies(response, access_token, refresh_token, secure=False, request=None):
     
     # Get domain setting from Django settings
     domain = getattr(settings, 'SESSION_COOKIE_DOMAIN', None)
     
-    
-    # Determine SameSite value
-    # For cross-origin requests with credentials, use 'None' with Secure=True
-    # For same-origin, 'Lax' is sufficient
-    samesite = settings.CSRF_COOKIE_SAMESITE
+    # Determine secure & samesite dynamically based on connection type
+    if request is not None and request.is_secure():
+        secure_flag = True
+        samesite = getattr(settings, 'CSRF_COOKIE_SAMESITE', 'None')
+    elif not settings.DEBUG and getattr(settings, 'SESSION_COOKIE_SECURE', False):
+        secure_flag = True
+        samesite = getattr(settings, 'CSRF_COOKIE_SAMESITE', 'None')
+    else:
+        # On HTTP connections, Secure MUST be False and SameSite MUST be Lax for browsers to store cookies
+        secure_flag = False
+        samesite = 'Lax'
 
-    
     # Access token cookie
     response.set_cookie(
         key='access_token',
         value=access_token,
         domain=domain,  # None = current domain, '.domain.com' = all subdomains
         httponly=True,  # XSS protection
-        secure=secure,  # HTTPS only in production
+        secure=secure_flag,  # HTTPS only when secure
         samesite=samesite,  # CSRF protection
         max_age=getattr(settings, 'ACCESS_TOKEN_COOKIE_MAX_AGE', 3600)  # 1 hour default
     )
     
     # Refresh token cookie
-    response.set_cookie(
-        key='refresh_token',
-        value=refresh_token,
-        domain=domain,  # None = current domain, '.domain.com' = all subdomains
-        httponly=True,  # XSS protection
-        secure=secure,  # HTTPS only in production
-        samesite=samesite,  # CSRF protection
-        max_age=getattr(settings, 'REFRESH_TOKEN_COOKIE_MAX_AGE', 86400 * 7)  # 7 days default
-    )
+    if refresh_token:
+        response.set_cookie(
+            key='refresh_token',
+            value=refresh_token,
+            domain=domain,  # None = current domain, '.domain.com' = all subdomains
+            httponly=True,  # XSS protection
+            secure=secure_flag,  # HTTPS only when secure
+            samesite=samesite,  # CSRF protection
+            max_age=getattr(settings, 'REFRESH_TOKEN_COOKIE_MAX_AGE', 86400 * 7)  # 7 days default
+        )
     
     return response
 
 
-def clear_auth_cookies(response):
+def clear_auth_cookies(response, request=None):
 
     domain = getattr(settings, 'SESSION_COOKIE_DOMAIN', None)
-    samesite = settings.CSRF_COOKIE_SAMESITE
-    secure = settings.SESSION_COOKIE_SECURE
+    if request is not None and request.is_secure():
+        secure_flag = True
+        samesite = getattr(settings, 'CSRF_COOKIE_SAMESITE', 'None')
+    elif not settings.DEBUG and getattr(settings, 'SESSION_COOKIE_SECURE', False):
+        secure_flag = True
+        samesite = getattr(settings, 'CSRF_COOKIE_SAMESITE', 'None')
+    else:
+        secure_flag = False
+        samesite = 'Lax'
     
     # Manually expire cookies to support 'secure' attribute which delete_cookie may not accept
     response.set_cookie(
@@ -100,7 +113,7 @@ def clear_auth_cookies(response):
         expires='Thu, 01 Jan 1970 00:00:00 GMT', 
         domain=domain, 
         samesite=samesite, 
-        secure=secure,
+        secure=secure_flag,
         httponly=True 
     )
     response.set_cookie(
@@ -110,7 +123,7 @@ def clear_auth_cookies(response):
         expires='Thu, 01 Jan 1970 00:00:00 GMT', 
         domain=domain, 
         samesite=samesite, 
-        secure=secure, 
+        secure=secure_flag, 
         httponly=True
     )
     return response
@@ -120,88 +133,42 @@ def create_hybrid_auth_response(data, tokens, request, message="Authentication s
    
     is_mobile = getattr(request, 'is_mobile_client', False)
     
-    if is_mobile:
-        # Mobile: Return tokens in response body
-        response_data = {
-            'user': data,
-            'tokens': {
-                'access': tokens['access'],
-                'refresh': tokens['refresh']
-            }
+    response_data = {
+        'user': data,
+        'tokens': {
+            'access': tokens['access'],
+            'refresh': tokens['refresh']
         }
-        response = success(
-            data=response_data,
-            message=message,
-            status_code=status_code
-        )
-    else:
-        response_data = {'user': data}
-        response = success(
-            data=response_data,
-            message=message,
-            status_code=status_code
-        )
-        
-        # Use the SESSION_COOKIE_SECURE setting which is configured based on CROSS_ORIGIN_DEVELOPMENT
-        secure = settings.SESSION_COOKIE_SECURE
-        set_auth_cookies(response, tokens['access'], tokens['refresh'], secure=secure)
+    }
+    response = success(
+        data=response_data,
+        message=message,
+        status_code=status_code
+    )
+    
+    if not is_mobile:
+        set_auth_cookies(response, tokens['access'], tokens['refresh'], request=request)
     
     return response
 
 
 def create_hybrid_refresh_response(tokens, request, message="Token refreshed successfully", status_code=200):
   
-    
-    # Determine client type
     is_mobile = getattr(request, 'is_mobile_client', False)
     
-    if is_mobile:
-        # Mobile: Return tokens in response body
-        response_data = {
-            'tokens': {
-                'access': tokens['access'],
-                'refresh': tokens.get('refresh')  
-            }
+    response_data = {
+        'tokens': {
+            'access': tokens['access'],
+            'refresh': tokens.get('refresh')  
         }
-        response = success(
-            data=response_data,
-            message=message,
-            status_code=status_code
-        )
-    else:
-        # Web: Return empty data, tokens in cookies
-        response = success(
-            data={},
-            message=message,
-            status_code=status_code
-        )
-        
-        # Set cookies for web clients
-        secure = not settings.DEBUG
-        domain = getattr(settings, 'SESSION_COOKIE_DOMAIN', None)
-        samesite = settings.CSRF_COOKIE_SAMESITE
-                
-        response.set_cookie(
-            key='access_token',
-            value=tokens['access'],
-            domain=domain,
-            httponly=True,
-            secure=secure,
-            samesite=samesite,
-            max_age=getattr(settings, 'ACCESS_TOKEN_COOKIE_MAX_AGE', 3600)
-        )
-        
-        # Set refresh token if present (token rotation)
-        if 'refresh' in tokens and tokens['refresh']:
-            response.set_cookie(
-                key='refresh_token',
-                value=tokens['refresh'],
-                domain=domain,
-                httponly=True,
-                secure=secure,
-                samesite=samesite,
-                max_age=getattr(settings, 'REFRESH_TOKEN_COOKIE_MAX_AGE', 86400 * 7)
-            )
-            
+    }
+    response = success(
+        data=response_data,
+        message=message,
+        status_code=status_code
+    )
     
+    if not is_mobile:
+        set_auth_cookies(response, tokens['access'], tokens.get('refresh'), request=request)
+            
     return response
