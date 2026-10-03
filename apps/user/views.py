@@ -104,35 +104,32 @@ class SignInView(APIView):
 
 
 class SignOutView(APIView):
-  
-    
-    permission_classes = [IsAuthenticated]
+    permission_classes = []
     authentication_classes = [CookieJWTAuthentication]
 
     def post(self, request):
         # Get tokens from request body or cookies
-        data = request.data.copy()
+        data = request.data.copy() if request.data else {}
         if 'refresh_token' not in data and 'refresh_token' in request.COOKIES:
             data['refresh_token'] = request.COOKIES['refresh_token']
         if 'access_token' not in data and 'access_token' in request.COOKIES:
             data['access_token'] = request.COOKIES['access_token']
         
-        print("COOKIES:", request.COOKIES)
+        if data.get('refresh_token'):
+            try:
+                serializer = SignOutSerializer(data=data)
+                if serializer.is_valid():
+                    serializer.save()
+            except Exception:
+                pass
+            
+        # Create response
+        response = success(data=[], message="Logout successful.", status_code=status.HTTP_200_OK)
         
-        serializer = SignOutSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            
-            # Create response
-            response = success(data=[], message="Logout successful.", status_code=status.HTTP_200_OK)
-            
-            # Clear cookies for web clients
-            is_web = getattr(request, 'is_web_client', True)
-            if is_web or 'access_token' in request.COOKIES:
-                clear_auth_cookies(response)
-            
-            return response
-        return error(message="Logout failed.", status_code=status.HTTP_400_BAD_REQUEST, errors=serializer.errors)
+        # Clear cookies for web clients
+        clear_auth_cookies(response)
+        
+        return response
 
 
 class ChangePasswordView(APIView):
