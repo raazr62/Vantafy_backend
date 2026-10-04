@@ -17,7 +17,7 @@ class SubscriptionPackageSerializer(serializers.ModelSerializer):
 class PackageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Package
-        fields = ["id", "name", "price", "type", "enabled"]
+        fields = ["id", "name", "price", "member_limit", "type", "enabled"]
 
 
         
