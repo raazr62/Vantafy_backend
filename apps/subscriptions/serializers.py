@@ -11,7 +11,7 @@ class SubscriptionPackageSerializer(serializers.ModelSerializer):
     features = FeatureSerializer(many=True)
     class Meta:
         model = Package
-        fields = ["id","name","stripe_product_id","stripe_price_id","price","type","enabled","features"]
+        fields = ["id","name","stripe_product_id","stripe_price_id","price","member_limit", "type","enabled","features"]
 
 
 class PackageSerializer(serializers.ModelSerializer):
