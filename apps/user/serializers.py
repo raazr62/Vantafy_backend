@@ -453,6 +453,7 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
         fields = ['full_name', 'country', 'time_zone', 'is_automated_mail']
         
     def to_representation(self, instance):
+        has_subscription = Subscription.objects.filter(user=instance, status='active').exists()
         return {
             'id': instance.id,
             'email': instance.email,
@@ -461,6 +462,7 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
             'country': instance.country,
             'time_zone': instance.time_zone,
             'is_automated_mail': instance.is_automated_mail,
+            'has_subscription': has_subscription,
         }
     
 
