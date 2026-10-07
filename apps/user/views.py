@@ -1130,6 +1130,107 @@ class AffiliateProgramView(APIView):
             message="Affiliate program data fetched successfully.",
             status_code=status.HTTP_200_OK
         )
+
+
+class DeleteAllUserImagesView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+
+    def delete(self, request):
+        user = request.user
+        deleted_count = 0
+
+        # Note: Exclude profile avatar (user.avatar remains untouched)
+
+        # 1. Customer scan result images & videos
+        try:
+            from apps.scanner.models import (
+                CustomerScanResult, CustomerScanResultImage, CustomerScanResultVideo,
+                AgencyMemberScanResult, AgencyMemberScanResultImage, AgencyMemberScanResultVideo
+            )
+            scan_results = CustomerScanResult.objects.filter(customer=user)
+            scan_images = CustomerScanResultImage.objects.filter(customer_scan_result__in=scan_results)
+            for img_obj in scan_images:
+                if img_obj.image:
+                    try:
+                        img_obj.image.delete(save=False)
+                    except Exception as e:
+                        logger.error(f"Error deleting customer scan image {img_obj.id}: {e}")
+                img_obj.delete()
+                deleted_count += 1
+
+            scan_videos = CustomerScanResultVideo.objects.filter(customer_scan_result__in=scan_results)
+            for vid_obj in scan_videos:
+                if vid_obj.video:
+                    try:
+                        vid_obj.video.delete(save=False)
+                    except Exception as e:
+                        logger.error(f"Error deleting customer scan video {vid_obj.id}: {e}")
+                vid_obj.delete()
+                deleted_count += 1
+
+            if user.role == User.Roles.AGENCY:
+                agency_scans = AgencyMemberScanResult.objects.filter(agency_member__agency=user)
+                agency_scan_images = AgencyMemberScanResultImage.objects.filter(agency_member_scan_result__in=agency_scans)
+                for img_obj in agency_scan_images:
+                    if img_obj.image:
+                        try:
+                            img_obj.image.delete(save=False)
+                        except Exception as e:
+                            logger.error(f"Error deleting agency scan image {img_obj.id}: {e}")
+                    img_obj.delete()
+                    deleted_count += 1
+
+                agency_scan_videos = AgencyMemberScanResultVideo.objects.filter(agency_member_scan_result__in=agency_scans)
+                for vid_obj in agency_scan_videos:
+                    if vid_obj.video:
+                        try:
+                            vid_obj.video.delete(save=False)
+                        except Exception as e:
+                            logger.error(f"Error deleting agency scan video {vid_obj.id}: {e}")
+                    vid_obj.delete()
+                    deleted_count += 1
+        except Exception as e:
+            logger.error(f"Error deleting scan result media for user {user.id}: {e}")
+
+        # 4. Support message images/files
+        try:
+            from apps.customer_support.models import Message as SupportMessage
+            support_msgs = SupportMessage.objects.filter(sender=user)
+            for msg in support_msgs:
+                updated = False
+                if msg.image:
+                    try:
+                        msg.image.delete(save=False)
+                    except Exception:
+                        pass
+                    msg.image = None
+                    updated = True
+                if msg.file:
+                    try:
+                        msg.file.delete(save=False)
+                    except Exception:
+                        pass
+                    msg.file = None
+                    updated = True
+                if msg.document:
+                    try:
+                        msg.document.delete(save=False)
+                    except Exception:
+                        pass
+                    msg.document = None
+                    updated = True
+                if updated:
+                    msg.save(update_fields=['image', 'file', 'document'])
+                    deleted_count += 1
+        except Exception:
+            pass
+
+        return success(
+            data={"deleted_count": deleted_count},
+            message="All images deleted from server and S3 storage successfully.",
+            status_code=status.HTTP_200_OK
+        )
     
 
     
