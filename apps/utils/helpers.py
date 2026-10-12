@@ -21,15 +21,14 @@ def error(message="Error", errors=None, status_code=status.HTTP_400_BAD_REQUEST)
 
 
 
-def send_email(subject, body, to_emails, from_email=None, html_body=None, attachments=None):
-    
+def send_email(subject, body, to_emails, from_email=None, html_body=None, attachments=None, html_content=None):
+    html_body = html_body or html_content
     email = EmailMultiAlternatives(
         subject=subject,
         body=body,
         from_email=from_email,
         to=to_emails,
         headers={'X-Requested-With': 'XMLHttpRequest'}
-
     )
 
     if attachments:
