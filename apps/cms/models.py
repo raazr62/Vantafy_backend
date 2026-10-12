@@ -61,7 +61,7 @@ class CMS(models.Model):
 class FAQ(models.Model):
     STATUS_CHOICE = [
         ('landing_page','Landing Page'),
-        ('dashboard','Customer_Dashboard')
+        ('dashboard','Customer Dashboard')
     ]
 
     question = models.CharField(max_length=255, null=True, blank=True)
