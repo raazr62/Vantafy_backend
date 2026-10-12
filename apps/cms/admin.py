@@ -34,8 +34,8 @@ class CMSAdmin(ModelAdmin):
 
 @admin.register(FAQ)
 class FAQAdmin(ModelAdmin):
-    list_display = ('id', 'question', 'type', 'display_order', 'status')
-    list_display_links = ('id', 'question')
+    list_display = ('display_order', 'question', 'type', 'status')
+    list_display_links = ('display_order', 'question')
     list_filter = ('type', 'status')
     search_fields = ('question', 'answer')
 
