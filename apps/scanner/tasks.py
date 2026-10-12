@@ -532,7 +532,7 @@ def send_weekly_subscription_email_reports():
             'deleted_links_count': deleted_links_count,
             'report_start_date': report_start_date,
             'report_end_date': report_end_date,
-            'dashboard_url': getattr(settings, 'FRONTEND_URL', 'https://dashboard.vantafy.com'),
+            'dashboard_url': getattr(settings, 'FRONTEND_URL', 'https://vantafy.com'),
             'system_info': {'name': 'VantaFy', 'email': 'support@vantafy.com'}
         }
 
@@ -779,7 +779,7 @@ def send_daily_subscription_email_reports():
             'new_links_count': new_links_count,
             'deleted_links_count': deleted_links_count,
             'report_date': report_date,
-            'dashboard_url': getattr(settings, 'FRONTEND_URL', 'https://dashboard.vantafy.com'),
+            'dashboard_url': getattr(settings, 'FRONTEND_URL', 'https://vantafy.com'),
             'system_info': {'name': 'VantaFy', 'email': 'support@vantafy.com'}
         }
 
@@ -1001,7 +1001,7 @@ def send_expired_account_email_reports():
             'new_links_count': new_links_count,
             'deleted_links_count': deleted_links_count,
             'report_date': report_date,
-            'dashboard_url': getattr(settings, 'FRONTEND_URL', 'https://dashboard.vantafy.com'),
+            'dashboard_url': getattr(settings, 'FRONTEND_URL', 'https://vantafy.com'),
             'system_info': {'name': 'VantaFy', 'email': 'support@vantafy.com'}
         }
 
