@@ -546,7 +546,7 @@ def send_weekly_subscription_email_reports():
                 body=f"Hello {user_display_name},\n\nWeekly Summary:\nNew Links Discovered: {new_links_count}\nLinks Deleted: {deleted_links_count}\n\nVisit your dashboard: {context['dashboard_url']}",
                 to_emails=[recipient_email],
                 from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', None),
-                html_content=html_message
+                html_body=html_message
             )
             emails_sent_count += 1
             logger.info(f"Sent weekly email report to {recipient_email} (Discovered: {new_links_count}, Deleted: {deleted_links_count})")
@@ -793,7 +793,7 @@ def send_daily_subscription_email_reports():
                 body=f"Hello {user_display_name},\n\nDaily Summary:\nNew Links Discovered: {new_links_count}\nLinks Deleted: {deleted_links_count}\n\nVisit your dashboard: {context['dashboard_url']}",
                 to_emails=[recipient_email],
                 from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', None),
-                html_content=html_message
+                html_body=html_message
             )
             emails_sent_count += 1
             logger.info(f"Sent daily email report to {recipient_email} (Discovered: {new_links_count}, Deleted: {deleted_links_count})")
@@ -1015,7 +1015,7 @@ def send_expired_account_email_reports():
                 body=f"Hello {user_display_name},\n\nBi-Monthly Summary:\nNew Links Discovered: {new_links_count}\nLinks Deleted: {deleted_links_count}\n\nVisit your dashboard to view findings: {context['dashboard_url']}",
                 to_emails=[recipient_email],
                 from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', None),
-                html_content=html_message
+                html_body=html_message
             )
             emails_sent_count += 1
             logger.info(f"Sent expired account email report to {recipient_email} (Discovered: {new_links_count}, Deleted: {deleted_links_count})")
