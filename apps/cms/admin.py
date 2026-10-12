@@ -34,14 +34,14 @@ class CMSAdmin(ModelAdmin):
 
 @admin.register(FAQ)
 class FAQAdmin(ModelAdmin):
-    list_display = ('id', 'question', 'status')
+    list_display = ('id', 'question', 'type', 'display_order', 'status')
     list_display_links = ('id', 'question')
-    list_filter = ('status',)
+    list_filter = ('type', 'status')
     search_fields = ('question', 'answer')
 
     fieldsets = (
         (None, {
-            'fields': ('question', 'answer', 'status')
+            'fields': ('question', 'answer', 'type', 'display_order', 'status')
         }),
     )
 

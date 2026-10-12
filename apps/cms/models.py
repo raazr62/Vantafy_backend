@@ -59,12 +59,22 @@ class CMS(models.Model):
 
 
 class FAQ(models.Model):
-    question = models.CharField(max_length=255)
-    answer = models.TextField()
+    STATUS_CHOICE = [
+        ('landing_page','Landing Page'),
+        ('dashboard','Customer_Dashboard')
+    ]
+
+    question = models.CharField(max_length=255, null=True, blank=True)
+    answer = models.TextField(null=True, blank=True)
+    type = models.CharField(max_length=100, default='landing_page', choices=STATUS_CHOICE, null=True, blank=True)
+    display_order = models.PositiveIntegerField(default=1)
     status = models.BooleanField(default=True)
 
+    class Meta:
+        ordering = ['display_order']
+
     def __str__(self):
-        return self.question
+        return self.question or f"FAQ #{self.id}"
     
 class HeroSection(models.Model):
     title = models.CharField(max_length=255)
