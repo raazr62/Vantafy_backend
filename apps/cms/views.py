@@ -47,7 +47,7 @@ class LandingPageAllSectionOneByOneView(APIView):
         # If cache miss, fetch from database
         hero_section = HeroSection.objects.filter(status=True).first()
         hero_radar_icons = HeroRadarIcon.objects.all()
-        faqs = FAQ.objects.filter(status=True)
+        faqs = FAQ.objects.filter(status=True, type='landing_page').order_by('display_order')
         platforms = RepresentPlatform.objects.filter(status=True)
         customers = AmongOurCustomer.objects.filter(status=True)
         testimonials = Testimonial.objects.all()
@@ -85,5 +85,20 @@ class PageView(APIView):
                 pages = pages.filter(type=page_type)
             serializer = PageSerializer(pages, many=True).data
             return success(data=serializer, message="Pages retrieved successfully.", status_code=status.HTTP_200_OK)
+        except Exception as e:
+            return error(data={}, message=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# FAQs view for specific types (e.g. dashboard, landing_page)
+class FAQView(APIView):
+    permission_classes = []
+
+    def get(self, request):
+        try:
+            faq_type = request.query_params.get('type')
+            faqs = FAQ.objects.filter(status=True).order_by('display_order')
+            if faq_type:
+                faqs = faqs.filter(type=faq_type)
+            serializer = FAQSerializer(faqs, many=True).data
+            return success(data=serializer, message="FAQs retrieved successfully.", status_code=status.HTTP_200_OK)
         except Exception as e:
             return error(data={}, message=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
