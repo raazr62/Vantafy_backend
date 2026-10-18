@@ -4,10 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bi-Monthly Scan & Removal Report - {{ system_info.name|default:"VantaFy" }}</title>
+    <title>Bi-Monthly Scan & Removal Report - {{ system_info.name|default:"Vantafy" }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <style>
         body {
             font-family: 'Montserrat', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
@@ -37,8 +38,21 @@
         }
 
         .header-content {
-            padding: 40px 40px 10px 40px;
+            padding: 30px 40px;
             text-align: center;
+            background-color: #300054;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .brand-logo {
+            display: block;
+            margin: 0 auto;
+            max-height: 40px;
+            width: auto;
+            max-width: 200px;
+            border: 0;
+            outline: none;
+            text-decoration: none;
         }
 
         .brand-name {
@@ -53,7 +67,7 @@
         }
 
         .body-content {
-            padding: 10px 40px 36px 40px;
+            padding: 28px 40px 36px 40px;
         }
 
         .greeting {
@@ -66,7 +80,8 @@
 
         .action-button {
             display: inline-block;
-            background: linear-gradient(90deg, #971DFE 0%, #FF1BE4 100%);
+            background-color: #971DFE;
+            background: #971DFE;
             color: #ffffff !important;
             padding: 12px 28px;
             text-decoration: none;
@@ -74,7 +89,7 @@
             font-weight: 700;
             font-size: 14px;
             margin-top: 16px;
-            box-shadow: 0 4px 12px rgba(255, 27, 228, 0.25);
+            box-shadow: 0 4px 12px rgba(151, 29, 254, 0.25);
         }
 
         .divider {
@@ -103,37 +118,58 @@
 </head>
 
 <body>
-    <div class="email-wrapper">
-        <div class="email-container">
-            <div class="header-content">
-                <h1 class="brand-name">{{ system_info.name|default:"VantaFy" }}</h1>
+    <div class="email-wrapper" style="width: 100%; background-color: #f8fafc; padding: 48px 16px; box-sizing: border-box;">
+        <div class="email-container" style="max-width: 540px; margin: 0 auto; background-color: #ffffff; border-radius: 20px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.01);">
+            <div class="header-content" style="background-color: #300054; padding: 30px 40px; text-align: center; border-radius: 20px 20px 0 0;">
+                <a href="{{ dashboard_url|default:'https://Vantafy.com' }}" style="text-decoration: none; display: inline-block;" target="_blank">
+                    {% if logo_url %}
+                    <img src="{{ logo_url }}" alt="{{ system_info.name|default:'Vantafy' }}" class="brand-logo" height="38" style="display: block; margin: 0 auto; max-height: 40px; width: auto; max-width: 200px; border: 0; outline: none; text-decoration: none;" />
+                    {% elif system_info.get_absolute_logo_url %}
+                    <img src="{{ system_info.get_absolute_logo_url }}" alt="{{ system_info.name|default:'Vantafy' }}" class="brand-logo" height="38" style="display: block; margin: 0 auto; max-height: 40px; width: auto; max-width: 200px; border: 0; outline: none; text-decoration: none;" />
+                    {% elif system_info.logo_url %}
+                    <img src="{{ system_info.logo_url }}" alt="{{ system_info.name|default:'Vantafy' }}" class="brand-logo" height="38" style="display: block; margin: 0 auto; max-height: 40px; width: auto; max-width: 200px; border: 0; outline: none; text-decoration: none;" />
+                    {% elif system_info.logo and system_info.logo.url %}
+                    <img src="{{ system_info.logo.url }}" alt="{{ system_info.name|default:'Vantafy' }}" class="brand-logo" height="38" style="display: block; margin: 0 auto; max-height: 40px; width: auto; max-width: 200px; border: 0; outline: none; text-decoration: none;" />
+                    {% else %}
+                    <img src="https://midia-mixer.s3.us-east-2.amazonaws.com/system_setting/logo/1.png" alt="{{ system_info.name|default:'Vantafy' }}" class="brand-logo" height="38" style="display: block; margin: 0 auto; max-height: 40px; width: auto; max-width: 200px; border: 0; outline: none; text-decoration: none;" />
+                    {% endif %}
+                </a>
             </div>
 
-            <div class="body-content">
+            <div class="body-content" style="padding: 28px 40px 36px 40px;">
                 <h2 class="greeting">Hello {{ user.full_name|default:"Valued Creator" }},</h2>
-                <p style="font-size: 14px; color: #475569;">Here is your bi-monthly automated scan and removal findings report ({{ report_date }}):</p>
+                <p style="font-size: 14px; color: #475569;">Here is your bi-monthly automated scan and removal findings
+                    report ({{ report_date }}):</p>
 
                 <table width="100%" cellpadding="0" cellspacing="0" style="margin: 24px 0;">
                     <tr>
-                        <td width="48%" style="background: #fdf4ff; border: 1px solid #f5d0fe; border-radius: 14px; padding: 20px; text-align: center;">
-                            <div style="font-size: 13px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">New Links Discovered</div>
-                            <div style="font-size: 32px; font-weight: 800; color: #971DFE; margin-top: 4px;">{{ new_links_count }}</div>
+                        <td width="48%"
+                            style="background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 14px; padding: 20px; text-align: center;">
+                            <div
+                                style="font-size: 13px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">
+                                NEW LINKS</div>
+                            <div style="font-size: 32px; font-weight: 800; color: #0f172a; margin-top: 4px;">{{ new_links_count }}</div>
                         </td>
                         <td width="4%"></td>
-                        <td width="48%" style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 14px; padding: 20px; text-align: center;">
-                            <div style="font-size: 13px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Links Successfully Deleted</div>
-                            <div style="font-size: 32px; font-weight: 800; color: #16a34a; margin-top: 4px;">{{ deleted_links_count }}</div>
+                        <td width="48%"
+                            style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 14px; padding: 20px; text-align: center;">
+                            <div
+                                style="font-size: 13px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">
+                                DELETED LINKS</div>
+                            <div style="font-size: 32px; font-weight: 800; color: #0f172a; margin-top: 4px;">{{ deleted_links_count }}</div>
                         </td>
                     </tr>
                 </table>
 
                 <div style="text-align: center; margin-top: 24px;">
-                    <a href="{{ dashboard_url|default:'https://vantafy.com' }}" class="action-button">View Dashboard & Reactivate Plan</a>
+                    <a href="{{ dashboard_url|default:'https://Vantafy.com' }}" class="action-button" style="background-color: #971DFE; background: #971DFE; color: #ffffff !important; padding: 12px 28px; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 14px; display: inline-block; box-shadow: 0 4px 12px rgba(151, 29, 254, 0.25);">View Dashboard &
+                        Reactivate Plan</a>
                 </div>
 
-                <p style="font-size: 14px; color: #475569; margin-top: 28px; margin-bottom: 0;">
-                    Thank you for using <strong>{{ system_info.name|default:"VantaFy" }}</strong> to protect your digital presence,<br>
-                    <strong style="color: #0f172a;">The {{ system_info.name|default:"VantaFy" }} Team</strong>
+                <p style="font-size: 14px; color: #475569; margin-top: 28px; margin-bottom: 0; text-align: center;">
+                    Thank you for using <strong>{{ system_info.name|default:"Vantafy" }}</strong> to protect your
+                    digital presence,<br>
+                    <strong style="color: #0f172a;">The {{ system_info.name|default:"Vantafy" }} Team</strong>
                 </p>
             </div>
 
@@ -143,9 +179,9 @@
                 {% if system_info.copyright %}
                 <p>{{ system_info.copyright }}. All rights reserved.</p>
                 {% else %}
-                <p>&copy; 2027 {{ system_info.name|default:"VantaFy" }}. All rights reserved.</p>
+                <p>&copy; 2027 {{ system_info.name|default:"Vantafy" }}. All rights reserved.</p>
                 {% endif %}
-                <p>Questions? Contact <a href="mailto:{{ system_info.email|default:'support@vantafy.com' }}">{{ system_info.email|default:"support@vantafy.com" }}</a></p>
+                <p>Questions? Contact <a href="mailto:{{ system_info.email|default:'support@Vantafy.com' }}">{{ system_info.email|default:'support@Vantafy.com' }}</a></p>
             </div>
         </div>
     </div>

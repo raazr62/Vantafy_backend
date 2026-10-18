@@ -57,7 +57,7 @@ if DEBUG:
         'http://127.0.0.1:5173',
         'http://localhost:5173',
         'https://*.ngrok-free.app',
-        "https://vantafy.vercel.app",
+        "https://Vantafy.vercel.app",
         "http://172.16.200.94:8000",
         "http://172.16.200.94:9000",
         "http://54.227.112.126:8000",
@@ -65,10 +65,10 @@ if DEBUG:
         "https://c5895f67f55f.ngrok-free.app",
         "https://c5895f67f55f.ngrok-free.app",
         "https://mediamixer.softvencealpha.com",
-        "https://dashboard.vantafy.com",
-        "https://vantafy.com",
-        "https://www.vantafy.com",
-        "https://www.dashboard.vantafy.com",
+        "https://dashboard.Vantafy.com",
+        "https://Vantafy.com",
+        "https://www.Vantafy.com",
+        "https://www.dashboard.Vantafy.com",
         
     ]
 
@@ -96,7 +96,7 @@ else:
         'http://127.0.0.1:5173',
         'http://localhost:5173',
         'https://*.ngrok-free.app',
-        "https://vantafy.vercel.app",
+        "https://Vantafy.vercel.app",
         "http://172.16.200.94:8000",
         "http://172.16.200.94:9000",
         "http://54.227.112.126:8000",
@@ -104,10 +104,10 @@ else:
         "https://c5895f67f55f.ngrok-free.app",
         "https://c5895f67f55f.ngrok-free.app",
         "https://mediamixer.softvencealpha.com",
-        "https://dashboard.vantafy.com",
-        "https://vantafy.com",
-        "https://www.vantafy.com",
-        "https://www.dashboard.vantafy.com",
+        "https://dashboard.Vantafy.com",
+        "https://Vantafy.com",
+        "https://www.Vantafy.com",
+        "https://www.dashboard.Vantafy.com",
 
     ]
 
@@ -412,9 +412,9 @@ EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
 EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='support@vantafy.com')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='support@Vantafy.com')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='VantaFy <support@vantafy.com>')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='Vantafy <support@Vantafy.com>')
 
 
 

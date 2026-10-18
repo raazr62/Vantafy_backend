@@ -13,6 +13,7 @@ from .models import (
 )
 from .verification import verify_url_availability
 from .utils import send_dmca_notice, extract_domain_from_url
+from apps.system_setting.models import AboutSystem
 
 logger = logging.getLogger(__name__)
 
@@ -526,19 +527,23 @@ def send_weekly_subscription_email_reports():
         if not recipient_email:
             continue
 
+        about_system = AboutSystem.objects.first()
+        logo_url = about_system.get_absolute_logo_url() if about_system else "https://midia-mixer.s3.us-east-2.amazonaws.com/system_setting/logo/1.png"
+
         context = {
             'user': user,
             'new_links_count': new_links_count,
             'deleted_links_count': deleted_links_count,
             'report_start_date': report_start_date,
             'report_end_date': report_end_date,
-            'dashboard_url': getattr(settings, 'FRONTEND_URL', 'https://vantafy.com'),
-            'system_info': {'name': 'VantaFy', 'email': 'support@vantafy.com'}
+            'dashboard_url': getattr(settings, 'FRONTEND_URL', 'https://Vantafy.com'),
+            'system_info': about_system or {'name': 'Vantafy', 'email': 'support@Vantafy.com'},
+            'logo_url': logo_url,
         }
 
         try:
             html_message = render_to_string('email/weekly_report_template.html', context)
-            subject = f"Your Weekly VantaFy Scan & Removal Report ({report_start_date} - {report_end_date})"
+            subject = f"Your Weekly Vantafy Scan & Removal Report ({report_start_date} - {report_end_date})"
 
             user_display_name = getattr(user, 'full_name', None) or getattr(user, 'first_name', None) or user.email
             send_email(
@@ -774,18 +779,22 @@ def send_daily_subscription_email_reports():
         if not recipient_email:
             continue
 
+        about_system = AboutSystem.objects.first()
+        logo_url = about_system.get_absolute_logo_url() if about_system else "https://midia-mixer.s3.us-east-2.amazonaws.com/system_setting/logo/1.png"
+
         context = {
             'user': user,
             'new_links_count': new_links_count,
             'deleted_links_count': deleted_links_count,
             'report_date': report_date,
-            'dashboard_url': getattr(settings, 'FRONTEND_URL', 'https://vantafy.com'),
-            'system_info': {'name': 'VantaFy', 'email': 'support@vantafy.com'}
+            'dashboard_url': getattr(settings, 'FRONTEND_URL', 'https://Vantafy.com'),
+            'system_info': about_system or {'name': 'Vantafy', 'email': 'support@Vantafy.com'},
+            'logo_url': logo_url,
         }
 
         try:
             html_message = render_to_string('email/daily_report_template.html', context)
-            subject = f"Your Daily VantaFy Scan & Removal Report ({report_date})"
+            subject = f"Your Daily Vantafy Scan & Removal Report ({report_date})"
 
             user_display_name = getattr(user, 'full_name', None) or getattr(user, 'first_name', None) or user.email
             send_email(
@@ -996,18 +1005,22 @@ def send_expired_account_email_reports():
         if not recipient_email:
             continue
 
+        about_system = AboutSystem.objects.first()
+        logo_url = about_system.get_absolute_logo_url() if about_system else "https://midia-mixer.s3.us-east-2.amazonaws.com/system_setting/logo/1.png"
+
         context = {
             'user': user,
             'new_links_count': new_links_count,
             'deleted_links_count': deleted_links_count,
             'report_date': report_date,
-            'dashboard_url': getattr(settings, 'FRONTEND_URL', 'https://vantafy.com'),
-            'system_info': {'name': 'VantaFy', 'email': 'support@vantafy.com'}
+            'dashboard_url': getattr(settings, 'FRONTEND_URL', 'https://Vantafy.com'),
+            'system_info': about_system or {'name': 'Vantafy', 'email': 'support@Vantafy.com'},
+            'logo_url': logo_url,
         }
 
         try:
             html_message = render_to_string('email/expired_account_report_template.html', context)
-            subject = f"Your VantaFy Bi-Monthly Scan & Removal Report ({report_date})"
+            subject = f"Your Vantafy Bi-Monthly Scan & Removal Report ({report_date})"
 
             user_display_name = getattr(user, 'full_name', None) or getattr(user, 'first_name', None) or user.email
             send_email(
