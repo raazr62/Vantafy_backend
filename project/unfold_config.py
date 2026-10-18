@@ -156,7 +156,7 @@ def get_unfold_settings():
         "SITE_TITLE": lambda request: get_about_system().title,
         "SITE_HEADER": lambda request: get_about_system().title,
         "SITE_SUBHEADER": lambda request: get_about_system().title,
-        "SITE_URL": "https://vantafy.com",
+        "SITE_URL": "https://Vantafy.com",
         "SITE_LOGO": {
             "light": lambda request: get_about_system().logo.url,  # light mode
             "dark": lambda request: get_about_system().logo.url,  # dark mode

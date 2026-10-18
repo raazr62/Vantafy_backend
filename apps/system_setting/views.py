@@ -34,3 +34,32 @@ class AboutSystemAPIView(APIView):
         
         return error(message="About system not found.", errors=None, status_code=status.HTTP_404_NOT_FOUND)
 
+
+class SystemLogoPublicView(APIView):
+    permission_classes = []
+
+    def get(self, request):
+        import os
+        from django.conf import settings
+        from django.http import HttpResponseRedirect, FileResponse
+
+        about_system = AboutSystem.objects.first()
+        if about_system and about_system.logo:
+            logo_url = about_system.get_absolute_logo_url()
+            if logo_url and logo_url.startswith(("http://", "https://")) and "127.0.0.1" not in logo_url and "localhost" not in logo_url:
+                return HttpResponseRedirect(logo_url)
+            
+            # If local file storage is used
+            try:
+                if os.path.exists(about_system.logo.path):
+                    return FileResponse(open(about_system.logo.path, "rb"), content_type="image/png")
+            except Exception:
+                pass
+
+        # Check local media directory for fallback logo
+        fallback_path = os.path.join(settings.MEDIA_ROOT, "system_setting", "logo", "1.png")
+        if os.path.exists(fallback_path):
+            return FileResponse(open(fallback_path, "rb"), content_type="image/png")
+
+        return HttpResponseRedirect("https://midia-mixer.s3.us-east-2.amazonaws.com/system_setting/logo/1.png")
+

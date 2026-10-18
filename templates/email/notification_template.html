@@ -7,7 +7,8 @@
     <title>Notification - {{ system_info.name }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <style>
         body {
             font-family: 'Montserrat', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
@@ -37,8 +38,21 @@
         }
 
         .header-content {
-            padding: 40px 40px 10px 40px;
+            padding: 30px 40px;
             text-align: center;
+            background-color: #300054;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .brand-logo {
+            display: block;
+            margin: 0 auto;
+            max-height: 40px;
+            width: auto;
+            max-width: 200px;
+            border: 0;
+            outline: none;
+            text-decoration: none;
         }
 
         .brand-name {
@@ -53,7 +67,7 @@
         }
 
         .body-content {
-            padding: 10px 40px 36px 40px;
+            padding: 28px 40px 36px 40px;
         }
 
         .greeting {
@@ -87,7 +101,8 @@
 
         .action-button {
             display: inline-block;
-            background: linear-gradient(90deg, #971DFE 0%, #FF1BE4 100%);
+            background-color: #971DFE;
+            background: #971DFE;
             color: #ffffff !important;
             padding: 12px 28px;
             text-decoration: none;
@@ -95,7 +110,7 @@
             font-weight: 700;
             font-size: 14px;
             margin-top: 16px;
-            box-shadow: 0 4px 12px rgba(255, 27, 228, 0.25);
+            box-shadow: 0 4px 12px rgba(151, 29, 254, 0.25);
         }
 
         .divider {
@@ -124,15 +139,28 @@
 </head>
 
 <body>
-    <div class="email-wrapper">
-        <div class="email-container">
-            <div class="header-content">
-                <h1 class="brand-name">{{ system_info.name|default:"VantaFy" }}</h1>
+    <div class="email-wrapper" style="width: 100%; background-color: #f8fafc; padding: 48px 16px; box-sizing: border-box;">
+        <div class="email-container" style="max-width: 540px; margin: 0 auto; background-color: #ffffff; border-radius: 20px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.01);">
+            <div class="header-content" style="background-color: #300054; padding: 30px 40px; text-align: center; border-radius: 20px 20px 0 0;">
+                <a href="{{ dashboard_url|default:'https://Vantafy.com' }}" style="text-decoration: none; display: inline-block;" target="_blank">
+                    {% if logo_url %}
+                    <img src="{{ logo_url }}" alt="{{ system_info.name|default:'Vantafy' }}" class="brand-logo" height="38" style="display: block; margin: 0 auto; max-height: 40px; width: auto; max-width: 200px; border: 0; outline: none; text-decoration: none;" />
+                    {% elif system_info.get_absolute_logo_url %}
+                    <img src="{{ system_info.get_absolute_logo_url }}" alt="{{ system_info.name|default:'Vantafy' }}" class="brand-logo" height="38" style="display: block; margin: 0 auto; max-height: 40px; width: auto; max-width: 200px; border: 0; outline: none; text-decoration: none;" />
+                    {% elif system_info.logo_url %}
+                    <img src="{{ system_info.logo_url }}" alt="{{ system_info.name|default:'Vantafy' }}" class="brand-logo" height="38" style="display: block; margin: 0 auto; max-height: 40px; width: auto; max-width: 200px; border: 0; outline: none; text-decoration: none;" />
+                    {% elif system_info.logo and system_info.logo.url %}
+                    <img src="{{ system_info.logo.url }}" alt="{{ system_info.name|default:'Vantafy' }}" class="brand-logo" height="38" style="display: block; margin: 0 auto; max-height: 40px; width: auto; max-width: 200px; border: 0; outline: none; text-decoration: none;" />
+                    {% else %}
+                    <img src="https://midia-mixer.s3.us-east-2.amazonaws.com/system_setting/logo/1.png" alt="{{ system_info.name|default:'Vantafy' }}" class="brand-logo" height="38" style="display: block; margin: 0 auto; max-height: 40px; width: auto; max-width: 200px; border: 0; outline: none; text-decoration: none;" />
+                    {% endif %}
+                </a>
             </div>
 
-            <div class="body-content">
+            <div class="body-content" style="padding: 28px 40px 36px 40px;">
                 <h2 class="greeting">Hello {{ user.first_name|default:"User" }},</h2>
-                <p style="font-size: 14px; color: #475569;">You have a new notification from <strong>{{ system_info.name|default:"VantaFy" }}</strong>:</p>
+                <p style="font-size: 14px; color: #475569;">You have a new notification from <strong>{{
+                        system_info.name|default:"Vantafy" }}</strong>:</p>
 
                 <div class="notification-card">
                     <h3>{{ notification.title }}</h3>
@@ -141,13 +169,13 @@
 
                 {% if action_url %}
                 <div style="text-align: center; margin-top: 24px;">
-                    <a href="{{ onboarding_link|default:action_url }}" class="action-button">View Details</a>
+                    <a href="{{ onboarding_link|default:action_url }}" class="action-button" style="background-color: #971DFE; background: #971DFE; color: #ffffff !important; padding: 12px 28px; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 14px; display: inline-block; box-shadow: 0 4px 12px rgba(151, 29, 254, 0.25);">View Details</a>
                 </div>
                 {% endif %}
 
-                <p style="font-size: 14px; color: #475569; margin-top: 28px; margin-bottom: 0;">
+                <p style="font-size: 14px; color: #475569; margin-top: 28px; margin-bottom: 0; text-align: center;">
                     Thank you for being with us,<br>
-                    <strong style="color: #0f172a;">The {{ system_info.name|default:"VantaFy" }} Team</strong>
+                    <strong style="color: #0f172a;">The {{ system_info.name|default:"Vantafy" }} Team</strong>
                 </p>
             </div>
 
@@ -157,7 +185,7 @@
                 {% if system_info.copyright %}
                 <p>{{ system_info.copyright }}. All rights reserved.</p>
                 {% else %}
-                <p>&copy; 2027 {{ system_info.name|default:"VantaFy" }}. All rights reserved.</p>
+                <p>&copy; 2027 {{ system_info.name|default:"Vantafy" }}. All rights reserved.</p>
                 {% endif %}
                 {% if system_info.description %}
                 <p>{{ system_info.description|truncatewords:20 }}</p>
