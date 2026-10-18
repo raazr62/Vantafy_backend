@@ -13,15 +13,18 @@ class AboutSystem(models.Model):
 
     def get_absolute_logo_url(self):
         if self.logo:
-            url = self.logo.url
-            if url.startswith(('http://', 'https://')):
-                return url
-            from django.conf import settings
-            domain = getattr(settings, 'SITE_DOMAIN', None) or getattr(settings, 'BACKEND_URL', None) or 'http://127.0.0.1:8000'
-            if not domain.startswith('http'):
-                domain = f'http://{domain}'
-            return f"{domain.rstrip('/')}{url}"
-        return None
+            try:
+                url = self.logo.url
+                if url.startswith(('http://', 'https://')):
+                    return url
+                from django.conf import settings
+                domain = getattr(settings, 'SITE_DOMAIN', None) or getattr(settings, 'BACKEND_URL', None) or 'http://127.0.0.1:8000'
+                if not domain.startswith('http'):
+                    domain = f'http://{domain}'
+                return f"{domain.rstrip('/')}{url}"
+            except Exception:
+                pass
+        return "https://midia-mixer.s3.us-east-2.amazonaws.com/system_setting/logo/1.png"
 
     def __str__(self):
         return self.title
