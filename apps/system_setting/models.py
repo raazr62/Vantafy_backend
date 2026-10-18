@@ -13,11 +13,14 @@ class AboutSystem(models.Model):
 
     def get_absolute_logo_url(self):
         if self.logo:
+            url = self.logo.url
+            if url.startswith(('http://', 'https://')):
+                return url
             from django.conf import settings
             domain = getattr(settings, 'SITE_DOMAIN', None) or getattr(settings, 'BACKEND_URL', None) or 'http://127.0.0.1:8000'
             if not domain.startswith('http'):
                 domain = f'http://{domain}'
-            return f"{domain.rstrip('/')}{self.logo.url}"
+            return f"{domain.rstrip('/')}{url}"
         return None
 
     def __str__(self):
@@ -74,3 +77,23 @@ class SystemColor(models.Model):
 
     def __str__(self):
         return self.name
+
+
+# Cache Invalidation Signals
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+from django.core.cache import cache
+
+ABOUT_SYSTEM_CACHE_KEY = 'about_system_data'
+
+@receiver(post_save, sender=AboutSystem)
+@receiver(post_save, sender=SocialMedia)
+@receiver(post_save, sender=SystemColor)
+def invalidate_about_system_cache(sender, **kwargs):
+    cache.delete(ABOUT_SYSTEM_CACHE_KEY)
+
+@receiver(post_delete, sender=AboutSystem)
+@receiver(post_delete, sender=SocialMedia)
+@receiver(post_delete, sender=SystemColor)
+def invalidate_about_system_cache_on_delete(sender, **kwargs):
+    cache.delete(ABOUT_SYSTEM_CACHE_KEY)
