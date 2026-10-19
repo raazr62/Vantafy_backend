@@ -165,17 +165,7 @@
             <!-- Header Section -->
             <div class="header-content" style="background-color: #000000; padding: 30px 40px; text-align: center; border-radius: 20px 20px 0 0;">
                 <a href="{{ dashboard_url|default:'https://Vantafy.com' }}" style="text-decoration: none; display: inline-block;" target="_blank">
-                    {% if logo_url %}
-                    <img src="{{ logo_url }}" alt="{{ system_info.name|default:'Vantafy' }}" class="brand-logo" height="38" style="display: block; margin: 0 auto; max-height: 40px; width: auto; max-width: 200px; border: 0; outline: none; text-decoration: none;" />
-                    {% elif system_info.get_absolute_logo_url %}
-                    <img src="{{ system_info.get_absolute_logo_url }}" alt="{{ system_info.name|default:'Vantafy' }}" class="brand-logo" height="38" style="display: block; margin: 0 auto; max-height: 40px; width: auto; max-width: 200px; border: 0; outline: none; text-decoration: none;" />
-                    {% elif system_info.logo_url %}
-                    <img src="{{ system_info.logo_url }}" alt="{{ system_info.name|default:'Vantafy' }}" class="brand-logo" height="38" style="display: block; margin: 0 auto; max-height: 40px; width: auto; max-width: 200px; border: 0; outline: none; text-decoration: none;" />
-                    {% elif system_info.logo and system_info.logo.url %}
-                    <img src="{{ system_info.logo.url }}" alt="{{ system_info.name|default:'Vantafy' }}" class="brand-logo" height="38" style="display: block; margin: 0 auto; max-height: 40px; width: auto; max-width: 200px; border: 0; outline: none; text-decoration: none;" />
-                    {% else %}
-                    <img src="https://midia-mixer.s3.us-east-2.amazonaws.com/system_setting/logo/1.png" alt="{{ system_info.name|default:'Vantafy' }}" class="brand-logo" height="38" style="display: block; margin: 0 auto; max-height: 40px; width: auto; max-width: 200px; border: 0; outline: none; text-decoration: none;" />
-                    {% endif %}
+                    <img src="https://midia-mixer.s3.us-east-2.amazonaws.com/system_setting/logo/logo_gray.png" alt="{{ system_info.name|default:'Vantafy' }}" class="brand-logo" height="38" style="display: block; margin: 0 auto; max-height: 40px; width: auto; max-width: 200px; border: 0; outline: none; text-decoration: none;" />
                 </a>
             </div>
 
