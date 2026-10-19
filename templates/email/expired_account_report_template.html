@@ -40,7 +40,7 @@
         .header-content {
             padding: 30px 40px;
             text-align: center;
-            background-color: #300054;
+            background-color: #000000;
             border-radius: 20px 20px 0 0;
         }
 
@@ -120,19 +120,9 @@
 <body>
     <div class="email-wrapper" style="width: 100%; background-color: #f8fafc; padding: 48px 16px; box-sizing: border-box;">
         <div class="email-container" style="max-width: 540px; margin: 0 auto; background-color: #ffffff; border-radius: 20px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.01);">
-            <div class="header-content" style="background-color: #300054; padding: 30px 40px; text-align: center; border-radius: 20px 20px 0 0;">
+            <div class="header-content" style="background-color: #000000; padding: 30px 40px; text-align: center; border-radius: 20px 20px 0 0;">
                 <a href="{{ dashboard_url|default:'https://Vantafy.com' }}" style="text-decoration: none; display: inline-block;" target="_blank">
-                    {% if logo_url %}
-                    <img src="{{ logo_url }}" alt="{{ system_info.name|default:'Vantafy' }}" class="brand-logo" height="38" style="display: block; margin: 0 auto; max-height: 40px; width: auto; max-width: 200px; border: 0; outline: none; text-decoration: none;" />
-                    {% elif system_info.get_absolute_logo_url %}
-                    <img src="{{ system_info.get_absolute_logo_url }}" alt="{{ system_info.name|default:'Vantafy' }}" class="brand-logo" height="38" style="display: block; margin: 0 auto; max-height: 40px; width: auto; max-width: 200px; border: 0; outline: none; text-decoration: none;" />
-                    {% elif system_info.logo_url %}
-                    <img src="{{ system_info.logo_url }}" alt="{{ system_info.name|default:'Vantafy' }}" class="brand-logo" height="38" style="display: block; margin: 0 auto; max-height: 40px; width: auto; max-width: 200px; border: 0; outline: none; text-decoration: none;" />
-                    {% elif system_info.logo and system_info.logo.url %}
-                    <img src="{{ system_info.logo.url }}" alt="{{ system_info.name|default:'Vantafy' }}" class="brand-logo" height="38" style="display: block; margin: 0 auto; max-height: 40px; width: auto; max-width: 200px; border: 0; outline: none; text-decoration: none;" />
-                    {% else %}
-                    <img src="https://midia-mixer.s3.us-east-2.amazonaws.com/system_setting/logo/1.png" alt="{{ system_info.name|default:'Vantafy' }}" class="brand-logo" height="38" style="display: block; margin: 0 auto; max-height: 40px; width: auto; max-width: 200px; border: 0; outline: none; text-decoration: none;" />
-                    {% endif %}
+                    <img src="https://midia-mixer.s3.us-east-2.amazonaws.com/system_setting/logo/logo_gray.png" alt="{{ system_info.name|default:'Vantafy' }}" class="brand-logo" height="38" style="display: block; margin: 0 auto; max-height: 40px; width: auto; max-width: 200px; border: 0; outline: none; text-decoration: none;" />
                 </a>
             </div>
 
