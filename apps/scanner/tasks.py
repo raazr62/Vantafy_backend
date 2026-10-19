@@ -701,51 +701,61 @@ def run_weekly_subscription_scans():
 
 
 @shared_task
-def send_daily_subscription_email_reports():
+def send_daily_subscription_email_reports(target_email=None):
     """
     Master Celery Beat scheduled task for sending daily email reports to Superstar, VIP, and Agency subscribers.
     Runs every day at 12:00 AM EST.
     Calculates number of new links discovered and number of links deleted in the past 24 hours.
+    If target_email is provided, only that specific subscriber receives the report (useful for testing).
     """
     import datetime
     from django.utils import timezone
 
-    logger.info("Initializing daily subscription email report dispatch...")
+    logger.info(f"Initializing daily subscription email report dispatch (target_email={target_email})...")
 
     one_day_ago = timezone.now() - datetime.timedelta(days=1)
-
-    active_subscriptions = Subscription.objects.filter(
-        status='active'
-    ).select_related('user', 'package').prefetch_related('package__features')
-
-    def is_eligible_daily_package(package):
-        if not package:
-            return False
-        p_name = (package.name or '').strip().lower()
-        p_type = package.type
-
-        if 'superstar' in p_name or 'vip' in p_name or p_type == Package.PackageType.AGENCY or 'agency' in p_name:
-            return True
-
-        if package.features.filter(name__icontains='daily').exists():
-            return True
-
-        return False
-
-    processed_users = set()
+    report_date = timezone.now().strftime('%b %d, %Y')
     emails_sent_count = 0
 
-    report_date = timezone.now().strftime('%b %d, %Y')
+    if target_email:
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        target_user = User.objects.filter(email__iexact=str(target_email).strip()).first()
+        if not target_user:
+            logger.warning(f"Target user with email {target_email} not found.")
+            return {'status': 'user_not_found', 'total_emails_sent': 0}
+        users_to_process = [target_user]
+    else:
+        active_subscriptions = Subscription.objects.filter(
+            status='active'
+        ).select_related('user', 'package').prefetch_related('package__features')
 
-    for sub in active_subscriptions:
-        if not sub.user or sub.user.id in processed_users or not is_eligible_daily_package(sub.package):
-            continue
+        def is_eligible_daily_package(package):
+            if not package:
+                return False
+            p_name = (package.name or '').strip().lower()
+            p_type = package.type
 
-        user = sub.user
-        processed_users.add(user.id)
-        if getattr(user, 'is_automated_mail', True) is False:
-            continue
+            if 'superstar' in p_name or 'vip' in p_name or p_type == Package.PackageType.AGENCY or 'agency' in p_name:
+                return True
 
+            if package.features.filter(name__icontains='daily').exists():
+                return True
+
+            return False
+
+        processed_users = set()
+        users_to_process = []
+
+        for sub in active_subscriptions:
+            if not sub.user or sub.user.id in processed_users or not is_eligible_daily_package(sub.package):
+                continue
+            if getattr(sub.user, 'is_automated_mail', True) is False:
+                continue
+            processed_users.add(sub.user.id)
+            users_to_process.append(sub.user)
+
+    for user in users_to_process:
         role = getattr(user, 'role', None)
 
         new_links_count = 0
