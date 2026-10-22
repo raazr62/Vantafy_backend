@@ -38,9 +38,9 @@
         }
 
         .header-content {
-            padding: 30px 40px;
+            padding: 32px 40px 16px 40px;
             text-align: center;
-            background-color: #000000;
+            background-color: #ffffff;
             border-radius: 20px 20px 0 0;
         }
 
@@ -160,10 +160,12 @@
 </head>
 
 <body>
-    <div class="email-wrapper" style="width: 100%; background-color: #f8fafc; padding: 48px 16px; box-sizing: border-box;">
-        <div class="email-container" style="max-width: 540px; margin: 0 auto; background-color: #ffffff; border-radius: 20px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.01);">
+    <div class="email-wrapper"
+        style="width: 100%; background-color: #f8fafc; padding: 48px 16px; box-sizing: border-box;">
+        <div class="email-container"
+            style="max-width: 540px; margin: 0 auto; background-color: #ffffff; border-radius: 20px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.01);">
             <!-- Header Section -->
-            <div class="header-content" style="background-color: #000000; padding: 30px 40px; text-align: center; border-radius: 20px 20px 0 0;">
+            <div class="header-content" style="background-color: #ffffff; padding: 32px 40px 16px 40px; text-align: center; border-radius: 20px 20px 0 0;">
                 <a href="{{ dashboard_url|default:'https://Vantafy.com' }}" style="text-decoration: none; display: inline-block;" target="_blank">
                     <img src="https://midia-mixer.s3.us-east-2.amazonaws.com/system_setting/logo/logo_gray.png" alt="{{ system_info.name|default:'Vantafy' }}" class="brand-logo" height="38" style="display: block; margin: 0 auto; max-height: 40px; width: auto; max-width: 200px; border: 0; outline: none; text-decoration: none;" />
                 </a>
@@ -171,40 +173,38 @@
 
             <!-- Main Content -->
             <div class="body-content" style="padding: 28px 40px 36px 40px;">
-                <h2 class="title">Verification Code</h2>
-                <p class="subtitle">Use the one-time code below to verify your account for <strong>{{
-                        system_info.name|default:"Vantafy" }}</strong>.</p>
+                <h2 class="title" style="font-size: 20px; font-weight: 700; color: #0f172a; margin-top: 10px; margin-bottom: 12px; text-align: center;">Verification Code</h2>
+                <p class="subtitle" style="font-size: 14px; color: #64748b; text-align: center; margin-top: 0; margin-bottom: 24px; line-height: 1.5;">
+                    Use the one-time code below to verify your account for <strong>{{ system_info.name|default:"Vantafy" }}</strong>.
+                </p>
 
                 <!-- OTP Display Card -->
-                <div class="otp-card">
-                    <h3 class="otp-code">{{ otp_code }}</h3>
-                    <span class="timer-tag">⏱ Code expires in 3 minutes</span>
+                <div class="otp-card" style="background-color: #fdf4ff; background: #fdf4ff; border: 1px solid #f5d0fe; border-radius: 16px; padding: 28px 20px; text-align: center; margin: 24px 0 28px 0;">
+                    <h3 class="otp-code" style="font-family: 'Montserrat', monospace, sans-serif; font-size: 38px; font-weight: 800; letter-spacing: 12px; color: #d946ef; margin: 0; padding-left: 12px;">{{ otp_code }}</h3>
+                    <span class="timer-tag" style="display: inline-block; margin-top: 14px; padding: 4px 14px; background-color: #ffffff; border: 1px solid #f0abfc; border-radius: 20px; color: #c026d3; font-size: 12px; font-weight: 600;">⏱ Code expires in 3 minutes</span>
                 </div>
 
-                <p style="font-size: 14px; color: #475569; margin-bottom: 0; text-align: center;">
+                <p style="font-size: 14px; color: #475569; margin-bottom: 0; text-align: center; line-height: 1.6;">
                     Best regards,<br>
                     <strong style="color: #0f172a;">The {{ system_info.name|default:"Vantafy" }} Team</strong>
                 </p>
 
                 <!-- Security Notice -->
-                <div class="security-notice">
-                    🔒 <strong>Security Tip:</strong> If you didn't request this verification code, please ignore this
-                    email or contact support if you suspect unauthorized access.
+                <div class="security-notice" style="font-size: 13px; color: #64748b; line-height: 1.5; background-color: #f8fafc; padding: 14px 18px; border-radius: 12px; margin-top: 24px; border: 1px solid #f1f5f9; text-align: left;">
+                    🔒 <strong>Security Tip:</strong> If you didn't request this verification code, please ignore this email or contact support if you suspect unauthorized access.
                 </div>
             </div>
 
-            <div class="divider"></div>
+            <div class="divider" style="height: 1px; background-color: #f1f5f9; margin: 24px 0 20px 0;"></div>
 
             <!-- Footer -->
-            <div class="footer">
+            <div class="footer" style="padding: 0 40px 32px 40px; text-align: center; font-size: 12px; color: #94a3b8; line-height: 1.5;">
                 {% if system_info.copyright %}
-                <p>{{ system_info.copyright }}. All rights reserved.</p>
+                <p style="margin: 4px 0;">&copy; {{ system_info.copyright }} {{ system_info.name|default:"Vantafy" }}. All rights reserved.</p>
                 {% else %}
-                <p>&copy; 2027 {{ system_info.name|default:"Vantafy" }}. All rights reserved.</p>
+                <p style="margin: 4px 0;">&copy; 2027 {{ system_info.name|default:"Vantafy" }}. All rights reserved.</p>
                 {% endif %}
-                {% if system_info.email %}
-                <p>Need help? Contact <a href="mailto:{{ system_info.email }}">{{ system_info.email }}</a></p>
-                {% endif %}
+                <p style="margin: 4px 0;">Need help? Contact <a href="mailto:{{ system_info.email|default:'support@Vantafy.com' }}" style="color: #ff1be4; text-decoration: none; font-weight: 600;">{{ system_info.email|default:'support@Vantafy.com' }}</a></p>
             </div>
         </div>
     </div>

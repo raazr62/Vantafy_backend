@@ -38,9 +38,9 @@
         }
 
         .header-content {
-            padding: 30px 40px;
+            padding: 32px 40px 16px 40px;
             text-align: center;
-            background-color: #000000;
+            background-color: #ffffff;
             border-radius: 20px 20px 0 0;
         }
 
@@ -118,11 +118,17 @@
 </head>
 
 <body>
-    <div class="email-wrapper" style="width: 100%; background-color: #f8fafc; padding: 48px 16px; box-sizing: border-box;">
-        <div class="email-container" style="max-width: 540px; margin: 0 auto; background-color: #ffffff; border-radius: 20px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.01);">
-            <div class="header-content" style="background-color: #000000; padding: 30px 40px; text-align: center; border-radius: 20px 20px 0 0;">
-                <a href="{{ dashboard_url|default:'https://Vantafy.com' }}" style="text-decoration: none; display: inline-block;" target="_blank">
-                    <img src="https://midia-mixer.s3.us-east-2.amazonaws.com/system_setting/logo/logo_gray.png" alt="{{ system_info.name|default:'Vantafy' }}" class="brand-logo" height="38" style="display: block; margin: 0 auto; max-height: 40px; width: auto; max-width: 200px; border: 0; outline: none; text-decoration: none;" />
+    <div class="email-wrapper"
+        style="width: 100%; background-color: #f8fafc; padding: 48px 16px; box-sizing: border-box;">
+        <div class="email-container"
+            style="max-width: 540px; margin: 0 auto; background-color: #ffffff; border-radius: 20px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.01);">
+            <div class="header-content"
+                style="background-color: #ffffff; padding: 32px 40px 16px 40px; text-align: center; border-radius: 20px 20px 0 0;">
+                <a href="{{ dashboard_url|default:'https://Vantafy.com' }}"
+                    style="text-decoration: none; display: inline-block;" target="_blank">
+                    <img src="https://midia-mixer.s3.us-east-2.amazonaws.com/system_setting/logo/logo_gray.png"
+                        alt="{{ system_info.name|default:'Vantafy' }}" class="brand-logo" height="38"
+                        style="display: block; margin: 0 auto; max-height: 40px; width: auto; max-width: 200px; border: 0; outline: none; text-decoration: none;" />
                 </a>
             </div>
 
@@ -138,7 +144,8 @@
                             <div
                                 style="font-size: 13px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">
                                 NEW LINKS</div>
-                            <div style="font-size: 32px; font-weight: 800; color: #0f172a; margin-top: 4px;">{{ new_links_count }}</div>
+                            <div style="font-size: 32px; font-weight: 800; color: #0f172a; margin-top: 4px;">{{
+                                new_links_count }}</div>
                         </td>
                         <td width="4%"></td>
                         <td width="48%"
@@ -146,13 +153,16 @@
                             <div
                                 style="font-size: 13px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">
                                 DELETED LINKS</div>
-                            <div style="font-size: 32px; font-weight: 800; color: #0f172a; margin-top: 4px;">{{ deleted_links_count }}</div>
+                            <div style="font-size: 32px; font-weight: 800; color: #0f172a; margin-top: 4px;">{{
+                                deleted_links_count }}</div>
                         </td>
                     </tr>
                 </table>
 
                 <div style="text-align: center; margin-top: 24px;">
-                    <a href="{{ dashboard_url|default:'https://Vantafy.com' }}" class="action-button" style="background-color: #971DFE; background: #971DFE; color: #ffffff !important; padding: 12px 28px; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 14px; display: inline-block; box-shadow: 0 4px 12px rgba(151, 29, 254, 0.25);">Go to
+                    <a href="{{ dashboard_url|default:'https://Vantafy.com' }}" class="action-button"
+                        style="background-color: #971DFE; background: #971DFE; color: #ffffff !important; padding: 12px 28px; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 14px; display: inline-block; box-shadow: 0 4px 12px rgba(151, 29, 254, 0.25);">Go
+                        to
                         Dashboard</a>
                 </div>
 
@@ -171,7 +181,8 @@
                 {% else %}
                 <p>&copy; 2027 {{ system_info.name|default:"Vantafy" }}. All rights reserved.</p>
                 {% endif %}
-                <p>Questions? Contact <a href="mailto:{{ system_info.email|default:'support@Vantafy.com' }}">{{ system_info.email|default:'support@Vantafy.com' }}</a></p>
+                <p>Questions? Contact <a href="mailto:{{ system_info.email|default:'support@Vantafy.com' }}">{{
+                        system_info.email|default:'support@Vantafy.com' }}</a></p>
             </div>
         </div>
     </div>
