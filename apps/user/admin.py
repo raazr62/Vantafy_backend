@@ -4,6 +4,7 @@ from django.urls import path
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Q
 from unfold.admin import ModelAdmin,TabularInline
+from django.contrib.auth.hashers import identify_hasher
 
 from .models import User, Niche, StageName, ConnectedSocialAccount, OTP, AgencyMemberList, AgencyMemberNiches, AgencyMemberStageNames, AgencyMemberSocialAccounts
 
@@ -108,6 +109,14 @@ class UserAdmin(ModelAdmin):
         # Auto-set is_staff for admin users
         if obj.is_superuser:
             obj.is_staff = True
+        
+        # Hash password if entered as plain text in the admin form
+        if obj.password:
+            try:
+                identify_hasher(obj.password)
+            except ValueError:
+                obj.set_password(obj.password)
+
         super().save_model(request, obj, form, change)
 
 # Inline Admin for User's Niche
