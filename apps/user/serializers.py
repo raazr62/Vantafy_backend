@@ -83,13 +83,18 @@ class SignUpSerializer(serializers.ModelSerializer):
 
         OTP.objects.update_or_create(user=user, defaults={'otp': otp_hashed, 'is_verify': False, 'purpose': purpose, 'created_at': timezone.now(), 'expires_at': expires_at})
         
-        system_info = AboutSystem.objects.first()
-        html_content = render_to_string('email/otp_verification_template.html', {'otp_code': otp_code, 'system_info': system_info})
+        system_info = AboutSystem.objects.first() or {'name': 'Vantafy', 'email': 'support@Vantafy.com'}
+        dashboard_url = getattr(settings, 'FRONTEND_URL', 'https://Vantafy.com')
+        html_content = render_to_string('email/otp_verification_template.html', {
+            'otp_code': otp_code,
+            'system_info': system_info,
+            'dashboard_url': dashboard_url,
+        })
         send_email(
             subject='Verification OTP',
             body=f'Your OTP is {otp_code}. Expire in 3 minutes.',
             to_emails=[user.email,],
-            from_email=settings.EMAIL_HOST_USER,
+            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', settings.EMAIL_HOST_USER),
             html_body=html_content
             )
     
@@ -266,15 +271,20 @@ class SendOTPSerializer(serializers.Serializer):
 
         OTP.objects.update_or_create(user=user, defaults={'otp': otp_hashed, 'is_verify': False, 'purpose': purpose, 'created_at': timezone.now(), 'expires_at': expires_at})
         
-        system_info = AboutSystem.objects.first()
-        html_content = render_to_string('email/otp_verification_template.html', {'otp_code': otp_code, 'system_info': system_info})
+        system_info = AboutSystem.objects.first() or {'name': 'Vantafy', 'email': 'support@Vantafy.com'}
+        dashboard_url = getattr(settings, 'FRONTEND_URL', 'https://Vantafy.com')
+        html_content = render_to_string('email/otp_verification_template.html', {
+            'otp_code': otp_code,
+            'system_info': system_info,
+            'dashboard_url': dashboard_url,
+        })
 
         try:
           send_email(
                 subject='Verification OTP',
                 body=f'Your OTP is {otp_code}. Expire in 3 minutes.',
                 to_emails=[user.email,],
-                from_email=settings.EMAIL_HOST_USER,
+                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', settings.EMAIL_HOST_USER),
                 html_body=html_content
                 )
         except:
@@ -311,15 +321,20 @@ class ResendOTPSerializer(serializers.Serializer):
 
         OTP.objects.update_or_create(user=user, defaults={'otp': otp_hashed, 'is_verify': False, 'purpose': purpose, 'created_at': timezone.now(), 'expires_at': expires_at})
 
-        system_info = AboutSystem.objects.first()
-        html_content = render_to_string('email/otp_verification_template.html', {'otp_code': otp_code, 'system_info': system_info})
+        system_info = AboutSystem.objects.first() or {'name': 'Vantafy', 'email': 'support@Vantafy.com'}
+        dashboard_url = getattr(settings, 'FRONTEND_URL', 'https://Vantafy.com')
+        html_content = render_to_string('email/otp_verification_template.html', {
+            'otp_code': otp_code,
+            'system_info': system_info,
+            'dashboard_url': dashboard_url,
+        })
 
         try:
           send_email(
                 subject='Verification OTP',
                 body=f'Your OTP is {otp_code}. Expire in 3 minutes.',
                 to_emails=[user.email,],
-                from_email=settings.EMAIL_HOST_USER,
+                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', settings.EMAIL_HOST_USER),
                 html_body=html_content
                 )
         except:

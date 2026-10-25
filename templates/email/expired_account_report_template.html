@@ -38,9 +38,9 @@
         }
 
         .header-content {
-            padding: 30px 40px;
+            padding: 32px 40px 16px 40px;
             text-align: center;
-            background-color: #000000;
+            background-color: #ffffff;
             border-radius: 20px 20px 0 0;
         }
 
@@ -138,7 +138,8 @@
                             <div
                                 style="font-size: 13px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">
                                 NEW LINKS</div>
-                            <div style="font-size: 32px; font-weight: 800; color: #0f172a; margin-top: 4px;">{{ new_links_count }}</div>
+                            <div style="font-size: 32px; font-weight: 800; color: #0f172a; margin-top: 4px;">{{
+                                new_links_count }}</div>
                         </td>
                         <td width="4%"></td>
                         <td width="48%"
@@ -146,13 +147,16 @@
                             <div
                                 style="font-size: 13px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">
                                 DELETED LINKS</div>
-                            <div style="font-size: 32px; font-weight: 800; color: #0f172a; margin-top: 4px;">{{ deleted_links_count }}</div>
+                            <div style="font-size: 32px; font-weight: 800; color: #0f172a; margin-top: 4px;">{{
+                                deleted_links_count }}</div>
                         </td>
                     </tr>
                 </table>
 
                 <div style="text-align: center; margin-top: 24px;">
-                    <a href="{{ dashboard_url|default:'https://Vantafy.com' }}" class="action-button" style="background-color: #971DFE; background: #971DFE; color: #ffffff !important; padding: 12px 28px; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 14px; display: inline-block; box-shadow: 0 4px 12px rgba(151, 29, 254, 0.25);">View Dashboard &
+                    <a href="{{ dashboard_url|default:'https://Vantafy.com' }}" class="action-button"
+                        style="background-color: #971DFE; background: #971DFE; color: #ffffff !important; padding: 12px 28px; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 14px; display: inline-block; box-shadow: 0 4px 12px rgba(151, 29, 254, 0.25);">View
+                        Dashboard &
                         Reactivate Plan</a>
                 </div>
 
@@ -171,7 +175,8 @@
                 {% else %}
                 <p>&copy; 2027 {{ system_info.name|default:"Vantafy" }}. All rights reserved.</p>
                 {% endif %}
-                <p>Questions? Contact <a href="mailto:{{ system_info.email|default:'support@Vantafy.com' }}">{{ system_info.email|default:'support@Vantafy.com' }}</a></p>
+                <p>Questions? Contact <a href="mailto:{{ system_info.email|default:'support@Vantafy.com' }}">{{
+                        system_info.email|default:'support@Vantafy.com' }}</a></p>
             </div>
         </div>
     </div>

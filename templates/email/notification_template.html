@@ -38,9 +38,9 @@
         }
 
         .header-content {
-            padding: 30px 40px;
+            padding: 32px 40px 16px 40px;
             text-align: center;
-            background-color: #000000;
+            background-color: #ffffff;
             border-radius: 20px 20px 0 0;
         }
 
@@ -141,7 +141,7 @@
 <body>
     <div class="email-wrapper" style="width: 100%; background-color: #f8fafc; padding: 48px 16px; box-sizing: border-box;">
         <div class="email-container" style="max-width: 540px; margin: 0 auto; background-color: #ffffff; border-radius: 20px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.01);">
-            <div class="header-content" style="background-color: #000000; padding: 30px 40px; text-align: center; border-radius: 20px 20px 0 0;">
+            <div class="header-content" style="background-color: #ffffff; padding: 32px 40px 16px 40px; text-align: center; border-radius: 20px 20px 0 0;">
                 <a href="{{ dashboard_url|default:'https://Vantafy.com' }}" style="text-decoration: none; display: inline-block;" target="_blank">
                     <img src="https://midia-mixer.s3.us-east-2.amazonaws.com/system_setting/logo/logo_gray.png" alt="{{ system_info.name|default:'Vantafy' }}" class="brand-logo" height="38" style="display: block; margin: 0 auto; max-height: 40px; width: auto; max-width: 200px; border: 0; outline: none; text-decoration: none;" />
                 </a>
@@ -149,8 +149,7 @@
 
             <div class="body-content" style="padding: 28px 40px 36px 40px;">
                 <h2 class="greeting">Hello {{ user.first_name|default:"User" }},</h2>
-                <p style="font-size: 14px; color: #475569;">You have a new notification from <strong>{{
-                        system_info.name|default:"Vantafy" }}</strong>:</p>
+                <p style="font-size: 14px; color: #475569;">You have a new notification from <strong>{{ system_info.name|default:"Vantafy" }}</strong>:</p>
 
                 <div class="notification-card">
                     <h3>{{ notification.title }}</h3>
