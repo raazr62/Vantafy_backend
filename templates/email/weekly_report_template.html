@@ -118,11 +118,17 @@
 </head>
 
 <body>
-    <div class="email-wrapper" style="width: 100%; background-color: #f8fafc; padding: 48px 16px; box-sizing: border-box;">
-        <div class="email-container" style="max-width: 540px; margin: 0 auto; background-color: #ffffff; border-radius: 20px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.01);">
-            <div class="header-content" style="background-color: #000000; padding: 30px 40px; text-align: center; border-radius: 20px 20px 0 0;">
-                <a href="{{ dashboard_url|default:'https://Vantafy.com' }}" style="text-decoration: none; display: inline-block;" target="_blank">
-                    <img src="https://midia-mixer.s3.us-east-2.amazonaws.com/system_setting/logo/logo_gray.png" alt="{{ system_info.name|default:'Vantafy' }}" class="brand-logo" height="38" style="display: block; margin: 0 auto; max-height: 40px; width: auto; max-width: 200px; border: 0; outline: none; text-decoration: none;" />
+    <div class="email-wrapper"
+        style="width: 100%; background-color: #f8fafc; padding: 48px 16px; box-sizing: border-box;">
+        <div class="email-container"
+            style="max-width: 540px; margin: 0 auto; background-color: #ffffff; border-radius: 20px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.01);">
+            <div class="header-content"
+                style="background-color: #ffffff; padding: 32px 40px 16px 40px; text-align: center; border-radius: 20px 20px 0 0;">
+                <a href="{{ dashboard_url|default:'https://Vantafy.com' }}"
+                    style="text-decoration: none; display: inline-block;" target="_blank">
+                    <img src="https://midia-mixer.s3.us-east-2.amazonaws.com/system_setting/logo/logo_gray.png"
+                        alt="{{ system_info.name|default:'Vantafy' }}" class="brand-logo" height="38"
+                        style="display: block; margin: 0 auto; max-height: 40px; width: auto; max-width: 200px; border: 0; outline: none; text-decoration: none;" />
                 </a>
             </div>
 
@@ -131,24 +137,16 @@
                 <p style="font-size: 14px; color: #475569;">Here is your weekly automated scan and link removal report
                     for the past 7 days ({{ report_start_date }} to {{ report_end_date }}):</p>
 
-                <table width="100%" cellpadding="0" cellspacing="0" style="margin: 24px 0;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="width: 100%; table-layout: fixed; margin: 24px 0; border-collapse: separate;">
                     <tr>
-                        <td width="48%"
-                            style="background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 14px; padding: 20px; text-align: center;">
-                            <div
-                                style="font-size: 13px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">
-                                NEW LINKS</div>
-                            <div style="font-size: 32px; font-weight: 800; color: #0f172a; margin-top: 4px;">{{
-                                new_links_count }}</div>
+                        <td width="48%" style="width: 48%; height: 125px; background-color: #fdf2f8; background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 16px; padding: 24px 16px; text-align: center; vertical-align: middle; box-sizing: border-box;">
+                            <div style="font-size: 13px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; line-height: 1.2;">NEW LINKS</div>
+                            <div style="font-size: 36px; font-weight: 800; color: #0f172a; margin-top: 10px; line-height: 1;">{{ new_links_count|default:"0" }}</div>
                         </td>
-                        <td width="4%"></td>
-                        <td width="48%"
-                            style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 14px; padding: 20px; text-align: center;">
-                            <div
-                                style="font-size: 13px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">
-                                DELETED LINKS</div>
-                            <div style="font-size: 32px; font-weight: 800; color: #0f172a; margin-top: 4px;">{{
-                                deleted_links_count }}</div>
+                        <td width="4%" style="width: 4%;"></td>
+                        <td width="48%" style="width: 48%; height: 125px; background-color: #f0f9ff; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 16px; padding: 24px 16px; text-align: center; vertical-align: middle; box-sizing: border-box;">
+                            <div style="font-size: 13px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; line-height: 1.2;">DELETED LINKS</div>
+                            <div style="font-size: 36px; font-weight: 800; color: #0f172a; margin-top: 10px; line-height: 1;">{{ deleted_links_count|default:"0" }}</div>
                         </td>
                     </tr>
                 </table>
@@ -170,13 +168,8 @@
             <div class="divider"></div>
 
             <div class="footer">
-                {% if system_info.copyright %}
-                <p>{{ system_info.copyright }}. All rights reserved.</p>
-                {% else %}
-                <p>&copy; 2027 {{ system_info.name|default:"Vantafy" }}. All rights reserved.</p>
-                {% endif %}
-                <p>Questions? Contact <a href="mailto:{{ system_info.email|default:'support@Vantafy.com' }}">{{
-                        system_info.email|default:'support@Vantafy.com' }}</a></p>
+                <p>&copy; 2027 VANTAFY. All rights reserved.</p>
+                <p>Questions? Contact <a href="mailto:{{ system_info.email|default:'support@vantafy.com' }}" style="color: #ff1be4; text-decoration: none; font-weight: 600;">{{ system_info.email|default:'support@vantafy.com' }}</a></p>
             </div>
         </div>
     </div>
