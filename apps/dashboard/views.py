@@ -15,7 +15,6 @@ from django.utils import timezone
 from datetime import datetime
 
 # Create your views here.
-
 def dashboard_callback(request, context):
     now = timezone.now()
 

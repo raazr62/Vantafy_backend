@@ -10,7 +10,7 @@ from apps.utils.helpers import success, error
 from .models import ChatRoom, Message, MessageReaction
 from .serializers import  MessageSerializer, MyChatListUserSerializer
 
-
+# MY CHAT LIST USERS
 class MyChatListUserAPIView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]
@@ -26,7 +26,7 @@ class MyChatListUserAPIView(APIView):
         serializer = MyChatListUserSerializer(my_chat_list_users, many=True, context={'request': request})
         return success(data=serializer.data, message="My chat list users retrieved successfully")
 
-
+# GET SINGLE USER
 class GetSingleUserAPIView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]
@@ -43,6 +43,7 @@ class GetSingleUserAPIView(APIView):
             return error(message='User not found', code=status.HTTP_404_NOT_FOUND)
         
 
+# SEARCH USER
 class SearchUserAPIView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]
@@ -58,9 +59,7 @@ class SearchUserAPIView(APIView):
 
         return success(data=serializer.data, message="User search results retrieved successfully")
 
-
-
-
+# GET MESSAGES
 class GetMessageAPIView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]
@@ -86,7 +85,7 @@ class GetMessageAPIView(APIView):
         except User.DoesNotExist:
             return error(message='User not found', code=status.HTTP_404_NOT_FOUND)
 
-
+# MARK READ
 class MarkReadAPIView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]
@@ -103,13 +102,7 @@ class MarkReadAPIView(APIView):
         
         return success(data={'updated_count': updated_count}, message=f'{updated_count} message(s) marked as read')
     
-
-
-
-
-
-
-
+# GET ALL UNREAD NEW MESSAGES COUNT
 class AllUnreadNewMessagesCountAPIView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]
@@ -122,6 +115,7 @@ class AllUnreadNewMessagesCountAPIView(APIView):
         
         return success(data={'unread_count': unread_count}, message="Total unread messages count retrieved successfully")
 
+# ADD REACTION
 class AddReactionAPIView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]
@@ -180,7 +174,7 @@ class AddReactionAPIView(APIView):
         except Message.DoesNotExist:
             return error(message='Message not found', code=status.HTTP_404_NOT_FOUND)
 
-
+# SEND FILE MESSAGE
 class SendFileMessageAPIView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]

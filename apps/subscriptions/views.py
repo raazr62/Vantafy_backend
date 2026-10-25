@@ -20,6 +20,7 @@ from django.utils.timezone import now
 from rest_framework.permissions import IsAuthenticated
 from django.conf import settings
 
+# GET SUBSCRIPTION PACKAGES
 class SubscriptionPackageAPIView(APIView):
 
     permission_classes = []
@@ -47,8 +48,7 @@ class SubscriptionPackageAPIView(APIView):
         except Exception as e:
             return error(message="Failed to fetch package list", errors=str(e))
         
-
-
+# STRIPE CHECKOUT
 class StripeCheckoutAPIView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]
@@ -112,7 +112,7 @@ class StripeCheckoutAPIView(APIView):
         except Exception as e:
             return error(message="Failed to initiate Stripe checkout", errors=str(e))
 
-
+# STRIPE WEBHOOK
 class StripeWebhookAPIView(APIView):
     permission_classes = [] 
 
@@ -228,7 +228,7 @@ class StripeWebhookAPIView(APIView):
 
         return HttpResponse(status=200)  # Always return a response
 
-
+# GET USER ACCESS STATUS
 class AccessStatusAPIView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]
@@ -259,7 +259,7 @@ class AccessStatusAPIView(APIView):
             message="No active subscription",
         )
 
-
+# GET CURRENT SUBSCRIPTION PLAN
 class CurrentSubscriptionPlanAPIView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]

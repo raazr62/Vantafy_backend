@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from apps.user.authentication import CookieJWTAuthentication
 from apps.user.models import AgencyMemberList, User
-
+from .tasks import enqueue_dmca_notice_for_request, enqueue_verification_for_request
 from apps.subscriptions.models import Subscription
 from .models import (
     AgencyMemberScanProcessing, CustomerScanProcessing, 
@@ -25,6 +25,7 @@ from .serializers import (
     GetLinkRemovalRequestFromAgencyMemberSerializer
 )
 
+# GET ALL SPIDERS
 class SpiderListView(APIView):
 
     permission_classes = []
@@ -36,7 +37,7 @@ class SpiderListView(APIView):
             'spiders': spiders
         })
 
-
+# SCAN NOW
 class ScanNowView(APIView):
 
     permission_classes = [IsAuthenticated]
@@ -143,6 +144,7 @@ class ScanNowView(APIView):
 
         return error(message='Invalid user role for scanning')
 
+# GET SCAN RUN TIME RESULT
 class ScanRunTimeResultView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]      
@@ -197,9 +199,7 @@ class ScanRunTimeResultView(APIView):
             'status': last_scan_job.status,
         }, message='Scan run time results fetched successfully.')
 
-
-
-
+# GET SCAN RESULT
 class ScanResultListView(APIView):
 
     permission_classes = [IsAuthenticated]
@@ -266,12 +266,7 @@ class ScanResultListView(APIView):
             'links': links,
         }, message='Scan results fetched successfully.') 
 
-       
-
-
-from .tasks import enqueue_dmca_notice_for_request, enqueue_verification_for_request
-
-
+# LINK REMOVAL REQUEST
 class LinkRemovalRequestAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -337,7 +332,7 @@ class LinkRemovalRequestAPIView(APIView):
 
         return success(data=[], message='Links submitted successfully.')
 
-
+# GET LINK REMOVAL REQUESTS
 class LinkRemovalRequestListAPIView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]
@@ -367,10 +362,7 @@ class LinkRemovalRequestListAPIView(APIView):
 
         return success(data=serializer.data, message='Link removal requests fetched successfully.')
 
-
-
-
-
+# GET DASHBOARD DATA# 
 class DashboardDataAPIView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]

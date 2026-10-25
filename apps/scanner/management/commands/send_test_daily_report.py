@@ -68,9 +68,11 @@ class Command(BaseCommand):
         html_message = render_to_string("email/daily_report_template.html", context)
 
         if options["save_html"]:
-            with open("test_daily_report.html", "w", encoding="utf-8") as f:
+            import os
+            save_path = os.path.join(settings.BASE_DIR, "templates", "email", "test_daily_report.html")
+            with open(save_path, "w", encoding="utf-8") as f:
                 f.write(html_message)
-            self.stdout.write(self.style.SUCCESS("Saved rendered HTML to test_daily_report.html"))
+            self.stdout.write(self.style.SUCCESS(f"Saved rendered HTML to {save_path}"))
 
         subject = f"Your Daily Vantafy Scan & Removal Report ({today_str})"
         plain_body = (

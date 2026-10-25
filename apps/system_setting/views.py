@@ -6,7 +6,6 @@ from apps.system_setting.serializers import AboutSystemSerializer, SocialMediaSe
 from apps.utils.helpers import success, error
 
 # Create your views here.   
-
 class AboutSystemAPIView(APIView):
     permission_classes = []
 
@@ -35,6 +34,7 @@ class AboutSystemAPIView(APIView):
         return error(message="About system not found.", errors=None, status_code=status.HTTP_404_NOT_FOUND)
 
 
+# GET SYSTEM LOGO PUBLIC
 class SystemLogoPublicView(APIView):
     permission_classes = []
 
