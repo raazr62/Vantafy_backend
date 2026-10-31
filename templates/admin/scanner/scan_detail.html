@@ -256,7 +256,7 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                     </svg>
                 </div>
                 <div>
-                    <div class="text-2xl font-bold text-emerald-400">{{ page_urls|length }}</div>
+                    <div class="text-2xl font-bold text-emerald-400">{{ total_links_count }}</div>
                     <div class="text-xs text-slate-400 font-medium">Discovered Links</div>
                 </div>
             </div>
@@ -270,7 +270,7 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                     </svg>
                 </div>
                 <div>
-                    <div class="text-2xl font-bold text-blue-400">{{ images|length }}</div>
+                    <div class="text-2xl font-bold text-blue-400">{{ total_images_count }}</div>
                     <div class="text-xs text-slate-400 font-medium">Discovered Images</div>
                 </div>
             </div>
@@ -283,7 +283,7 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                     </svg>
                 </div>
                 <div>
-                    <div class="text-2xl font-bold text-purple-400">{{ scan_results|length }}</div>
+                    <div class="text-2xl font-bold text-purple-400">{{ total_scan_results_count }}</div>
                     <div class="text-xs text-slate-400 font-medium">Scan Websites / Results</div>
                 </div>
             </div>
@@ -298,7 +298,7 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                         d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1">
                     </path>
                 </svg>
-                1. Links ({{ page_urls|length }})
+                1. Links ({{ total_links_count }})
             </a>
             <a href="#images-section" class="jump-nav-btn">
                 <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -306,14 +306,14 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                         d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
                     </path>
                 </svg>
-                2. Images ({{ images|length }})
+                2. Images ({{ total_images_count }})
             </a>
             <a href="#scan-results-section" class="jump-nav-btn">
                 <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
-                3. Scan Results ({{ scan_results|length }})
+                3. Scan Results ({{ total_scan_results_count }})
             </a>
         </div>
     </div>
@@ -347,33 +347,24 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                 <div class="flex items-center gap-2.5 flex-wrap">
                     <span
                         class="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full text-xs font-semibold mr-1">
-                        {{ page_urls|length }} Link{% if page_urls|length != 1 %}s{% endif %}
+                        {{ page_urls_page.paginator.count }} Link{% if page_urls_page.paginator.count != 1 %}s{% endif %}{% if total_links_count != page_urls_page.paginator.count %} (of {{ total_links_count }}){% endif %}
                     </span>
 
-                    <!-- Search Links Input -->
-                    {% if page_urls %}
-                    <div class="inline-flex items-center mr-1">
-                        <input type="text" id="link-search-input" placeholder="Search links..."
-                            oninput="expandAccordion('links'); filterLinks();"
-                            onclick="expandAccordion('links')" onfocus="expandAccordion('links')"
+                    <!-- Search Links Input & Status Filter (Server-side) -->
+                    <div class="inline-flex items-center gap-2 mr-1">
+                        <input type="text" id="link-search-input" name="search_link_field" value="{{ link_q }}" placeholder="Search links..."
+                            onkeydown="if(event.key==='Enter'){event.preventDefault(); applyLinkFilters();}"
                             class="px-3 py-1 bg-slate-900 border border-slate-700 text-slate-100 rounded-lg text-xs font-medium focus:outline-none focus:border-purple-500 w-36 sm:w-48 transition-all">
-                    </div>
-                    {% endif %}
-
-                    <!-- Status Filter Dropdown -->
-                    {% if page_urls %}
-                    <div class="inline-flex items-center gap-1.5 mr-2">
-                        <label for="link-status-filter" class="text-xs text-slate-400 font-medium">Filter:</label>
-                        <select id="link-status-filter"
-                            onchange="expandAccordion('links'); filterLinks();"
-                            onclick="expandAccordion('links')" onfocus="expandAccordion('links')"
+                        <select id="link-status-filter" onchange="applyLinkFilters()"
                             class="custom-panel-select px-2.5 py-1 border border-slate-700 rounded-lg text-xs font-medium focus:outline-none focus:border-purple-500 cursor-pointer">
-                            <option value="all">All Statuses ({{ page_urls|length }})</option>
-                            <option value="pending">Pending</option>
-                            <option value="submitted">Submitted</option>
+                            <option value="all" {% if link_status == 'all' %}selected{% endif %}>All ({{ total_links_count }})</option>
+                            <option value="pending" {% if link_status == 'pending' %}selected{% endif %}>Pending ({{ total_pending_links_count }})</option>
+                            <option value="submitted" {% if link_status == 'submitted' %}selected{% endif %}>Submitted ({{ total_submitted_links_count }})</option>
                         </select>
+                        {% if link_q or link_status != 'all' %}
+                        <button type="button" onclick="clearLinkFilters()" class="text-xs text-slate-400 hover:text-slate-200 underline">Clear</button>
+                        {% endif %}
                     </div>
-                    {% endif %}
 
                     {% if page_urls %}
                     <button type="submit" name="action" value="delete_links"
@@ -389,6 +380,18 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                         </svg>
                     </button>
 
+                    {% if total_pending_links_count > 0 %}
+                    <button type="submit" name="action" value="send_all_pending"
+                        onclick="return confirm('Send DMCA notice email(s) for ALL {{ total_pending_links_count }} pending link(s)?');"
+                        class="px-2.5 py-1.5 bg-emerald-700 hover:bg-emerald-600 !text-white font-semibold text-xs rounded-lg inline-flex items-center gap-1 transition cursor-pointer shadow-sm mr-2"
+                        style="background-color: #047857 !important; color: #ffffff !important;"
+                        title="Send DMCA notice for all {{ total_pending_links_count }} pending link(s)">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                        <span>Send All Pending ({{ total_pending_links_count }})</span>
+                    </button>
+                    {% endif %}
                     <button type="submit" name="action" value="send_mail"
                         onclick="return confirm('Send DMCA notice email(s) for the selected link(s)?');"
                         class="p-2 !bg-emerald-600 hover:!bg-emerald-700 !text-white font-semibold text-xs rounded-lg inline-flex items-center justify-center transition cursor-pointer shadow-sm"
@@ -570,6 +573,26 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Links Pagination -->
+                {% if page_urls_page and page_urls_page.paginator.num_pages > 1 %}
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 pt-3 border-t border-slate-700/60 text-xs text-slate-400">
+                    <div>
+                        Showing <span class="font-semibold text-slate-200">{{ page_urls_page.start_index }}</span> to <span class="font-semibold text-slate-200">{{ page_urls_page.end_index }}</span> of <span class="font-semibold text-slate-200">{{ page_urls_page.paginator.count }}</span> links
+                        {% if link_q or link_status != 'all' %}(filtered from {{ total_links_count }} total){% endif %}
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        {% if page_urls_page.has_previous %}
+                        <a href="?link_page={{ page_urls_page.previous_page_number }}{% if link_q %}&link_q={{ link_q }}{% endif %}{% if link_status %}&link_status={{ link_status }}{% endif %}{% if image_page %}&image_page={{ image_page }}{% endif %}{% if image_q %}&image_q={{ image_q }}{% endif %}#links-section" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition">Previous</a>
+                        {% endif %}
+                        <span class="px-2.5 py-1 text-slate-300 font-mono">Page {{ page_urls_page.number }} of {{ page_urls_page.paginator.num_pages }}</span>
+                        {% if page_urls_page.has_next %}
+                        <a href="?link_page={{ page_urls_page.next_page_number }}{% if link_q %}&link_q={{ link_q }}{% endif %}{% if link_status %}&link_status={{ link_status }}{% endif %}{% if image_page %}&image_page={{ image_page }}{% endif %}{% if image_q %}&image_q={{ image_q }}{% endif %}#links-section" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition">Next</a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
                 {% endif %}
             </div>
         </form>
@@ -621,16 +644,18 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
 
                     <span
                         class="px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-xs font-semibold mr-1">
-                        {{ images|length }} Image{% if images|length != 1 %}s{% endif %}
+                        {{ images_page_obj.paginator.count }} Image{% if images_page_obj.paginator.count != 1 %}s{% endif %}{% if total_images_count != images_page_obj.paginator.count %} (of {{ total_images_count }}){% endif %}
                     </span>
 
                     {% if images %}
-                    <!-- Search Images Input -->
-                    <div class="inline-flex items-center mr-1">
-                        <input type="text" id="image-search-input" placeholder="Search images..."
-                            oninput="expandAccordion('images'); filterImages();"
-                            onclick="expandAccordion('images')" onfocus="expandAccordion('images')"
+                    <!-- Search Images Input (Server-side) -->
+                    <div class="inline-flex items-center gap-2 mr-1">
+                        <input type="text" id="image-search-input" name="search_image_field" value="{{ image_q }}" placeholder="Search images..."
+                            onkeydown="if(event.key==='Enter'){event.preventDefault(); applyImageFilters();}"
                             class="px-3 py-1 bg-slate-900 border border-slate-700 text-slate-100 rounded-lg text-xs font-medium focus:outline-none focus:border-blue-500 w-36 sm:w-48 transition-all">
+                        {% if image_q %}
+                        <button type="button" onclick="clearImageFilters()" class="text-xs text-slate-400 hover:text-slate-200 underline">Clear</button>
+                        {% endif %}
                     </div>
                     {% endif %}
 
@@ -788,6 +813,26 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                     </div>
                     {% endfor %}
                 </div>
+
+                <!-- Images Pagination -->
+                {% if images_page_obj and images_page_obj.paginator.num_pages > 1 %}
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 pt-3 border-t border-slate-700/60 text-xs text-slate-400">
+                    <div>
+                        Showing <span class="font-semibold text-slate-200">{{ images_page_obj.start_index }}</span> to <span class="font-semibold text-slate-200">{{ images_page_obj.end_index }}</span> of <span class="font-semibold text-slate-200">{{ images_page_obj.paginator.count }}</span> images
+                        {% if image_q %}(filtered from {{ total_images_count }} total){% endif %}
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        {% if images_page_obj.has_previous %}
+                        <a href="?image_page={{ images_page_obj.previous_page_number }}{% if image_q %}&image_q={{ image_q }}{% endif %}{% if link_page %}&link_page={{ link_page }}{% endif %}{% if link_q %}&link_q={{ link_q }}{% endif %}{% if link_status %}&link_status={{ link_status }}{% endif %}#images-section" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition">Previous</a>
+                        {% endif %}
+                        <span class="px-2.5 py-1 text-slate-300 font-mono">Page {{ images_page_obj.number }} of {{ images_page_obj.paginator.num_pages }}</span>
+                        {% if images_page_obj.has_next %}
+                        <a href="?image_page={{ images_page_obj.next_page_number }}{% if image_q %}&image_q={{ image_q }}{% endif %}{% if link_page %}&link_page={{ link_page }}{% endif %}{% if link_q %}&link_q={{ link_q }}{% endif %}{% if link_status %}&link_status={{ link_status }}{% endif %}#images-section" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition">Next</a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
                 {% else %}
                 <div class="text-center py-10 bg-slate-900/40 rounded-xl border border-slate-700/50 text-slate-400">
                     No images discovered for this scan item.
@@ -1003,6 +1048,65 @@ Scan Details - {{ target_title }} | {{ site_title|default:_('Django site admin')
                 container.classList.toggle('hidden');
             }
         }
+
+        function applyLinkFilters() {
+            const input = document.getElementById('link-search-input');
+            const select = document.getElementById('link-status-filter');
+            const q = input ? input.value.trim() : '';
+            const status = select ? select.value : 'all';
+
+            const url = new URL(window.location.href);
+            url.searchParams.set('link_page', '1');
+            if (q) url.searchParams.set('link_q', q);
+            else url.searchParams.delete('link_q');
+            if (status && status !== 'all') url.searchParams.set('link_status', status);
+            else url.searchParams.delete('link_status');
+            url.hash = 'links-section';
+            window.location.href = url.toString();
+        }
+
+        function clearLinkFilters() {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('link_q');
+            url.searchParams.delete('link_status');
+            url.searchParams.set('link_page', '1');
+            url.hash = 'links-section';
+            window.location.href = url.toString();
+        }
+
+        function applyImageFilters() {
+            const input = document.getElementById('image-search-input');
+            const q = input ? input.value.trim() : '';
+
+            const url = new URL(window.location.href);
+            url.searchParams.set('image_page', '1');
+            if (q) url.searchParams.set('image_q', q);
+            else url.searchParams.delete('image_q');
+            url.hash = 'images-section';
+            window.location.href = url.toString();
+        }
+
+        function clearImageFilters() {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('image_q');
+            url.searchParams.set('image_page', '1');
+            url.hash = 'images-section';
+            window.location.href = url.toString();
+        }
+
+        window.addEventListener('DOMContentLoaded', function() {
+            const hash = window.location.hash;
+            const urlParams = new URLSearchParams(window.location.search);
+            if (hash === '#links-section' || urlParams.has('link_page') || urlParams.has('link_q') || (urlParams.has('link_status') && urlParams.get('link_status') !== 'all')) {
+                expandAccordion('links');
+            }
+            if (hash === '#images-section' || urlParams.has('image_page') || urlParams.has('image_q')) {
+                expandAccordion('images');
+            }
+            if (hash === '#scan-results-section') {
+                expandAccordion('scan-results');
+            }
+        });
 
         function filterLinks() {
             expandAccordion('links');
