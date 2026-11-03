@@ -466,6 +466,13 @@ def get_unfold_settings():
                             "icon": "pages",
                             "link": reverse_lazy("admin:cms_page_changelist"),
                         },
+                        {
+                            "title": _("Available Niches"),
+                            "icon": "category",
+                            "link": reverse_lazy(
+                                "admin:user_availableniche_changelist"
+                            ),
+                        },
                     ],
                 },
                 {

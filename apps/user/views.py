@@ -10,7 +10,7 @@ from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from apps.user.models import Niche
 from .authentication import CookieJWTAuthentication
-from .models import AgencyMemberList, AgencyMemberNiches, AgencyMemberSocialAccounts, AgencyMemberStageNames, Niche, StageName, User
+from .models import AgencyMemberList, AgencyMemberNiches, AgencyMemberSocialAccounts, AgencyMemberStageNames, Niche, StageName, User, AvailableNiche
 from .models import ConnectedSocialAccount
 from apps.subscriptions.models import Subscription
 from .utils import clear_auth_cookies
@@ -502,20 +502,17 @@ class DeleteStageNameView(APIView):
 class GetNichesView(APIView):
     permission_classes = []
 
-
     def get(self, request):
-        niches = Niche.objects.values_list('name', flat=True).distinct()
-
+        niches = AvailableNiche.objects.filter(is_active=True).values_list('name', flat=True)
 
         if not niches.exists():
             return error(message="No niches found.", errors=None, code=200)
 
-
         return success(
-        data=list(niches),
-        message="Customer niches fetched successfully.",
-        status_code=status.HTTP_200_OK
-    )
+            data=list(niches),
+            message="Available niches fetched successfully.",
+            status_code=status.HTTP_200_OK
+        )
 
         
         

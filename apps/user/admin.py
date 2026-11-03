@@ -6,7 +6,7 @@ from django.db.models import Q
 from unfold.admin import ModelAdmin,TabularInline
 from django.contrib.auth.hashers import identify_hasher
 
-from .models import User, Niche, StageName, ConnectedSocialAccount, OTP, AgencyMemberList, AgencyMemberNiches, AgencyMemberStageNames, AgencyMemberSocialAccounts
+from .models import User, Niche, StageName, AvailableNiche, ConnectedSocialAccount, OTP, AgencyMemberList, AgencyMemberNiches, AgencyMemberStageNames, AgencyMemberSocialAccounts
 
 @admin.register(User)
 class UserAdmin(ModelAdmin):
@@ -133,6 +133,15 @@ class StageNameInline(TabularInline):
 class ConnectedSocialAccountInline(TabularInline):
     model = ConnectedSocialAccount
     extra = 1
+
+@admin.register(AvailableNiche)
+class AvailableNicheAdmin(ModelAdmin):
+    list_display = ['name', 'is_active', 'created_at', 'updated_at']
+    list_editable = ['is_active']
+    list_filter = ['is_active', 'created_at']
+    search_fields = ['name']
+    list_per_page = 50
+
 
 # Separate admin for customer details view
 @admin.register(Niche)

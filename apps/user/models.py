@@ -50,6 +50,21 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
+class AvailableNiche(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    is_active = models.BooleanField(default=True, help_text="Show or hide this niche in selection lists")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = "Available Niche"
+        verbose_name_plural = "Available Niches"
+
+    def __str__(self):
+        return self.name
+
+
 class Niche(models.Model):
     customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='niches')
     name = models.CharField(max_length=255)

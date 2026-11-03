@@ -1,4 +1,4 @@
-from apps.user.models import StageName, User, Niche
+from apps.user.models import StageName, User, Niche, AvailableNiche
 
 
 
@@ -88,8 +88,6 @@ def seed_users():
     print("[SUCCESS] User data seeded successfully.")
 
 def seed_customer_niches():
-    customer = User.objects.get(id=3)
-
     niches = [
         "Instagram Influencer",
         "YouTube Creator",
@@ -114,9 +112,9 @@ def seed_customer_niches():
     ]
 
     for niche in niches:
-        Niche.objects.get_or_create(customer = customer, name=niche)
+        AvailableNiche.objects.get_or_create(name=niche)
 
-    print("[SUCCESS] Social media & celebrity niches seeded successfully.")
+    print("[SUCCESS] Available niches seeded successfully.")
 
 
 def seed_customer_stage_names():
