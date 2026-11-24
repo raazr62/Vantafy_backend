@@ -1,119 +1,179 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New Notification</title>
+    <title>Notification - {{ system_info.name }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f4f4;
+            font-family: 'Montserrat', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            background-color: #f8fafc;
             margin: 0;
             padding: 0;
+            color: #1e293b;
+            -webkit-font-smoothing: antialiased;
             line-height: 1.6;
         }
 
-        .container {
-            max-width: 600px;
-            margin: 30px auto;
+        .email-wrapper {
+            width: 100%;
+            background-color: #f8fafc;
+            padding: 48px 16px;
+            box-sizing: border-box;
+        }
+
+        .email-container {
+            max-width: 540px;
+            margin: 0 auto;
             background-color: #ffffff;
-            border-radius: 8px;
+            border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
         }
 
-        .header {
-            background-color: #5C39EC;
-            /* Primary Color */
-            padding: 20px;
+        .header-content {
+            padding: 32px 40px 16px 40px;
             text-align: center;
-            color: #ffffff;
+            background-color: #ffffff;
+            border-radius: 20px 20px 0 0;
         }
 
-        .header img {
-            max-height: 60px;
-            margin-bottom: 10px;
-        }
-
-        .header h1 {
-            margin: 0;
-            font-size: 24px;
-            font-weight: 600;
-        }
-
-        .content {
-            padding: 30px;
-            color: #333333;
-        }
-
-        .notification-box {
-            background-color: #f9f9f9;
-            border-left: 4px solid #5C39EC;
-            padding: 15px;
-            margin: 20px 0;
-        }
-
-        .btn {
-            display: inline-block;
-            background-color: #5C39EC;
-            color: #ffffff;
-            padding: 12px 25px;
+        .brand-logo {
+            display: block;
+            margin: 0 auto;
+            max-height: 40px;
+            width: auto;
+            max-width: 200px;
+            border: 0;
+            outline: none;
             text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            margin-top: 20px;
+        }
+
+        .brand-name {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(90deg, #971DFE 0%, #FF1BE4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+            display: inline-block;
+        }
+
+        .body-content {
+            padding: 28px 40px 36px 40px;
+        }
+
+        .greeting {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-top: 10px;
+            margin-bottom: 12px;
+        }
+
+        .notification-card {
+            background: #fdf4ff;
+            border-left: 4px solid #ff1be4;
+            border-radius: 0 14px 14px 0;
+            padding: 20px;
+            margin: 24px 0;
+        }
+
+        .notification-card h3 {
+            margin: 0 0 6px 0;
+            color: #0f172a;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .notification-card p {
+            margin: 0;
+            color: #475569;
+            font-size: 14px;
+        }
+
+        .action-button {
+            display: inline-block;
+            background-color: #971DFE;
+            background: #971DFE;
+            color: #ffffff !important;
+            padding: 12px 28px;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 14px;
+            margin-top: 16px;
+            box-shadow: 0 4px 12px rgba(151, 29, 254, 0.25);
+        }
+
+        .divider {
+            height: 1px;
+            background-color: #f1f5f9;
+            margin: 32px 0 24px 0;
         }
 
         .footer {
-            background-color: #f9f9f9;
-            padding: 20px;
+            padding: 0 40px 32px 40px;
             text-align: center;
             font-size: 12px;
-            color: #888888;
-            border-top: 1px solid #eeeeee;
+            color: #94a3b8;
+        }
+
+        .footer p {
+            margin: 4px 0;
         }
 
         .footer a {
-            color: #5C39EC;
+            color: #ff1be4;
             text-decoration: none;
+            font-weight: 600;
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <div class="header">
-            <!-- {% if system_info.logo %}
-            <img src="{{ system_info.logo.url }}" alt="{{ system_info.name }} Logo">
-            {% endif %} -->
-            <h1>{{ system_info.name }}</h1>
-        </div>
-        <div class="content">
-            <h2>Hello {{ user.first_name|default:"User" }},</h2>
-
-            <p>You have a new notification from <strong>{{ system_info.name }}</strong>:</p>
-
-            <div class="notification-box">
-                <h3>{{ notification.title }}</h3>
-                <p>{{ notification.message }}</p>
+    <div class="email-wrapper" style="width: 100%; background-color: #f8fafc; padding: 48px 16px; box-sizing: border-box;">
+        <div class="email-container" style="max-width: 540px; margin: 0 auto; background-color: #ffffff; border-radius: 20px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.01);">
+            <div class="header-content" style="background-color: #ffffff; padding: 32px 40px 16px 40px; text-align: center; border-radius: 20px 20px 0 0;">
+                <a href="{{ dashboard_url|default:'https://Vantafy.com' }}" style="text-decoration: none; display: inline-block;" target="_blank">
+                    <img src="https://midia-mixer.s3.us-east-2.amazonaws.com/system_setting/logo/logo_gray.png" alt="{{ system_info.name|default:'Vantafy' }}" class="brand-logo" height="38" style="display: block; margin: 0 auto; max-height: 40px; width: auto; max-width: 200px; border: 0; outline: none; text-decoration: none;" />
+                </a>
             </div>
 
-            {% if action_url %}
-            <div style="text-align: center;">
-                <a href="{{ onboarding_link }}" class="btn">Onboarding Link</a>
-            </div>
-            {% endif %}
+            <div class="body-content" style="padding: 28px 40px 36px 40px;">
+                <h2 class="greeting">Hello {{ user.first_name|default:"User" }},</h2>
+                <p style="font-size: 14px; color: #475569;">You have a new notification from <strong>{{ system_info.name|default:"Vantafy" }}</strong>:</p>
 
-            <p>Thank you for being with us!</p>
-            <p>Best regards,<br>The {{ system_info.name }} Team</p>
-        </div>
-        <div class="footer">
-            <p>&copy; {{ system_info.copyright }} {{ system_info.name }}. All rights reserved.</p>
-            <p>{{ system_info.description|truncatewords:20 }}</p>
-            <p>
-                <a href="mailto:{{ system_info.email }}">{{ system_info.email }}</a>
-            </p>
+                <div class="notification-card">
+                    <h3>{{ notification.title }}</h3>
+                    <p>{{ notification.message }}</p>
+                </div>
+
+                {% if action_url %}
+                <div style="text-align: center; margin-top: 24px;">
+                    <a href="{{ onboarding_link|default:action_url }}" class="action-button" style="background-color: #971DFE; background: #971DFE; color: #ffffff !important; padding: 12px 28px; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 14px; display: inline-block; box-shadow: 0 4px 12px rgba(151, 29, 254, 0.25);">View Details</a>
+                </div>
+                {% endif %}
+
+                <p style="font-size: 14px; color: #475569; margin-top: 28px; margin-bottom: 0; text-align: center;">
+                    Thank you for being with us,<br>
+                    <strong style="color: #0f172a;">The {{ system_info.name|default:"Vantafy" }} Team</strong>
+                </p>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="footer">
+                <p>&copy; 2027 VANTAFY. All rights reserved.</p>
+                <p>Questions? Contact <a href="mailto:{{ system_info.email|default:'support@vantafy.com' }}" style="color: #ff1be4; text-decoration: none; font-weight: 600;">{{ system_info.email|default:'support@vantafy.com' }}</a></p>
+            </div>
         </div>
     </div>
 </body>

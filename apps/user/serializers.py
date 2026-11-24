@@ -64,8 +64,16 @@ class SignUpSerializer(serializers.ModelSerializer):
         email = validated_data.pop('email')
         password = validated_data.pop('password')
         purpose = validated_data.pop('purpose')
+        referral_code = validated_data.pop('referral_code', None)
         
         user = User.objects.create_user(email=email, password=password, **validated_data)
+        
+        # Link referred_by if referral_code is provided
+        if referral_code:
+            referrer = User.objects.filter(referral_code=referral_code).first()
+            if referrer:
+                user.referred_by = referrer
+                user.save()
         
 
         otp_code = generate_otp()
@@ -75,13 +83,18 @@ class SignUpSerializer(serializers.ModelSerializer):
 
         OTP.objects.update_or_create(user=user, defaults={'otp': otp_hashed, 'is_verify': False, 'purpose': purpose, 'created_at': timezone.now(), 'expires_at': expires_at})
         
-        system_info = AboutSystem.objects.first()
-        html_content = render_to_string('email/otp_verification_template.html', {'otp_code': otp_code, 'system_info': system_info})
+        system_info = AboutSystem.objects.first() or {'name': 'Vantafy', 'email': 'support@Vantafy.com'}
+        dashboard_url = getattr(settings, 'FRONTEND_URL', 'https://Vantafy.com')
+        html_content = render_to_string('email/otp_verification_template.html', {
+            'otp_code': otp_code,
+            'system_info': system_info,
+            'dashboard_url': dashboard_url,
+        })
         send_email(
             subject='Verification OTP',
             body=f'Your OTP is {otp_code}. Expire in 3 minutes.',
             to_emails=[user.email,],
-            from_email=settings.EMAIL_HOST_USER,
+            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', settings.EMAIL_HOST_USER),
             html_body=html_content
             )
     
@@ -118,8 +131,16 @@ class SignInSerializer(serializers.Serializer):
     def validate(self, attrs):
         password = attrs.get('password')
         user = User.objects.filter(email=attrs['email']).first()
+        # Accept any verified OTP for this user (signup or login flows may use different purposes).
+        # Some flows create OTPs with purpose='account_create' or other values,
+        # so require that at least one OTP exists with is_verify=True for this user.
+        otp = None
+        if user:
+            otp = OTP.objects.filter(user=user, is_verify=True).order_by('-created_at').first()
         if not user:
            raise serializers.ValidationError({'email': 'User with this email does not exist.'})
+        if not otp:
+            raise serializers.ValidationError({'email': 'Email not verified. Please verify your email before signing in.'})
         if not user.check_password(password):
             raise serializers.ValidationError({'password': 'Invalid password.'})
         self.user = user
@@ -250,15 +271,20 @@ class SendOTPSerializer(serializers.Serializer):
 
         OTP.objects.update_or_create(user=user, defaults={'otp': otp_hashed, 'is_verify': False, 'purpose': purpose, 'created_at': timezone.now(), 'expires_at': expires_at})
         
-        system_info = AboutSystem.objects.first()
-        html_content = render_to_string('email/otp_verification_template.html', {'otp_code': otp_code, 'system_info': system_info})
+        system_info = AboutSystem.objects.first() or {'name': 'Vantafy', 'email': 'support@Vantafy.com'}
+        dashboard_url = getattr(settings, 'FRONTEND_URL', 'https://Vantafy.com')
+        html_content = render_to_string('email/otp_verification_template.html', {
+            'otp_code': otp_code,
+            'system_info': system_info,
+            'dashboard_url': dashboard_url,
+        })
 
         try:
           send_email(
                 subject='Verification OTP',
                 body=f'Your OTP is {otp_code}. Expire in 3 minutes.',
                 to_emails=[user.email,],
-                from_email=settings.EMAIL_HOST_USER,
+                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', settings.EMAIL_HOST_USER),
                 html_body=html_content
                 )
         except:
@@ -295,15 +321,20 @@ class ResendOTPSerializer(serializers.Serializer):
 
         OTP.objects.update_or_create(user=user, defaults={'otp': otp_hashed, 'is_verify': False, 'purpose': purpose, 'created_at': timezone.now(), 'expires_at': expires_at})
 
-        system_info = AboutSystem.objects.first()
-        html_content = render_to_string('email/otp_verification_template.html', {'otp_code': otp_code, 'system_info': system_info})
+        system_info = AboutSystem.objects.first() or {'name': 'Vantafy', 'email': 'support@Vantafy.com'}
+        dashboard_url = getattr(settings, 'FRONTEND_URL', 'https://Vantafy.com')
+        html_content = render_to_string('email/otp_verification_template.html', {
+            'otp_code': otp_code,
+            'system_info': system_info,
+            'dashboard_url': dashboard_url,
+        })
 
         try:
           send_email(
                 subject='Verification OTP',
                 body=f'Your OTP is {otp_code}. Expire in 3 minutes.',
                 to_emails=[user.email,],
-                from_email=settings.EMAIL_HOST_USER,
+                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', settings.EMAIL_HOST_USER),
                 html_body=html_content
                 )
         except:
@@ -407,9 +438,6 @@ class UpdataProfileAvatarSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['avatar']
-        extra_kwargs = {
-            'avatar': { 'write_only': True },
-        }
 
 
 
@@ -437,9 +465,10 @@ class ConnectedSocialAccountSerializer(serializers.ModelSerializer):
 class UpdateProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ['full_name', 'country', 'time_zone', 'is_automated_mail']
         
     def to_representation(self, instance):
+        has_subscription = Subscription.objects.filter(user=instance, status='active').exists()
         return {
             'id': instance.id,
             'email': instance.email,
@@ -447,6 +476,8 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
             'role': instance.role,
             'country': instance.country,
             'time_zone': instance.time_zone,
+            'is_automated_mail': instance.is_automated_mail,
+            'has_subscription': has_subscription,
         }
     
 

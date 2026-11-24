@@ -59,13 +59,13 @@ from .views import (
 
     # affiliate program
     AffiliateProgramView,
-
-
+    DeleteAllUserImagesView,
     )
 
 urlpatterns = [
     
     # auth
+    path("delete-all-images/", DeleteAllUserImagesView.as_view(), name="delete-all-images"),
     
     path("signup/", SignUpView.as_view(), name="signup"),
     path("signin/", SignInView.as_view(), name="signin"),

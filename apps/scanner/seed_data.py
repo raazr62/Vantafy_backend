@@ -315,4 +315,4 @@ def seed_unauthorized_websites():
             defaults={'email': item['email']}
         )
 
-    print("✅ Unauthorized websites seeded successfully.")
+    print("Unauthorized websites seeded successfully.")

@@ -3,8 +3,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from apps.user.authentication import CookieJWTAuthentication
-from apps.user.models import AgencyMemberList 
-
+from apps.user.models import AgencyMemberList, User
+from .tasks import enqueue_dmca_notice_for_request, enqueue_verification_for_request
+from apps.subscriptions.models import Subscription
 from .models import (
     AgencyMemberScanProcessing, CustomerScanProcessing, 
     CustomerScanResult, AgencyMemberScanResult, 
@@ -24,6 +25,7 @@ from .serializers import (
     GetLinkRemovalRequestFromAgencyMemberSerializer
 )
 
+# GET ALL SPIDERS
 class SpiderListView(APIView):
 
     permission_classes = []
@@ -35,7 +37,7 @@ class SpiderListView(APIView):
             'spiders': spiders
         })
 
-
+# SCAN NOW
 class ScanNowView(APIView):
 
     permission_classes = [IsAuthenticated]
@@ -43,27 +45,73 @@ class ScanNowView(APIView):
     
     def post(self, request):
         user = request.user
-        role = user.role
+        role = getattr(user, 'role', '')
 
-        # Create a new CustomerScanProcessing job
-        if role == 'customer':
-            full_name = user.full_name
-            print("Full Name:", full_name)
+        custom_name = request.data.get('name') or request.data.get('name_query') or request.data.get('search_name')
+        if custom_name:
+            custom_name = str(custom_name).strip()
+
+        # Handle Admin / Staff users
+        if user.is_staff or user.is_superuser or role == 'admin':
+            customer_id = request.data.get('customer_id') or request.data.get('user_id')
+            target_user = None
+            if customer_id:
+                try:
+                    target_user = User.objects.get(id=customer_id)
+                except User.DoesNotExist:
+                    return error(message='Selected customer user not found')
+
+            name_to_scan = custom_name
+            if not name_to_scan and target_user:
+                name_to_scan = getattr(target_user, 'full_name', '') or getattr(target_user, 'username', '')
+
+            if not name_to_scan:
+                return error(message='Name is required to run scan')
 
             scan_job = CustomerScanProcessing.objects.create(
-                customer=user,
+                customer=target_user,
+                custom_search_name=name_to_scan
             )
 
-            # Run all spiders asynchronously
             run_all_spiders_async(
-                name_query='',
+                name_query=name_to_scan,
                 job_id=scan_job.id,
                 app_label='scanner',
                 model_name='CustomerScanProcessing'
             )
 
+            return success(data={
+                'scan_job_id': str(scan_job.id),
+                'status': scan_job.status,
+                'scanned_name': name_to_scan,
+                'is_member': target_user is not None,
+            }, message='Admin scan job initiated successfully.')
+
+        # Handle Customer role
+        if role == 'customer':
+            name_to_scan = custom_name or getattr(user, 'full_name', '')
+
+            scan_job = CustomerScanProcessing.objects.create(
+                customer=user,
+                custom_search_name=custom_name if custom_name else None
+            )
+
+            run_all_spiders_async(
+                name_query=name_to_scan,
+                job_id=scan_job.id,
+                app_label='scanner',
+                model_name='CustomerScanProcessing'
+            )
+
+            return success(data={
+                'scan_job_id': str(scan_job.id),
+                'status': scan_job.status,
+                'scanned_name': name_to_scan,
+            }, message='Scan job initiated successfully.')
+
+        # Handle Agency role
         if role == 'agency':
-            agency_member_id  = request.data.get('agency_member_id')
+            agency_member_id = request.data.get('agency_member_id')
 
             if not agency_member_id:
                 return error(message='agency_member_id is required')
@@ -73,25 +121,30 @@ class ScanNowView(APIView):
             except AgencyMemberList.DoesNotExist:
                 return error(message='Agency member not found')
 
+            name_to_scan = custom_name or getattr(agency_member, 'name', '')
+
             scan_job = AgencyMemberScanProcessing.objects.create(
                 agency=user,
                 agency_member=agency_member,
+                custom_search_name=custom_name if custom_name else None
             )
 
-
-            # Run all spiders asynchronously
             run_all_spiders_async(
-                name_query='',
+                name_query=name_to_scan,
                 job_id=scan_job.id,
                 app_label='scanner',
                 model_name='AgencyMemberScanProcessing'
             )
 
-        return success(data={
-            'scan_job_id': str(scan_job.id),
-            'status': scan_job.status,
-        }, message='Scan job initiated successfully.')
+            return success(data={
+                'scan_job_id': str(scan_job.id),
+                'status': scan_job.status,
+                'scanned_name': name_to_scan,
+            }, message='Scan job initiated successfully.')
 
+        return error(message='Invalid user role for scanning')
+
+# GET SCAN RUN TIME RESULT
 class ScanRunTimeResultView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]      
@@ -146,9 +199,7 @@ class ScanRunTimeResultView(APIView):
             'status': last_scan_job.status,
         }, message='Scan run time results fetched successfully.')
 
-
-
-
+# GET SCAN RESULT
 class ScanResultListView(APIView):
 
     permission_classes = [IsAuthenticated]
@@ -215,9 +266,7 @@ class ScanResultListView(APIView):
             'links': links,
         }, message='Scan results fetched successfully.') 
 
-       
-
-
+# LINK REMOVAL REQUEST
 class LinkRemovalRequestAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -241,28 +290,49 @@ class LinkRemovalRequestAPIView(APIView):
             except AgencyMemberList.DoesNotExist:
                 return error(message='Agency member not found')
 
-        if role == 'customer':
-            # create objects
-            objects = [
-                LinkRemovalRequestFromCustomer(customer=user, link=link)
-                for link in links
-            ]
+        if user.is_staff or user.is_superuser or role == 'admin':
+            customer_id = request.data.get('customer_id') or request.data.get('user_id')
+            target_user = user
+            if customer_id:
+                try:
+                    target_user = User.objects.get(id=customer_id)
+                except User.DoesNotExist:
+                    return error(message='Selected customer user not found')
 
-            # bulk save
-            LinkRemovalRequestFromCustomer.objects.bulk_create(objects)
+            for link in links:
+                obj = LinkRemovalRequestFromCustomer.objects.create(customer=target_user, link=link)
+                # Change status from 'pending' to 'requested'
+                CustomerScanResultPageUrl.objects.filter(
+                    customer_scan_result__customer=target_user,
+                    page_url=link
+                ).update(send_mail_status='requested')
+                enqueue_verification_for_request(obj)
+
+        elif role == 'customer':
+            for link in links:
+                obj = LinkRemovalRequestFromCustomer.objects.create(customer=user, link=link)
+                # Change status from 'pending' to 'requested'
+                CustomerScanResultPageUrl.objects.filter(
+                    customer_scan_result__customer=user,
+                    page_url=link
+                ).update(send_mail_status='requested')
+                enqueue_verification_for_request(obj)
 
         elif role == 'agency':
-            # create objects
-            objects = [
-                LinkRemovalRequestFromAgencyMember(agency=user, agency_member=agency_member, link=link)
-                for link in links
-            ]
-
-            # bulk save
-            LinkRemovalRequestFromAgencyMember.objects.bulk_create(objects)
+            for link in links:
+                obj = LinkRemovalRequestFromAgencyMember.objects.create(
+                    agency=user, agency_member=agency_member, link=link
+                )
+                # Change status from 'pending' to 'requested'
+                AgencyMemberScanResultPageUrl.objects.filter(
+                    agency_member_scan_result__agency_member=agency_member,
+                    page_url=link
+                ).update(send_mail_status='requested')
+                enqueue_verification_for_request(obj)
 
         return success(data=[], message='Links submitted successfully.')
 
+# GET LINK REMOVAL REQUESTS
 class LinkRemovalRequestListAPIView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]
@@ -292,10 +362,7 @@ class LinkRemovalRequestListAPIView(APIView):
 
         return success(data=serializer.data, message='Link removal requests fetched successfully.')
 
-
-
-
-
+# GET DASHBOARD DATA# 
 class DashboardDataAPIView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]
@@ -330,8 +397,8 @@ class DashboardDataAPIView(APIView):
                 video_percentage = 0
             
             # 2. Potential Revenue
-            # Formula: (total_photo + total_video) * 2.5
-            potential_revenue = total_media * 2.5
+            # Formula: (total_photo + total_video) * .721
+            potential_revenue = total_media * .721
             
             # 3. Link Removal Requests
             removal_requests = LinkRemovalRequestFromCustomer.objects.filter(customer=user)

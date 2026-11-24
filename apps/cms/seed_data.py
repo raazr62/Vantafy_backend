@@ -1,42 +1,48 @@
 from apps.cms.models import FAQ, AmongOurCustomer, HeroRadarIcon, HeroSection, HowItWorks, IdentityTracking, Page, Testimonial
 
 def seed_page():
+    if Page.objects.exists():
+        print("[INFO] Pages already seeded.")
+        return
     pages = [
-    {
-        "title": "Privacy Policy",
-        "slug": "privacy-policy",
-        "content": "This Privacy Policy explains how we collect, use, and protect your personal data when you use our website and services.",
-        "type": "privacy_policy",
-        "status": True
-    },
-    {
-        "title": "Terms and Conditions",
-        "slug": "terms-and-conditions",
-        "content": "These Terms and Conditions govern your use of our website and services. By accessing the site, you agree to comply with these rules.",
-        "type": "terms_and_conditions",
-        "status": True
-    },
-    {
-        "title": "Cookie Policy",
-        "slug": "cookie-policy",
-        "content": "Our website uses cookies to enhance user experience. This policy explains what cookies we use and how you can manage them.",
-        "type": "cookie_policy",
-        "status": True
-    },
-    {
-        "title": "Imprint",
-        "slug": "imprint",
-        "content": "This Imprint provides legal information about our company, including address, contact details, and responsible representatives.",
-        "type": "imprint",
-        "status": True
-    }
-]
+        {
+            "title": "Privacy Policy",
+            "slug": "privacy-policy",
+            "content": "This Privacy Policy explains how we collect, use, and protect your personal data when you use our website and services.",
+            "type": "privacy_policy",
+            "status": True
+        },
+        {
+            "title": "Terms and Conditions",
+            "slug": "terms-and-conditions",
+            "content": "These Terms and Conditions govern your use of our website and services. By accessing the site, you agree to comply with these rules.",
+            "type": "terms_and_conditions",
+            "status": True
+        },
+        {
+            "title": "Cookie Policy",
+            "slug": "cookie-policy",
+            "content": "Our website uses cookies to enhance user experience. This policy explains what cookies we use and how you can manage them.",
+            "type": "cookie_policy",
+            "status": True
+        },
+        {
+            "title": "Imprint",
+            "slug": "imprint",
+            "content": "This Imprint provides legal information about our company, including address, contact details, and responsible representatives.",
+            "type": "imprint",
+            "status": True
+        }
+    ]
     for page in pages:
         Page.objects.create(**page)
-    print("✅ Pages seeded successfully.")
+    print("[SUCCESS] Pages seeded successfully.")
 
 
 def seed_faq():
+    if FAQ.objects.exists():
+        print("[INFO] FAQs already seeded.")
+        return
     faqs = [
         {
             "question": "How can I create an account?",
@@ -68,10 +74,13 @@ def seed_faq():
     for faq in faqs:
         FAQ.objects.create(**faq)
 
-    print("✅ FAQs seeded successfully.")
+    print("[SUCCESS] FAQs seeded successfully.")
 
 
 def seed_hero_section():
+    if HeroSection.objects.exists():
+        print("[INFO] Hero sections already seeded.")
+        return
     hero_sections = [
         {
             "title": "Protect your images & videos automatically.",
@@ -82,58 +91,39 @@ def seed_hero_section():
     for hero_section in hero_sections:
         HeroSection.objects.create(**hero_section)
 
-    print("✅ Hero sections seeded successfully.")
+    print("[SUCCESS] Hero sections seeded successfully.")
+
     
 def seed_hero_radar_icon():
+    if HeroRadarIcon.objects.exists():
+        print("[INFO] Hero radar icons already seeded.")
+        return
     hero_radar_icons = [
-       {
-           'icon': 'cms/Radar/1.png',
-       },
-       {
-           'icon': 'cms/Radar/2.png',
-       },
-       {
-           'icon': 'cms/Radar/3.png',
-       },
-       {
-              'icon': 'cms/Radar/4.png',
-       },
-        {
-                'icon': 'cms/Radar/5.png',
-        },
-        {
-                'icon': 'cms/Radar/6.png',
-        },
-        {
-                'icon': 'cms/Radar/7.png',
-        },
-        {
-                'icon': 'cms/Radar/8.png',
-        },
-         
-        {
-                'icon': 'cms/Radar/9.png',
-        },
-        {
-                'icon': 'cms/Radar/10.png',
-        },
-        {
-                'icon': 'cms/Radar/11.png',
-        },
-        {
-                'icon': 'cms/Radar/6.png',
-        },
-          
+       {'icon': 'cms/Radar/1.png'},
+       {'icon': 'cms/Radar/2.png'},
+       {'icon': 'cms/Radar/3.png'},
+       {'icon': 'cms/Radar/4.png'},
+       {'icon': 'cms/Radar/5.png'},
+       {'icon': 'cms/Radar/6.png'},
+       {'icon': 'cms/Radar/7.png'},
+       {'icon': 'cms/Radar/8.png'},
+       {'icon': 'cms/Radar/9.png'},
+       {'icon': 'cms/Radar/10.png'},
+       {'icon': 'cms/Radar/11.png'},
+       {'icon': 'cms/Radar/6.png'},
     ]
 
     for hero_radar_icon in hero_radar_icons:
         HeroRadarIcon.objects.create(**hero_radar_icon)
 
-    print("✅ Hero radar icons seeded successfully.")
+    print("[SUCCESS] Hero radar icons seeded successfully.")
     
     
 def seed_represent_platform():
     from apps.cms.models import RepresentPlatform
+    if RepresentPlatform.objects.exists():
+        print("[INFO] Represent platforms already seeded.")
+        return
 
     platforms = [
         {
@@ -166,10 +156,13 @@ def seed_represent_platform():
     for platform in platforms:
         RepresentPlatform.objects.create(**platform)
 
-    print("✅ Represent platforms seeded successfully.")
+    print("[SUCCESS] Represent platforms seeded successfully.")
 
 
 def seed_among_our_customers():
+    if AmongOurCustomer.objects.exists():
+        print("[INFO] Among our customers already seeded.")
+        return
 
     customers = [
         {
@@ -219,10 +212,13 @@ def seed_among_our_customers():
     for customer in customers:
         AmongOurCustomer.objects.create(**customer)
 
-    print("✅ Among our customers seeded successfully.")
+    print("[SUCCESS] Among our customers seeded successfully.")
     
     
 def seed_testimonials():
+    if Testimonial.objects.exists():
+        print("[INFO] Testimonials already seeded.")
+        return
     
     testimonials = [
         {
@@ -302,10 +298,14 @@ def seed_testimonials():
     for testimonial in testimonials:
         Testimonial.objects.create(**testimonial)
 
-    print("✅ Testimonials seeded successfully.")
+    print("[SUCCESS] Testimonials seeded successfully.")
 
 
 def seed_how_it_works():
+    if HowItWorks.objects.exists():
+        print("[INFO] How it works already seeded.")
+        return
+
     how_it_works = [
         {
             "question": "Create & Optimize a free account",
@@ -327,26 +327,51 @@ def seed_how_it_works():
             "answer": "Stay updated on your leak protection efforts with real-time tracking. Our automatic scans continuously monitor the web for new leaks, and you can track removal success, statistics, and overall progress from your dashboard.",
             "status": True
         },
-      
     ]
 
     for how_it_work in how_it_works:
         HowItWorks.objects.create(**how_it_work)
 
-    print("✅ How it works seeded successfully.")
+    print("[SUCCESS] How it works seeded successfully.")
 
 
 def seed_identity_tracking():
+    if IdentityTracking.objects.exists():
+        print("[INFO] Identity tracking already seeded.")
+        return
+
     identity_tracking = [
         {
             "title": "Searching through all of your stage names is how I found you.",
             "short_description": "To ensure full coverage, our AI searches for unauthorized content using all of your stage names.",
             "image": "cms/identity_tracking/1.png",
         },
-       
     ]
 
     for identity_tracking in identity_tracking:
         IdentityTracking.objects.create(**identity_tracking)
 
-    print("✅ Identity tracking seeded successfully.")
+    print("[SUCCESS] Identity tracking seeded successfully.")
+
+
+def seed_our_metrics():
+    from apps.cms.models import OurMetrics
+    if not OurMetrics.objects.exists():
+        OurMetrics.objects.create(
+            section_title="Our Metrics",
+            header_title="Numbers Matters",
+            web_search="+55M",
+            web_search_label="Web search",
+            content_creators="+1M",
+            content_creators_label="Content Creators",
+            leaks_found="+55M",
+            leaks_found_label="Leaks found",
+            recovered="+55M",
+            recovered_label="Recovered",
+            success_score="+100%",
+            success_score_label="Success Score",
+            status=True
+        )
+        print("[SUCCESS] Our Metrics seeded successfully.")
+    else:
+        print("[INFO] Our Metrics already exists.")

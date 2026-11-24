@@ -3,19 +3,161 @@ from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 
 
+from functools import lru_cache
+
+
+@lru_cache(maxsize=1)
 def get_about_system():
     from apps.system_setting.models import AboutSystem
 
     return AboutSystem.objects.first()
 
 
+from django.utils.safestring import mark_safe
+
+
+def get_system_color():
+    try:
+        from apps.system_setting.models import SystemColor
+        color = SystemColor.objects.filter(is_active=True).first()
+        if color and color.code:
+            return color.code.strip()
+    except Exception:
+        pass
+    return "#FFA500"  # Default fallback system color (orange/yellow)
+
+
+def hex_to_rgb(hex_code):
+    hex_code = hex_code.lstrip('#')
+    if len(hex_code) == 3:
+        hex_code = ''.join([c*2 for c in hex_code])
+    try:
+        return tuple(int(hex_code[i:i+2], 16) for i in (0, 2, 4))
+    except Exception:
+        return (255, 165, 0)
+
+
+def get_custom_unfold_css(request=None):
+    color_hex = get_system_color()
+    r, g, b = hex_to_rgb(color_hex)
+    rgb_str = f"{r} {g} {b}"
+    return mark_safe(f"""
+        <style>
+            :root, html, html.dark, body, .dark {{
+                --system-color: {color_hex};
+                --color-primary-50: {rgb_str};
+                --color-primary-100: {rgb_str};
+                --color-primary-200: {rgb_str};
+                --color-primary-300: {rgb_str};
+                --color-primary-400: {rgb_str};
+                --color-primary-500: {rgb_str};
+                --color-primary-600: {rgb_str};
+                --color-primary-700: {rgb_str};
+                --color-primary-800: {rgb_str};
+                --color-primary-900: {rgb_str};
+                --color-primary-950: {rgb_str};
+            }}
+
+            /* Primary buttons & active tabs in custom admin pages */
+            .scan-btn-primary,
+            .tab-btn-active {{
+                background-color: {color_hex} !important;
+                color: #ffffff !important;
+            }}
+
+            .scan-btn-primary:hover {{
+                background-color: {color_hex} !important;
+                filter: brightness(0.9) !important;
+                opacity: 0.95 !important;
+                color: #ffffff !important;
+            }}
+
+            /* Unfold Left Sidebar Navigation (#nav-sidebar-inner) - Light & Dark Mode Overrides */
+            #nav-sidebar-inner a[class*="text-primary"],
+            #nav-sidebar-inner a[class*="hover:text-primary"],
+            #nav-sidebar-inner a.text-primary-600,
+            #nav-sidebar-inner a.text-primary-500,
+            .dark #nav-sidebar-inner a[class*="text-primary"],
+            .dark #nav-sidebar-inner a[class*="hover:text-primary"],
+            .dark #nav-sidebar-inner a[class*="dark:text-primary"],
+            .dark #nav-sidebar-inner a[class*="dark:hover:text-primary"] {{
+                color: {color_hex} !important;
+            }}
+
+            /* Active link in sidebar (e.g. Dashboard, Admin Users, etc.) */
+            #nav-sidebar-inner a.bg-base-100,
+            #nav-sidebar-inner a[class*="font-semibold"],
+            .dark #nav-sidebar-inner a.bg-base-100,
+            .dark #nav-sidebar-inner a[class*="dark:bg-white"] {{
+                color: {color_hex} !important;
+            }}
+
+            #nav-sidebar-inner a.bg-base-100 *,
+            #nav-sidebar-inner a[class*="font-semibold"] *,
+            .dark #nav-sidebar-inner a.bg-base-100 *,
+            .dark #nav-sidebar-inner a[class*="dark:bg-white"] * {{
+                color: {color_hex} !important;
+            }}
+
+            /* Sidebar link hover state */
+            #nav-sidebar-inner a:hover,
+            #nav-sidebar-inner a:hover *,
+            .dark #nav-sidebar-inner a:hover,
+            .dark #nav-sidebar-inner a:hover * {{
+                color: {color_hex} !important;
+            }}
+
+            /* Collapsible sidebar group headers (e.g. User Management, Scan Management) */
+            #nav-sidebar-inner h2:hover,
+            #nav-sidebar-inner h2:hover *,
+            #nav-sidebar-inner h2.group:hover *,
+            #nav-sidebar-inner h2 [class*="group-hover:text-primary"],
+            .dark #nav-sidebar-inner h2:hover,
+            .dark #nav-sidebar-inner h2:hover *,
+            .dark #nav-sidebar-inner h2 [class*="group-hover:text-primary"] {{
+                color: {color_hex} !important;
+            }}
+
+            /* Header bar buttons & menu icons */
+            header button[class*="text-primary"],
+            header a[class*="text-primary"],
+            header .material-symbols-outlined {{
+                color: {color_hex} !important;
+            }}
+        </style>
+    """)
+
+
+def get_primary_colors_dict(request=None):
+    color = get_system_color()
+    return {
+        "50": color,
+        "100": color,
+        "200": color,
+        "300": color,
+        "400": color,
+        "500": color,
+        "600": color,
+        "700": color,
+        "800": color,
+        "900": color,
+        "950": color,
+    }
+
+
 def get_unfold_settings():
     return {
+        "COLORS": {
+            "primary": lambda request=None: get_primary_colors_dict(request),
+        },
+        "STYLES": [
+            lambda request: get_custom_unfold_css(request),
+        ],
         "SITE_TITLE": lambda request: get_about_system().title,
         "SITE_HEADER": lambda request: get_about_system().title,
         "SITE_SUBHEADER": lambda request: get_about_system().title,
-        "SITE_URL": "/",
-        "SITE_ICON": {
+        "SITE_URL": "https://Vantafy.com",
+        "SITE_LOGO": {
             "light": lambda request: get_about_system().logo.url,  # light mode
             "dark": lambda request: get_about_system().logo.url,  # dark mode
         },
@@ -32,7 +174,7 @@ def get_unfold_settings():
         "SHOW_HISTORY": True,  # show/hide "History" button, default: True
         "SHOW_VIEW_ON_SITE": True,  # show/hide "View on site" button, default: True
         "SHOW_BACK_BUTTON": True,  # show/hide "Back" button on changeform in header, default: False
-        "THEME": "dark",
+        "THEME": "auto",
         "LOGIN": {
             "image": lambda request: static("sample/login-bg.jpg"),
             "redirect_after": lambda request: reverse_lazy(
@@ -88,10 +230,54 @@ def get_unfold_settings():
                     ],
                 },
                 {
+                    "title": _("Scan Management"),
+                    "separator": True,
+                    "collapsible": True,
+                    "collapsed": True,
+                    "items": [
+                        {
+                            "title": _("All Scans Overview"),
+                            "icon": "auto_awesome_motion",
+                            "link": reverse_lazy(
+                                "admin:scanner_customerscanprocessing_allscans"
+                            ),
+                        },
+                        {
+                            "title": _("Scan Results"),
+                            "icon": "check_circle",
+                            "link": reverse_lazy(
+                                "admin:scanner_customerscanusersummary_changelist"
+                            ),
+                        },
+                        {
+                            "title": _("Images"),
+                            "icon": "image",
+                            "link": reverse_lazy(
+                                "admin:scanner_customerscanresultimage_changelist"
+                            ),
+                        },
+                        {
+                            "title": _("Links"),
+                            "icon": "link",
+                            "link": reverse_lazy(
+                                "admin:scanner_customerscanresultpageurl_changelist"
+                            ),
+                        },
+                    ],
+                },
+                {
                     "title": _("Individual User Scan Management"),
                     "separator": True,
                     "collapsible": True,
+                    "collapsed": True,
                     "items": [
+                        {
+                            "title": _("Start Scan by Name"),
+                            "icon": "search",
+                            "link": reverse_lazy(
+                                "admin:scanner_customerscanprocessing_scannow"
+                            ),
+                        },
                         {
                             "title": _("Scan Processes"),
                             "icon": "play_circle",
@@ -103,17 +289,30 @@ def get_unfold_settings():
                             "title": _("Scan Results"),
                             "icon": "check_circle",
                             "link": reverse_lazy(
-                                "admin:scanner_customerscanresult_changelist"
+                                "admin:scanner_customerscanusersummary_changelist"
                             ),
                         },
-                        
+                        {
+                            "title": _("Images"),
+                            "icon": "image",
+                            "link": reverse_lazy(
+                                "admin:scanner_customerscanresultimage_changelist"
+                            ),
+                        },
+                        {
+                            "title": _("Links"),
+                            "icon": "link",
+                            "link": reverse_lazy(
+                                "admin:scanner_customerscanresultpageurl_changelist"
+                            ),
+                        },
                     ],
                 },
-            
-                            {
+                {
                     "title": _("Agency Scan Management"),
                     "separator": True,
                     "collapsible": True,
+                    "collapsed": True,
                     "items": [
                         {
                             "title": _("Scan Processes"),
@@ -126,10 +325,23 @@ def get_unfold_settings():
                             "title": _("Scan Results"),
                             "icon": "check_circle",
                             "link": reverse_lazy(
-                                "admin:scanner_agencymemberscanresult_changelist"
+                                "admin:scanner_agencymemberscanusersummary_changelist"
                             ),
                         },
-                        
+                        {
+                            "title": _("Images"),
+                            "icon": "image",
+                            "link": reverse_lazy(
+                                "admin:scanner_agencymemberscanresultimage_changelist"
+                            ),
+                        },
+                        {
+                            "title": _("Links"),
+                            "icon": "link",
+                            "link": reverse_lazy(
+                                "admin:scanner_agencymemberscanresultpageurl_changelist"
+                            ),
+                        },
                     ],
                 },
                 {
@@ -254,6 +466,13 @@ def get_unfold_settings():
                             "icon": "pages",
                             "link": reverse_lazy("admin:cms_page_changelist"),
                         },
+                        {
+                            "title": _("Available Niches"),
+                            "icon": "category",
+                            "link": reverse_lazy(
+                                "admin:user_availableniche_changelist"
+                            ),
+                        },
                     ],
                 },
                 {
@@ -272,7 +491,7 @@ def get_unfold_settings():
                             "link": reverse_lazy("admin:cms_heroradaricon_changelist"),
                         },
                         {
-                            "title": _("Represent Platforms"),
+                            "title": _("Represented Platforms"),
                             "icon": "apps",
                             "link": reverse_lazy(
                                 "admin:cms_representplatform_changelist"
@@ -296,10 +515,17 @@ def get_unfold_settings():
                             "link": reverse_lazy("admin:cms_howitworks_changelist"),
                         },
                         {
-                            "title": _("Identity Tracking"),
+                            "title": _("Peace of Mind"),
                             "icon": "fingerprint",
                             "link": reverse_lazy(
                                 "admin:cms_identitytracking_changelist"
+                            ),
+                        },
+                        {
+                            "title": _("Our Metrics"),
+                            "icon": "analytics",
+                            "link": reverse_lazy(
+                                "admin:cms_ourmetrics_changelist"
                             ),
                         },
                     ],

@@ -1,8 +1,10 @@
-from asyncio.log import logger
+import logging
 from datetime import timedelta
 import os
 from rest_framework.views import APIView
 import stripe
+
+logger = logging.getLogger(__name__)
 
 from apps.user.authentication import CookieJWTAuthentication
 from apps.user.models import User
@@ -18,6 +20,7 @@ from django.utils.timezone import now
 from rest_framework.permissions import IsAuthenticated
 from django.conf import settings
 
+# GET SUBSCRIPTION PACKAGES
 class SubscriptionPackageAPIView(APIView):
 
     permission_classes = []
@@ -45,13 +48,13 @@ class SubscriptionPackageAPIView(APIView):
         except Exception as e:
             return error(message="Failed to fetch package list", errors=str(e))
         
-
-
+# STRIPE CHECKOUT
 class StripeCheckoutAPIView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]
 
     def post(self, request):
+        stripe.api_key = settings.STRIPE_SECRET_KEY
         price_id = request.data.get('price_id')
         success_url = request.data.get('success_url')
         cancel_url = request.data.get('cancel_url')
@@ -65,29 +68,56 @@ class StripeCheckoutAPIView(APIView):
             return error(message="Missing required parameters", errors="price_id, success_url, and cancel_url are required")
 
         try:
-
-            checkout_session = stripe.checkout.Session.create(
-                payment_method_types=['card'],
-                customer_email=request.user.email if request.user.is_authenticated else None,
-                
-                line_items=[{
+            user = request.user
+            checkout_params = {
+                'payment_method_types': ['card'],
+                'customer_email': user.email if user.is_authenticated else None,
+                'line_items': [{
                     'price': price_id,
                     'quantity': 1,
                 }],
-                mode='subscription',
-                success_url=success_url,
-                cancel_url=cancel_url,
-            )
+                'mode': 'subscription',
+                'success_url': success_url,
+                'cancel_url': cancel_url,
+            }
+            
+            # Apply 15% referral discount coupon if user is referred and hasn't used discount yet
+            if user.is_authenticated and user.referred_by and not user.has_used_referral_discount:
+                referral_coupon_id = getattr(settings, 'STRIPE_REFERRAL_COUPON_ID', 'REFERRAL15')
+                if referral_coupon_id:
+                    # Check if coupon exists in active Stripe account, create if missing
+                    try:
+                        stripe.Coupon.retrieve(referral_coupon_id)
+                    except stripe.error.InvalidRequestError:
+                        try:
+                            stripe.Coupon.create(
+                                id=referral_coupon_id,
+                                percent_off=15,
+                                duration='once',
+                                name='Referral Discount (15%)'
+                            )
+                        except stripe.error.StripeError as e:
+                            logger.warning("Could not auto-create Stripe referral coupon '%s': %s", referral_coupon_id, e)
+                            referral_coupon_id = None
+                    except stripe.error.StripeError as e:
+                        logger.warning("Stripe error retrieving referral coupon '%s': %s", referral_coupon_id, e)
+                        referral_coupon_id = None
+
+                    if referral_coupon_id:
+                        checkout_params['discounts'] = [{'coupon': referral_coupon_id}]
+
+            checkout_session = stripe.checkout.Session.create(**checkout_params)
 
             return success(checkout_session.url, message="Stripe checkout initiated successfully")
         except Exception as e:
             return error(message="Failed to initiate Stripe checkout", errors=str(e))
 
-
+# STRIPE WEBHOOK
 class StripeWebhookAPIView(APIView):
     permission_classes = [] 
 
     def post(self, request):
+        stripe.api_key = settings.STRIPE_SECRET_KEY
         payload = request.body
         sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
         endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
@@ -146,6 +176,7 @@ class StripeWebhookAPIView(APIView):
                         status='active',
                         start_date=now(),
                         end_date=now() + timedelta(days=duration_days),
+                        submitted_links=0,
                     )
                 else:   
                     subscription = Subscription.objects.get(user=user)
@@ -154,6 +185,7 @@ class StripeWebhookAPIView(APIView):
                     subscription.status = 'active'
                     subscription.start_date = now()
                     subscription.end_date = now() + timedelta(days=duration_days)
+                    subscription.submitted_links = 0
                     subscription.save()
 
 
@@ -165,9 +197,14 @@ class StripeWebhookAPIView(APIView):
                 income_report.total_income += package.price
                 income_report.save()
 
-                referral_code = user.referral_code
-                if referral_code:
-                    referrer = User.objects.filter(referral_code=referral_code).first()
+                # Mark referred user's discount as used if they had a referral discount applied
+                if user.referred_by and not user.has_used_referral_discount:
+                    user.has_used_referral_discount = True
+                    user.save()
+
+                # Update referrer's earning info
+                referrer = user.referred_by
+                if referrer:
                     if referrer.is_verified_for_earning:
                         referrer.total_earning_amount += package.referral_bonus_percentage
                         referrer.save()
@@ -191,7 +228,7 @@ class StripeWebhookAPIView(APIView):
 
         return HttpResponse(status=200)  # Always return a response
 
-
+# GET USER ACCESS STATUS
 class AccessStatusAPIView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]
@@ -222,7 +259,7 @@ class AccessStatusAPIView(APIView):
             message="No active subscription",
         )
 
-
+# GET CURRENT SUBSCRIPTION PLAN
 class CurrentSubscriptionPlanAPIView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]

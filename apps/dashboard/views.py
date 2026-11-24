@@ -3,12 +3,18 @@ from django.db.models import Sum
 from apps.system_setting.models import SystemColor
 from apps.user.models import User
 from apps.subscriptions.models import Subscription, PaymentHistory
-from apps.scanner.models import CustomerScanProcessing, AgencyMemberScanProcessing
+from apps.scanner.models import (
+    CustomerScanProcessing, 
+    AgencyMemberScanProcessing,
+    CustomerScanResultPageUrl,
+    AgencyMemberScanResultPageUrl,
+    CustomerScanResultImage,
+    AgencyMemberScanResultImage,
+)
 from django.utils import timezone
 from datetime import datetime
 
 # Create your views here.
-
 def dashboard_callback(request, context):
     now = timezone.now()
 
@@ -39,6 +45,10 @@ def dashboard_callback(request, context):
     
     # Scanner Data 
     # Combining Customer and Agency Member scans for a total overview
+    customer_scans_count = CustomerScanProcessing.objects.count()
+    agency_scans_count = AgencyMemberScanProcessing.objects.count()
+    total_scans = customer_scans_count + agency_scans_count
+
     customer_scans_running = CustomerScanProcessing.objects.filter(status='running').count()
     agency_scans_running = AgencyMemberScanProcessing.objects.filter(status='running').count()
     total_active_scans = customer_scans_running + agency_scans_running
@@ -46,6 +56,20 @@ def dashboard_callback(request, context):
     customer_scans_completed = CustomerScanProcessing.objects.filter(status='completed').count()
     agency_scans_completed = AgencyMemberScanProcessing.objects.filter(status='completed').count()
     total_completed_scans = customer_scans_completed + agency_scans_completed
+
+    # Links & Images Stats
+    total_customer_links = CustomerScanResultPageUrl.objects.count()
+    total_agency_links = AgencyMemberScanResultPageUrl.objects.count()
+    total_links = total_customer_links + total_agency_links
+
+    total_submitted_links = (
+        CustomerScanResultPageUrl.objects.filter(send_mail_status='submitted').count() +
+        AgencyMemberScanResultPageUrl.objects.filter(send_mail_status='submitted').count()
+    )
+
+    total_customer_images = CustomerScanResultImage.objects.count()
+    total_agency_images = AgencyMemberScanResultImage.objects.count()
+    total_images = total_customer_images + total_agency_images
 
     system_color_obj = SystemColor.objects.filter(is_active=True).first()
     system_color = system_color_obj.code if system_color_obj else "#4f46e5" # Default indigo if not set
@@ -60,8 +84,12 @@ def dashboard_callback(request, context):
             "current_month_signups": current_month_signups,
             "admins": User.objects.filter(is_staff=True).count(),
             "super_admins": User.objects.filter(is_superuser=True).count(),
+            "total_scans": total_scans,
             "total_active_scans": total_active_scans,
             "total_completed_scans": total_completed_scans,
+            "total_links": total_links,
+            "total_submitted_links": total_submitted_links,
+            "total_images": total_images,
             "data": [
                 User.objects.filter(
                     created_at__year=datetime.now().year,

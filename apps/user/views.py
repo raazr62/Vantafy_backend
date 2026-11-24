@@ -10,7 +10,7 @@ from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from apps.user.models import Niche
 from .authentication import CookieJWTAuthentication
-from .models import AgencyMemberList, AgencyMemberNiches, AgencyMemberSocialAccounts, AgencyMemberStageNames, Niche, StageName, User
+from .models import AgencyMemberList, AgencyMemberNiches, AgencyMemberSocialAccounts, AgencyMemberStageNames, Niche, StageName, User, AvailableNiche
 from .models import ConnectedSocialAccount
 from apps.subscriptions.models import Subscription
 from .utils import clear_auth_cookies
@@ -104,35 +104,32 @@ class SignInView(APIView):
 
 
 class SignOutView(APIView):
-  
-    
-    permission_classes = [IsAuthenticated]
+    permission_classes = []
     authentication_classes = [CookieJWTAuthentication]
 
     def post(self, request):
         # Get tokens from request body or cookies
-        data = request.data.copy()
+        data = request.data.copy() if request.data else {}
         if 'refresh_token' not in data and 'refresh_token' in request.COOKIES:
             data['refresh_token'] = request.COOKIES['refresh_token']
         if 'access_token' not in data and 'access_token' in request.COOKIES:
             data['access_token'] = request.COOKIES['access_token']
         
-        print("COOKIES:", request.COOKIES)
+        if data.get('refresh_token'):
+            try:
+                serializer = SignOutSerializer(data=data)
+                if serializer.is_valid():
+                    serializer.save()
+            except Exception:
+                pass
+            
+        # Create response
+        response = success(data=[], message="Logout successful.", status_code=status.HTTP_200_OK)
         
-        serializer = SignOutSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            
-            # Create response
-            response = success(data=[], message="Logout successful.", status_code=status.HTTP_200_OK)
-            
-            # Clear cookies for web clients
-            is_web = getattr(request, 'is_web_client', True)
-            if is_web or 'access_token' in request.COOKIES:
-                clear_auth_cookies(response)
-            
-            return response
-        return error(message="Logout failed.", status_code=status.HTTP_400_BAD_REQUEST, errors=serializer.errors)
+        # Clear cookies for web clients
+        clear_auth_cookies(response)
+        
+        return response
 
 
 class ChangePasswordView(APIView):
@@ -240,35 +237,48 @@ class CookieTokenRefreshView(TokenRefreshView):
 
 class CookieTokenVerifyView(TokenVerifyView):
 
-    
     def post(self, request, *args, **kwargs):
-
-        data = request.data.copy()
+        data = request.data.copy() if request.data else {}
         
-        # Get token from request or cookie
-        token = data.get('token') or request.COOKIES.get('access_token')
+        # Get token from request body, Authorization header, or cookies
+        token = data.get('token')
+        jwt_auth = CookieJWTAuthentication()
+        
+        if not token:
+            header = jwt_auth.get_header(request)
+            if header is not None:
+                raw_token = jwt_auth.get_raw_token(header)
+                if raw_token is not None:
+                    token = raw_token.decode('utf-8') if isinstance(raw_token, bytes) else str(raw_token)
+                    token = token.strip('\'"')
+                    if token in ('null', 'undefined', '', 'None'):
+                        token = None
+
+        if not token:
+            token = request.COOKIES.get('access_token')
+            if token:
+                token = token.strip('\'"')
+                if token in ('null', 'undefined', '', 'None'):
+                    token = None
+
         if not token:
             return error(message="No token provided.", errors={}, status_code=status.HTTP_401_UNAUTHORIZED)
         
-        data['token'] = token
-        
-        # Validate token
-        serializer = self.get_serializer(data=data)
         try:
-            serializer.is_valid(raise_exception=True)
-        except TokenError as e:
-            raise InvalidToken(e.args[0])
-        
-        # Get user from token
-        jwt_auth = JWTAuthentication()
-        validated_token = jwt_auth.get_validated_token(token)
-        user = jwt_auth.get_user(validated_token)
+            validated_token = jwt_auth.get_validated_token(token)
+            user = jwt_auth.get_user(validated_token)
+            if not user:
+                return error(message="User not found for token.", errors={}, status_code=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            return error(message="Token verification failed.", errors=str(e), status_code=status.HTTP_401_UNAUTHORIZED)
 
-        has_subscription = Subscription.objects.filter(user=user,status='active',).exists()        
+        has_subscription = Subscription.objects.filter(user=user, status='active').exists()        
     
         user_info = {
             'id': user.id,
             'email': user.email,
+            'full_name': user.full_name,
+            'avatar': user.avatar.url if user.avatar else None,
             'role': getattr(user, 'role', None),
             'has_subscription': has_subscription,
             'is_google_login': user.is_google_login,
@@ -278,24 +288,25 @@ class CookieTokenVerifyView(TokenVerifyView):
         return success(data=user_info, message="Token is valid.", status_code=status.HTTP_200_OK)
 
 
-
-
-
-
 class UpdataProfileAvatarView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]
 
     def post(self, request):
         user = request.user
-        cookies = request.COOKIES
-        print("COOKIES IN AVATAR UPDATE VIEW:", cookies)
-        
         serializer = UpdataProfileAvatarSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return success(data=serializer.data, message="Profile avatar update successfully.", status_code=status.HTTP_200_OK)
+            avatar_url = user.avatar.url if user.avatar else None
+            return success(data={'avatar': avatar_url}, message="Profile avatar updated successfully.", status_code=status.HTTP_200_OK)
         return error(message="Profile avatar update failed.", status_code=status.HTTP_400_BAD_REQUEST, errors=serializer.errors)
+
+
+
+
+
+
+
 
 
 class ProfileUpdateAPIView(APIView):
@@ -328,6 +339,7 @@ class MyProfileView(APIView):
             'time_zone': user.time_zone,
             'avatar': user.avatar.url if user.avatar else None,
             'role': user.role,
+            'is_automated_mail': user.is_automated_mail,
             'has_subscription': has_subscription,
         }
         
@@ -490,20 +502,17 @@ class DeleteStageNameView(APIView):
 class GetNichesView(APIView):
     permission_classes = []
 
-
     def get(self, request):
-        niches = Niche.objects.values_list('name', flat=True).distinct()
-
+        niches = AvailableNiche.objects.filter(is_active=True).values_list('name', flat=True)
 
         if not niches.exists():
             return error(message="No niches found.", errors=None, code=200)
 
-
         return success(
-        data=list(niches),
-        message="Customer niches fetched successfully.",
-        status_code=status.HTTP_200_OK
-    )
+            data=list(niches),
+            message="Available niches fetched successfully.",
+            status_code=status.HTTP_200_OK
+        )
 
         
         
@@ -1094,6 +1103,7 @@ class AffiliateProgramView(APIView):
                     "id": person.id,
                     "email": person.email,
                     "full_name": person.full_name,
+                    "joined_date": person.created_at, 
                 })
                 
                 
@@ -1117,3 +1127,107 @@ class AffiliateProgramView(APIView):
             message="Affiliate program data fetched successfully.",
             status_code=status.HTTP_200_OK
         )
+
+
+class DeleteAllUserImagesView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+
+    def delete(self, request):
+        user = request.user
+        deleted_count = 0
+
+        # Note: Exclude profile avatar (user.avatar remains untouched)
+
+        # 1. Customer scan result images & videos
+        try:
+            from apps.scanner.models import (
+                CustomerScanResult, CustomerScanResultImage, CustomerScanResultVideo,
+                AgencyMemberScanResult, AgencyMemberScanResultImage, AgencyMemberScanResultVideo
+            )
+            scan_results = CustomerScanResult.objects.filter(customer=user)
+            scan_images = CustomerScanResultImage.objects.filter(customer_scan_result__in=scan_results)
+            for img_obj in scan_images:
+                if img_obj.image:
+                    try:
+                        img_obj.image.delete(save=False)
+                    except Exception as e:
+                        logger.error(f"Error deleting customer scan image {img_obj.id}: {e}")
+                img_obj.delete()
+                deleted_count += 1
+
+            scan_videos = CustomerScanResultVideo.objects.filter(customer_scan_result__in=scan_results)
+            for vid_obj in scan_videos:
+                if vid_obj.video:
+                    try:
+                        vid_obj.video.delete(save=False)
+                    except Exception as e:
+                        logger.error(f"Error deleting customer scan video {vid_obj.id}: {e}")
+                vid_obj.delete()
+                deleted_count += 1
+
+            if user.role == User.Roles.AGENCY:
+                agency_scans = AgencyMemberScanResult.objects.filter(agency_member__agency=user)
+                agency_scan_images = AgencyMemberScanResultImage.objects.filter(agency_member_scan_result__in=agency_scans)
+                for img_obj in agency_scan_images:
+                    if img_obj.image:
+                        try:
+                            img_obj.image.delete(save=False)
+                        except Exception as e:
+                            logger.error(f"Error deleting agency scan image {img_obj.id}: {e}")
+                    img_obj.delete()
+                    deleted_count += 1
+
+                agency_scan_videos = AgencyMemberScanResultVideo.objects.filter(agency_member_scan_result__in=agency_scans)
+                for vid_obj in agency_scan_videos:
+                    if vid_obj.video:
+                        try:
+                            vid_obj.video.delete(save=False)
+                        except Exception as e:
+                            logger.error(f"Error deleting agency scan video {vid_obj.id}: {e}")
+                    vid_obj.delete()
+                    deleted_count += 1
+        except Exception as e:
+            logger.error(f"Error deleting scan result media for user {user.id}: {e}")
+
+        # 4. Support message images/files
+        try:
+            from apps.customer_support.models import Message as SupportMessage
+            support_msgs = SupportMessage.objects.filter(sender=user)
+            for msg in support_msgs:
+                updated = False
+                if msg.image:
+                    try:
+                        msg.image.delete(save=False)
+                    except Exception:
+                        pass
+                    msg.image = None
+                    updated = True
+                if msg.file:
+                    try:
+                        msg.file.delete(save=False)
+                    except Exception:
+                        pass
+                    msg.file = None
+                    updated = True
+                if msg.document:
+                    try:
+                        msg.document.delete(save=False)
+                    except Exception:
+                        pass
+                    msg.document = None
+                    updated = True
+                if updated:
+                    msg.save(update_fields=['image', 'file', 'document'])
+                    deleted_count += 1
+        except Exception:
+            pass
+
+        return success(
+            data={"deleted_count": deleted_count},
+            message="All images deleted from server and S3 storage successfully.",
+            status_code=status.HTTP_200_OK
+        )
+    
+
+    

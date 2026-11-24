@@ -26,11 +26,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_superuser = models.BooleanField(default=False)
     term_and_condition_accepted = models.BooleanField()
     is_verified_for_earning = models.BooleanField(default=False)
+    is_automated_mail = models.BooleanField(default=True, null=True, blank=True)
 
     # reference fields
     referral_code = models.CharField(max_length=10,  null=True, blank=True)
     referred_by = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='referrals')
     referral_count = models.IntegerField(default=0)
+    has_used_referral_discount = models.BooleanField(default=False)  # Track if referred user has used their 15% discount on first purchase
 
     # earning fields
     total_earning_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
@@ -47,6 +49,21 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+
+class AvailableNiche(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    is_active = models.BooleanField(default=True, help_text="Show or hide this niche in selection lists")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = "Available Niche"
+        verbose_name_plural = "Available Niches"
+
+    def __str__(self):
+        return self.name
+
 
 class Niche(models.Model):
     customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='niches')

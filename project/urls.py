@@ -22,7 +22,7 @@ from django.views.static import serve
 
 
 urlpatterns = [
-    re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+    # re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
     path('api/', include('apps.user.urls')),
     path('api/', include('apps.system_setting.urls')),
     path('api/', include('apps.social_auth.urls')),
@@ -31,12 +31,14 @@ urlpatterns = [
     path('api/', include('apps.subscriptions.urls')),
     path('api/', include('apps.chat.urls')),
     path('api/', include('apps.customer_support.urls')),
+    path('ckeditor5/', include('django_ckeditor_5.urls')),
 ]
 
 if settings.DEBUG:
     import debug_toolbar
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    if getattr(settings, "MEDIA_ROOT", None) and getattr(settings, "MEDIA_URL", "").startswith("/"):
+        urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += [path("__debug__/", include(debug_toolbar.urls))]
 
 

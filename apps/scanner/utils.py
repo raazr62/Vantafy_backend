@@ -4,13 +4,41 @@ import requests
 import uuid
 import logging
 from botocore.exceptions import ClientError
-from django.conf import settings
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage, get_connection
 from io import BytesIO
 
 logger = logging.getLogger(__name__)
 
 
+def _get_smtp_connection():
+    """
+    Create an SMTP email connection using the active SMTPSetting from the database.
+    Returns: (connection, from_email) or (None, None) if no active setting found.
+    """
+    from apps.system_setting.models import SMTPSetting
+
+    smtp_setting = SMTPSetting.objects.filter(is_active=True).first()
+    if not smtp_setting:
+        logger.error("No active SMTP setting found in the database.")
+        return None, None
+
+    connection = get_connection(
+        backend='django.core.mail.backends.smtp.EmailBackend',
+        host=smtp_setting.host,
+        port=smtp_setting.port,
+        username=smtp_setting.username,
+        password=smtp_setting.password,
+        use_tls=smtp_setting.encryption == 'tls',
+        use_ssl=smtp_setting.encryption == 'ssl',
+    )
+
+    # Format sender as "Name <email>" if sender_name is provided
+    if smtp_setting.sender_name:
+        from_email = f"{smtp_setting.sender_name} <{smtp_setting.sender_email}>"
+    else:
+        from_email = smtp_setting.sender_email
+
+    return connection, from_email
 
 
 def download_file(url):
@@ -29,19 +57,55 @@ def download_file(url):
     
     return None, None
 
+from urllib.parse import urlparse
+
+
+def extract_domain_from_url(url):
+    """
+    Extract the clean domain/website name from a given URL.
+    Examples:
+        - 'https://www.camvideos.org/contents/...' -> 'camvideos.org'
+        - 'http://camvideos.org/page' -> 'camvideos.org'
+    """
+    if not url:
+        return ''
+    try:
+        netloc = urlparse(url).netloc
+        if not netloc:
+            # Fallback if scheme was omitted e.g. 'camvideos.org/path'
+            netloc = url.split('/')[0]
+        # Remove port if present
+        netloc = netloc.split(':')[0].lower()
+        # Strip common subdomains like 'www.'
+        if netloc.startswith('www.'):
+            netloc = netloc[4:]
+        return netloc
+    except Exception as e:
+        logger.error(f"Error parsing domain from URL '{url}': {e}")
+        return ''
+
+
 def send_dmca_notice(contact_emails, collected_data, creator_name):
     """
     Send DMCA takedown notice to specific emails.
+    Uses SMTP credentials from the active SMTPSetting in the database.
     collected_data: {'images': [], 'videos': [], 'page_urls': []}
     """
     if not contact_emails:
         return False, "No contact emails provided"
-        
+
+    connection, from_email = _get_smtp_connection()
+    if not connection:
+        return False, "No active SMTP setting configured. Please activate one in System Settings."
+
     subject = f"DMCA Takedown Notice - Unauthorized Content of {creator_name}"
     
     # Construct Email Body
     site_links = "\n".join(collected_data.get('page_urls', []))
-    image_links = "\n".join([img.get('original') for img in collected_data.get('images', [])])
+    image_links = "\n".join([
+        img.get('original') if isinstance(img, dict) else str(img) 
+        for img in collected_data.get('images', [])
+    ])
     video_links = "\n".join(collected_data.get('videos', []))
     
     body = f"""
@@ -64,14 +128,16 @@ For: {creator_name}
     """
     
     try:
-        send_mail(
-            subject,
-            body,
-            settings.DEFAULT_FROM_EMAIL,
-            contact_emails,
-            fail_silently=False,
+        email = EmailMessage(
+            subject=subject,
+            body=body,
+            from_email=from_email,
+            to=contact_emails,
+            connection=connection,
         )
+        email.send(fail_silently=False)
         return True, "Email sent successfully"
     except Exception as e:
         logger.error(f"Email Error: {e}")
         return False, str(e)
+

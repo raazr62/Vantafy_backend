@@ -4,12 +4,13 @@ from django.urls import path
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Q
 from unfold.admin import ModelAdmin,TabularInline
+from django.contrib.auth.hashers import identify_hasher
 
-from .models import User, Niche, StageName, ConnectedSocialAccount, OTP, AgencyMemberList, AgencyMemberNiches, AgencyMemberStageNames, AgencyMemberSocialAccounts
+from .models import User, Niche, StageName, AvailableNiche, ConnectedSocialAccount, OTP, AgencyMemberList, AgencyMemberNiches, AgencyMemberStageNames, AgencyMemberSocialAccounts
 
 @admin.register(User)
 class UserAdmin(ModelAdmin):
-    list_display = ['email', 'full_name', 'role', 'is_active', 'created_at']
+    list_display = ['id', 'email', 'full_name', 'role', 'is_active', 'created_at']
     list_filter = ['role', 'is_active', 'country', 'is_verified_for_earning']
     search_fields = ['email', 'full_name', 'referral_code']
     readonly_fields = ['created_at', 'updated_at', 'referral_count']
@@ -108,6 +109,14 @@ class UserAdmin(ModelAdmin):
         # Auto-set is_staff for admin users
         if obj.is_superuser:
             obj.is_staff = True
+        
+        # Hash password if entered as plain text in the admin form
+        if obj.password:
+            try:
+                identify_hasher(obj.password)
+            except ValueError:
+                obj.set_password(obj.password)
+
         super().save_model(request, obj, form, change)
 
 # Inline Admin for User's Niche
@@ -124,6 +133,15 @@ class StageNameInline(TabularInline):
 class ConnectedSocialAccountInline(TabularInline):
     model = ConnectedSocialAccount
     extra = 1
+
+@admin.register(AvailableNiche)
+class AvailableNicheAdmin(ModelAdmin):
+    list_display = ['name', 'is_active', 'created_at', 'updated_at']
+    list_editable = ['is_active']
+    list_filter = ['is_active', 'created_at']
+    search_fields = ['name']
+    list_per_page = 50
+
 
 # Separate admin for customer details view
 @admin.register(Niche)

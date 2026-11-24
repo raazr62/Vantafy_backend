@@ -33,8 +33,7 @@ class SendMessageView(APIView):
         )
         return success(data={"message_id": message.id}, message="Message sent successfully")
 
-
-
+# GET ALL MESSAGES
 class GetMessagesView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]

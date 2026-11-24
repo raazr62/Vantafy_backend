@@ -6,6 +6,7 @@ from django.templatetags.static import static
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from decouple import config
+from project.integrations.ckeditor import CKEDITOR_5_CONFIGS
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -56,7 +57,7 @@ if DEBUG:
         'http://127.0.0.1:5173',
         'http://localhost:5173',
         'https://*.ngrok-free.app',
-        "https://vantafy.vercel.app",
+        "https://Vantafy.vercel.app",
         "http://172.16.200.94:8000",
         "http://172.16.200.94:9000",
         "http://54.227.112.126:8000",
@@ -64,10 +65,10 @@ if DEBUG:
         "https://c5895f67f55f.ngrok-free.app",
         "https://c5895f67f55f.ngrok-free.app",
         "https://mediamixer.softvencealpha.com",
-        "https://dashboard.vantafy.com",
-        "https://vantafy.com",
-        "https://www.vantafy.com",
-        "https://www.dashboard.vantafy.com",
+        "https://dashboard.Vantafy.com",
+        "https://Vantafy.com",
+        "https://www.Vantafy.com",
+        "https://www.dashboard.Vantafy.com",
         
     ]
 
@@ -95,7 +96,7 @@ else:
         'http://127.0.0.1:5173',
         'http://localhost:5173',
         'https://*.ngrok-free.app',
-        "https://vantafy.vercel.app",
+        "https://Vantafy.vercel.app",
         "http://172.16.200.94:8000",
         "http://172.16.200.94:9000",
         "http://54.227.112.126:8000",
@@ -103,10 +104,10 @@ else:
         "https://c5895f67f55f.ngrok-free.app",
         "https://c5895f67f55f.ngrok-free.app",
         "https://mediamixer.softvencealpha.com",
-        "https://dashboard.vantafy.com",
-        "https://vantafy.com",
-        "https://www.vantafy.com",
-        "https://www.dashboard.vantafy.com",
+        "https://dashboard.Vantafy.com",
+        "https://Vantafy.com",
+        "https://www.Vantafy.com",
+        "https://www.dashboard.Vantafy.com",
 
     ]
 
@@ -141,6 +142,7 @@ INSTALLED_APPS = [
     "debug_toolbar",
     "import_export",
     "corsheaders",
+    "django_ckeditor_5",
     # "channels",
 
     # internal apps
@@ -153,6 +155,8 @@ INSTALLED_APPS = [
     "apps.chat",
     "apps.customer_support",
 
+    "storages",
+    "django_cleanup.apps.CleanupConfig",
 ]
 
 MIDDLEWARE = [
@@ -169,6 +173,10 @@ MIDDLEWARE = [
     "querycount.middleware.QueryCountMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
+
+# Security adjustments for production/proxy
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 ROOT_URLCONF = "project.urls"
 
@@ -200,6 +208,25 @@ CHANNEL_LAYERS = {
     },
 }
 
+# ============================================
+# Redis Cache Configuration
+# ============================================
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"redis://{os.environ.get('REDIS_HOST', '127.0.0.1')}:{os.environ.get('REDIS_PORT', 6379)}/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "SOCKET_CONNECT_TIMEOUT": 5,
+            "SOCKET_TIMEOUT": 5,
+            "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
+            "IGNORE_EXCEPTIONS": True,  # Cache failures won't crash the app
+        },
+        "KEY_PREFIX": "cms",
+        "TIMEOUT": 3600,  # Default cache timeout: 1 hour
+    }
+}
+
 #master user
 
 AUTHENTICATION_BACKENDS = [
@@ -214,8 +241,9 @@ MASTER_USER_EMAIL = "rafi.cse.ahmed@gmail.com"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Database configuration based on DEBUG mode
-if DEBUG:
-    # Development: Use SQLite
+USE_SQLITE = config('USE_SQLITE', default=False, cast=bool)
+
+if USE_SQLITE:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -223,14 +251,13 @@ if DEBUG:
         }
     }
 else:
-    # Production: Use PostgreSQL with environment variables
     DATABASES = {
         "default": {
             "ENGINE": config('DATABASE_ENGINE', default='django.db.backends.postgresql'),
-            "NAME": config('DATABASE_NAME', default='django_db'),
-            "USER": config('DATABASE_USER', default='django_user'),
-            "PASSWORD": config('DATABASE_PASSWORD', default='django_password'),
-            "HOST": config('DATABASE_HOST', default='db'),
+            "NAME": config('DATABASE_NAME'),
+            "USER": config('DATABASE_USER'),
+            "PASSWORD": config('DATABASE_PASSWORD'),
+            "HOST": config('DATABASE_HOST'),
             "PORT": config('DATABASE_PORT', default='5432'),
         }
     }
@@ -262,7 +289,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "America/New_York"
 
 USE_I18N = True
 
@@ -280,8 +307,6 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
-MEDIA_URL = "/media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 
 # Default primary key field type
@@ -363,39 +388,33 @@ CSRF_COOKIE_HTTPONLY = True  # XSS protection
 # ============================================
 # Cookie SameSite and Secure Configuration
 # ============================================
-if CROSS_ORIGIN_DEVELOPMENT and DEBUG:
-
-    SESSION_COOKIE_SAMESITE = 'None'  
-    CSRF_COOKIE_SAMESITE = 'None'
-    SESSION_COOKIE_SECURE = True    
-    CSRF_COOKIE_SECURE = True
-
+if DEBUG:
+    SESSION_COOKIE_SAMESITE = 'Lax'  
+    CSRF_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_SECURE = False    
+    CSRF_COOKIE_SECURE = False
 else:
-    # SESSION_COOKIE_SAMESITE = 'Lax'   
-    # CSRF_COOKIE_SAMESITE = 'Lax'
-    # SESSION_COOKIE_SECURE = True      
-    # CSRF_COOKIE_SECURE = True
-
-    SESSION_COOKIE_SAMESITE = 'None'  
-    CSRF_COOKIE_SAMESITE = 'None'
-    SESSION_COOKIE_SECURE = True    
+    # Production settings
+    SESSION_COOKIE_SAMESITE = 'Lax'   
+    CSRF_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_SECURE = True      
     CSRF_COOKIE_SECURE = True
 
 
 
 
+    
 
 
+# email settings (Dynamically loads active SMTP settings from Admin Dashboard DB)
+EMAIL_BACKEND = 'apps.system_setting.email_backend.DynamicSMTPEmailBackend'
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 
-# email settings
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587  # Or 465 if using SSL
-EMAIL_USE_TLS = True  # If you use port 587
-
-EMAIL_HOST_USER = 'rafi.cse.ahmed@gmail.com'
-EMAIL_HOST_PASSWORD = 'rjib rhun elor goiu'
-DEFAULT_FROM_EMAIL = 'rafi.cse.ahmed@gmail.com'
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='support@Vantafy.com')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='Vantafy <support@Vantafy.com>')
 
 
 
@@ -425,12 +444,112 @@ UNFOLD = unfold_config.get_unfold_settings()
 STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
 STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY')
 STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET')
+STRIPE_REFERRAL_COUPON_ID = config('STRIPE_REFERRAL_COUPON_ID', default=None)  # 15% off coupon for referred users
 
 
-# ============================================
 # AWS S3 Settings
-# ============================================
-AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default=None)
-AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default=None)
 AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default=None)
-AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME', default='us-east-1')
+
+# Enable S3 only when explicitly requested (or when a bucket is configured)
+USE_S3 = config('USE_S3', default=False, cast=bool)
+
+if USE_S3:
+    # These should be present when running locally.
+    # (On AWS infra, credentials can also come from the instance/task role.)
+    AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default=None)
+    AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default=None)
+
+    AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME', default='us-east-2')
+    AWS_S3_ENDPOINT_URL = config('AWS_S3_ENDPOINT_URL', default=None)
+    AWS_S3_CUSTOM_DOMAIN = config('AWS_S3_CUSTOM_DOMAIN', default=None)
+
+    AWS_S3_FILE_OVERWRITE = False
+    AWS_DEFAULT_ACL = None
+
+    # If False, generated URLs won't be signed (works only if objects are publicly readable)
+    AWS_QUERYSTRING_AUTH = config('AWS_QUERYSTRING_AUTH', default=False, cast=bool)
+
+    STORAGES = {
+        "default": {
+            "BACKEND": "project.storage_backends.HybridMediaStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+
+    if not AWS_S3_CUSTOM_DOMAIN and AWS_STORAGE_BUCKET_NAME:
+        AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
+
+    # Keep MEDIA_URL as a local URL prefix so old local files can still be served
+    # via `urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)` in DEBUG.
+    MEDIA_URL = "/media/"
+    MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+else:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+
+    MEDIA_URL = "/media/"
+    MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+
+# ============================================
+# Celery Configuration
+# ============================================
+REDIS_HOST = os.environ.get("REDIS_HOST", "127.0.0.1")
+REDIS_PORT = os.environ.get("REDIS_PORT", "6379")
+
+from celery.schedules import crontab
+
+CELERY_BROKER_URL = config("CELERY_BROKER_URL", default=f"redis://{REDIS_HOST}:{REDIS_PORT}/0")
+CELERY_RESULT_BACKEND = config("CELERY_RESULT_BACKEND", default=CELERY_BROKER_URL)
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = "America/New_York"
+CELERY_TASK_ALWAYS_EAGER = config("CELERY_TASK_ALWAYS_EAGER", default=False, cast=bool)
+
+CELERY_BEAT_SCHEDULE = {
+    "run-daily-subscription-scans": {
+        "task": "apps.scanner.tasks.run_daily_subscription_scans",
+        "schedule": crontab(minute=5, hour=0),  # 12:05 AM EST daily (Superstar, VIP, Agency)
+    },
+    "send-daily-subscription-email-reports": {
+        "task": "apps.scanner.tasks.send_daily_subscription_email_reports",
+        "schedule": crontab(minute=0, hour=0),  # 12:00 AM EST daily (Superstar, VIP, Agency)
+    },
+    "send-weekly-subscription-email-reports": {
+        "task": "apps.scanner.tasks.send_weekly_subscription_email_reports",
+        "schedule": crontab(minute=0, hour=0, day_of_week=0),  # Sundays 12:00 AM EST (Starlet & Star)
+    },
+    "run-weekly-subscription-scans": {
+        "task": "apps.scanner.tasks.run_weekly_subscription_scans",
+        "schedule": crontab(minute=0, hour=12, day_of_week=0),  # Sundays 12:00 PM EST (Starlet & Star)
+    },
+    "run-expired-account-scans": {
+        "task": "apps.scanner.tasks.run_expired_account_scans",
+        "schedule": crontab(minute=0, hour=18, day_of_month="1,15"),  # 1st and 15th of the month at 6:00 PM EST (Expired Accounts)
+    },
+    "send-expired-account-email-reports": {
+        "task": "apps.scanner.tasks.send_expired_account_email_reports",
+        "schedule": crontab(minute=0, hour=18, day_of_month="1,15"),  # 1st and 15th of the month at 6:00 PM EST (Expired Accounts)
+    },
+}
+
+# Automated Link Removal Verification Settings
+LINK_VERIFICATION_USER_AGENT = config(
+    "LINK_VERIFICATION_USER_AGENT",
+    default="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+)
+LINK_VERIFICATION_REQUEST_TIMEOUT = config("LINK_VERIFICATION_REQUEST_TIMEOUT", default=15, cast=int)
+LINK_VERIFICATION_MAX_RETRIES = config("LINK_VERIFICATION_MAX_RETRIES", default=3, cast=int)
+LINK_VERIFICATION_RETRY_DELAYS = [300, 1800, 7200]  # 5 min, 30 min, 2 hours
+
+

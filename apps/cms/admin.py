@@ -10,7 +10,7 @@ from apps.cms.models import (
     Testimonial,
     HowItWorks,
     IdentityTracking,
-    
+    OurMetrics,
 )
 from unfold.admin import ModelAdmin
 
@@ -34,14 +34,14 @@ class CMSAdmin(ModelAdmin):
 
 @admin.register(FAQ)
 class FAQAdmin(ModelAdmin):
-    list_display = ('id', 'question', 'status')
-    list_display_links = ('id', 'question')
-    list_filter = ('status',)
+    list_display = ('display_order', 'question', 'type', 'status')
+    list_display_links = ('display_order', 'question')
+    list_filter = ('type', 'status')
     search_fields = ('question', 'answer')
 
     fieldsets = (
         (None, {
-            'fields': ('question', 'answer', 'status')
+            'fields': ('question', 'answer', 'type', 'display_order', 'status')
         }),
     )
 
@@ -90,4 +90,10 @@ class IdentityTrackingAdmin(ModelAdmin):
     list_display = ('id', 'title')
     list_display_links = ('id', 'title')
     search_fields = ('title', 'short_description')
+
+@admin.register(OurMetrics)
+class OurMetricsAdmin(ModelAdmin):
+    list_display = ('id', 'section_title', 'header_title', 'web_search', 'content_creators', 'leaks_found', 'recovered', 'success_score', 'status')
+    list_display_links = ('id', 'section_title')
+    list_filter = ('status',)
 
