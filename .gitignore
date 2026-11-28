@@ -111,7 +111,6 @@ ipython_config.py
 # pdm
 #   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
 #   pdm recommends including project-wide configuration in pdm.toml, but excluding .pdm-python.
-temp_auto_push.bat
 #   https://pdm-project.org/en/latest/usage/project/#working-with-version-control
 # pdm.lock
 # pdm.toml
@@ -226,6 +225,3 @@ staticfiles/
 ~.bashrc
 **/~.bashrc
 CACHING_SETUP.md
-branch_structure.json
-temp_auto_push.bat
-temp_interactive_push.bat
